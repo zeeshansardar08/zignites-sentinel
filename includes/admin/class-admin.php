@@ -513,6 +513,7 @@ class Admin {
 			'snapshot_health_baseline' => $this->get_snapshot_health_baseline( $snapshot_detail ),
 			'snapshot_health_comparison' => $this->get_snapshot_health_comparison( $snapshot_detail ),
 			'operator_checklist'     => $this->get_restore_operator_checklist( $snapshot_detail ),
+			'restore_impact_summary' => $this->get_restore_impact_summary( $snapshot_detail ),
 			'audit_report_verification' => $this->get_audit_report_verification( $snapshot_detail ),
 			'snapshot_activity'      => $this->get_snapshot_activity( $snapshot_detail ),
 			'snapshot_activity_url'  => $this->get_snapshot_activity_url( is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) ? (int) $snapshot_detail['id'] : 0 ),
@@ -2008,6 +2009,144 @@ class Admin {
 	}
 
 	/**
+	 * Build a final pre-execution impact summary for live restore.
+	 *
+	 * @param array|null $snapshot Snapshot detail.
+	 * @return array
+	 */
+	protected function get_restore_impact_summary( $snapshot ) {
+		if ( ! is_array( $snapshot ) || empty( $snapshot['id'] ) ) {
+			return array();
+		}
+
+		$artifacts       = $this->get_snapshot_artifacts( $snapshot );
+		$plan            = $this->get_last_restore_plan( $snapshot );
+		$baseline        = $this->get_snapshot_health_baseline( $snapshot );
+		$checklist       = $this->get_restore_operator_checklist( $snapshot, $artifacts );
+		$resume_context  = $this->get_restore_resume_context( $snapshot );
+		$execution       = $this->get_last_restore_execution( $snapshot );
+		$stage_checkpoint = $this->get_restore_stage_checkpoint( $snapshot );
+		$plan_checkpoint  = $this->get_restore_plan_checkpoint( $snapshot );
+		$summary         = isset( $plan['summary'] ) && is_array( $plan['summary'] ) ? $plan['summary'] : array();
+		$create_count    = isset( $summary['create'] ) ? (int) $summary['create'] : 0;
+		$replace_count   = isset( $summary['replace'] ) ? (int) $summary['replace'] : 0;
+		$reuse_count     = isset( $summary['reuse'] ) ? (int) $summary['reuse'] : 0;
+		$blocked_count   = isset( $summary['blocked'] ) ? (int) $summary['blocked'] : 0;
+		$conflict_count  = isset( $summary['conflicts'] ) ? (int) $summary['conflicts'] : 0;
+		$status          = 'info';
+		$title           = __( 'Low impact', 'zignites-sentinel' );
+		$message         = __( 'The current restore plan is mostly aligned with the live site.', 'zignites-sentinel' );
+
+		if ( empty( $checklist['can_execute'] ) || ( ! empty( $plan['status'] ) && 'blocked' === $plan['status'] ) ) {
+			$status  = 'critical';
+			$title   = __( 'Restore blocked', 'zignites-sentinel' );
+			$message = __( 'Live restore is still blocked by checklist or plan state. Review the items below before attempting execution.', 'zignites-sentinel' );
+		} elseif ( $replace_count > 0 || $conflict_count > 0 || $blocked_count > 0 || ( ! empty( $plan['status'] ) && 'caution' === $plan['status'] ) ) {
+			$status  = 'warning';
+			$title   = __( 'Review impact', 'zignites-sentinel' );
+			$message = __( 'This restore will overwrite live payloads. Review the replacement scope, backup behavior, and baseline before executing.', 'zignites-sentinel' );
+		}
+
+		$baseline_status = is_array( $baseline )
+			? sprintf(
+				/* translators: 1: health status, 2: timestamp */
+				__( '%1$s captured at %2$s', 'zignites-sentinel' ),
+				ucfirst( isset( $baseline['status'] ) ? (string) $baseline['status'] : __( 'Healthy', 'zignites-sentinel' ) ),
+				isset( $baseline['generated_at'] ) ? (string) $baseline['generated_at'] : ''
+			)
+			: __( 'No baseline captured yet', 'zignites-sentinel' );
+
+		$rows = array(
+			array(
+				'label' => __( 'Live changes', 'zignites-sentinel' ),
+				'value' => sprintf(
+					/* translators: 1: create count, 2: replace count, 3: unchanged count */
+					__( '%1$d create, %2$d replace, %3$d unchanged', 'zignites-sentinel' ),
+					$create_count,
+					$replace_count,
+					$reuse_count
+				),
+			),
+			array(
+				'label' => __( 'Conflict count', 'zignites-sentinel' ),
+				'value' => sprintf(
+					/* translators: %d: conflicting file count */
+					__( '%d planned file conflicts', 'zignites-sentinel' ),
+					$conflict_count
+				),
+			),
+			array(
+				'label' => __( 'Backup storage', 'zignites-sentinel' ),
+				'value' => $this->build_restore_backup_summary( $snapshot, $execution, $resume_context ),
+			),
+			array(
+				'label' => __( 'Baseline status', 'zignites-sentinel' ),
+				'value' => $baseline_status,
+			),
+			array(
+				'label' => __( 'Stage gate', 'zignites-sentinel' ),
+				'value' => $this->build_restore_gate_summary( __( 'No staged validation checkpoint is available.', 'zignites-sentinel' ), $stage_checkpoint ),
+			),
+			array(
+				'label' => __( 'Restore plan', 'zignites-sentinel' ),
+				'value' => $this->build_restore_gate_summary( __( 'No restore plan checkpoint is available.', 'zignites-sentinel' ), $plan_checkpoint ),
+			),
+			array(
+				'label' => __( 'Confirmation phrase', 'zignites-sentinel' ),
+				'value' => isset( $plan['confirmation_phrase'] ) && '' !== (string) $plan['confirmation_phrase']
+					? (string) $plan['confirmation_phrase']
+					: sprintf( 'RESTORE SNAPSHOT %d', (int) $snapshot['id'] ),
+			),
+		);
+
+		$blockers = array();
+
+		if ( ! empty( $checklist['checks'] ) && is_array( $checklist['checks'] ) ) {
+			foreach ( $checklist['checks'] as $check ) {
+				if ( empty( $check['status'] ) || 'pass' === $check['status'] ) {
+					continue;
+				}
+
+				$blockers[] = array(
+					'label'   => isset( $check['label'] ) ? (string) $check['label'] : __( 'Requirement', 'zignites-sentinel' ),
+					'message' => isset( $check['message'] ) ? (string) $check['message'] : '',
+				);
+			}
+		}
+
+		if ( ! empty( $resume_context['can_resume'] ) ) {
+			$rows[] = array(
+				'label' => __( 'Resume state', 'zignites-sentinel' ),
+				'value' => sprintf(
+					/* translators: 1: completed item count, 2: journal entry count */
+					__( '%1$d completed items already recorded across %2$d journal entries', 'zignites-sentinel' ),
+					isset( $resume_context['completed_item_count'] ) ? (int) $resume_context['completed_item_count'] : 0,
+					isset( $resume_context['entry_count'] ) ? (int) $resume_context['entry_count'] : 0
+				),
+			);
+		}
+
+		if ( $blocked_count > 0 ) {
+			$rows[] = array(
+				'label' => __( 'Blocked plan items', 'zignites-sentinel' ),
+				'value' => sprintf(
+					/* translators: %d: blocked plan item count */
+					__( '%d plan items are currently blocked', 'zignites-sentinel' ),
+					$blocked_count
+				),
+			);
+		}
+
+		return array(
+			'status'    => $status,
+			'title'     => $title,
+			'message'   => $message,
+			'rows'      => $rows,
+			'blockers'  => $blockers,
+		);
+	}
+
+	/**
 	 * Build dashboard restore readiness summary for the latest snapshot.
 	 *
 	 * @return array
@@ -2615,6 +2754,61 @@ class Admin {
 			'expires_at'    => gmdate( 'Y-m-d H:i:s', $expires_ts ),
 			'seconds_until' => (int) $seconds_until,
 			'label'         => $label,
+		);
+	}
+
+	/**
+	 * Build a readable gate summary line.
+	 *
+	 * @param string     $missing_message Fallback message when no checkpoint exists.
+	 * @param array|null $checkpoint      Checkpoint data.
+	 * @return string
+	 */
+	protected function build_restore_gate_summary( $missing_message, $checkpoint ) {
+		if ( ! is_array( $checkpoint ) || empty( $checkpoint ) ) {
+			return $missing_message;
+		}
+
+		$timing = $this->get_checkpoint_timing_summary( $checkpoint );
+
+		return sprintf(
+			/* translators: 1: checkpoint status, 2: timing label */
+			__( '%1$s. %2$s', 'zignites-sentinel' ),
+			isset( $checkpoint['status'] ) ? ucfirst( (string) $checkpoint['status'] ) : __( 'Stored', 'zignites-sentinel' ),
+			isset( $timing['label'] ) ? (string) $timing['label'] : ''
+		);
+	}
+
+	/**
+	 * Build a readable backup storage summary before execution.
+	 *
+	 * @param array $snapshot       Snapshot detail.
+	 * @param array $execution      Last execution result.
+	 * @param array $resume_context Resume context.
+	 * @return string
+	 */
+	protected function build_restore_backup_summary( array $snapshot, array $execution, array $resume_context ) {
+		if ( ! empty( $resume_context['can_resume'] ) && ! empty( $execution['backup_root'] ) ) {
+			return sprintf(
+				/* translators: %s: backup root path */
+				__( 'Resume will reuse the existing backup root at %s', 'zignites-sentinel' ),
+				(string) $execution['backup_root']
+			);
+		}
+
+		$uploads = wp_upload_dir();
+
+		if ( empty( $uploads['basedir'] ) || ! empty( $uploads['error'] ) ) {
+			return __( 'Backup storage path will be resolved under uploads at execution time.', 'zignites-sentinel' );
+		}
+
+		$base_path = trailingslashit( wp_normalize_path( $uploads['basedir'] ) ) . RestoreExecutor::BACKUP_DIRECTORY;
+
+		return sprintf(
+			/* translators: 1: backup root base path, 2: snapshot ID */
+			__( 'A new run-specific backup directory will be created under %1$s for snapshot %2$d', 'zignites-sentinel' ),
+			$base_path,
+			isset( $snapshot['id'] ) ? (int) $snapshot['id'] : 0
 		);
 	}
 
