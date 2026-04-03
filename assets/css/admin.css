@@ -189,6 +189,16 @@
 	margin-top: 16px;
 }
 
+.znts-badge-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.znts-badge-row .znts-pill {
+	margin: 0;
+}
+
 .znts-section-header {
 	align-items: flex-start;
 	display: flex;
@@ -207,6 +217,14 @@
 	list-style: disc;
 	margin: 0;
 	padding-left: 20px;
+}
+
+.znts-signal-list {
+	margin-top: 16px;
+}
+
+.znts-signal-list li + li {
+	margin-top: 8px;
 }
 
 .znts-json-block {

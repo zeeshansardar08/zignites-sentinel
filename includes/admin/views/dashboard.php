@@ -9,8 +9,9 @@ defined( 'ABSPATH' ) || exit;
 ?>
 <div class="wrap znts-admin-page">
 	<h1><?php echo esc_html__( 'Zignites Sentinel', 'zignites-sentinel' ); ?></h1>
-	<?php $restore_summary = isset( $view_data['restore_dashboard_summary'] ) && is_array( $view_data['restore_dashboard_summary'] ) ? $view_data['restore_dashboard_summary'] : array(); ?>
+	<?php $site_status_card = isset( $view_data['site_status_card'] ) && is_array( $view_data['site_status_card'] ) ? $view_data['site_status_card'] : array(); ?>
 	<?php $restore_health_strip = isset( $view_data['restore_health_strip'] ) && is_array( $view_data['restore_health_strip'] ) ? $view_data['restore_health_strip'] : array(); ?>
+	<?php $snapshot_status_index = isset( $view_data['snapshot_status_index'] ) && is_array( $view_data['snapshot_status_index'] ) ? $view_data['snapshot_status_index'] : array(); ?>
 
 	<div class="znts-admin-grid">
 		<section class="znts-card">
@@ -99,52 +100,53 @@ defined( 'ABSPATH' ) || exit;
 		</section>
 
 		<section class="znts-card">
-			<h2><?php echo esc_html__( 'Restore Readiness', 'zignites-sentinel' ); ?></h2>
-			<?php if ( empty( $restore_summary ) ) : ?>
-				<p><?php echo esc_html__( 'No snapshot is available yet for restore-readiness tracking.', 'zignites-sentinel' ); ?></p>
+			<h2><?php echo esc_html__( 'Site Status', 'zignites-sentinel' ); ?></h2>
+			<?php if ( empty( $site_status_card ) ) : ?>
+				<p><?php echo esc_html__( 'Site status is not available yet.', 'zignites-sentinel' ); ?></p>
 			<?php else : ?>
 				<div class="znts-readiness-row">
-					<span class="znts-pill znts-pill-<?php echo esc_attr( $restore_summary['status_badge'] ); ?>">
-						<?php echo esc_html( 'ready' === $restore_summary['status'] ? __( 'Offerable', 'zignites-sentinel' ) : __( 'Blocked', 'zignites-sentinel' ) ); ?>
+					<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $site_status_card['badge'] ) ? $site_status_card['badge'] : 'info' ); ?>">
+						<?php echo esc_html( isset( $site_status_card['label'] ) ? $site_status_card['label'] : '' ); ?>
 					</span>
-					<span><?php echo esc_html( $restore_summary['snapshot']['label'] ); ?></span>
+					<span>
+						<?php
+						echo esc_html(
+							! empty( $site_status_card['latest_snapshot']['label'] )
+								? (string) $site_status_card['latest_snapshot']['label']
+								: __( 'No snapshot selected yet', 'zignites-sentinel' )
+						);
+						?>
+					</span>
 				</div>
-				<p><?php echo esc_html( isset( $restore_summary['snapshot']['created_at'] ) ? $restore_summary['snapshot']['created_at'] : '' ); ?></p>
-				<div class="znts-status-grid">
-					<?php foreach ( $restore_summary['summary_rows'] as $row ) : ?>
-						<div class="znts-status-card">
-							<h3><?php echo esc_html( $row['label'] ); ?></h3>
-							<p>
-								<span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === $row['status'] ? 'critical' : ( 'pass' === $row['status'] ? 'info' : $row['status'] ) ); ?>">
-									<?php echo esc_html( ucfirst( $row['status'] ) ); ?>
-								</span>
-							</p>
-							<p><?php echo esc_html( $row['message'] ); ?></p>
-						</div>
+				<p><?php echo esc_html( isset( $site_status_card['recommended_action'] ) ? $site_status_card['recommended_action'] : '' ); ?></p>
+				<ul class="znts-list znts-signal-list">
+					<?php foreach ( isset( $site_status_card['signals'] ) && is_array( $site_status_card['signals'] ) ? $site_status_card['signals'] : array() as $signal ) : ?>
+						<li><?php echo esc_html( $signal ); ?></li>
 					<?php endforeach; ?>
-				</div>
+				</ul>
 				<p class="znts-card-note">
-					<?php echo esc_html( ! empty( $restore_summary['can_execute'] ) ? __( 'All live-restore checklist gates are currently satisfied for the latest snapshot.', 'zignites-sentinel' ) : __( 'The latest snapshot is not currently offerable for live restore. Review Update Readiness before execution.', 'zignites-sentinel' ) ); ?>
+					<?php echo esc_html__( 'Recommended action', 'zignites-sentinel' ); ?>:
+					<?php echo esc_html( isset( $site_status_card['recommended_action'] ) ? $site_status_card['recommended_action'] : '' ); ?>
 				</p>
 				<div class="znts-dashboard-links">
-					<?php if ( ! empty( $restore_summary['detail_url'] ) ) : ?>
-						<p><a href="<?php echo esc_url( $restore_summary['detail_url'] ); ?>"><?php echo esc_html__( 'Open Update Readiness', 'zignites-sentinel' ); ?></a></p>
+					<?php if ( ! empty( $site_status_card['detail_url'] ) ) : ?>
+						<p><a href="<?php echo esc_url( $site_status_card['detail_url'] ); ?>"><?php echo esc_html__( 'Open Update Readiness', 'zignites-sentinel' ); ?></a></p>
 					<?php endif; ?>
-					<?php if ( ! empty( $restore_summary['activity_url'] ) ) : ?>
-						<p><a href="<?php echo esc_url( $restore_summary['activity_url'] ); ?>"><?php echo esc_html__( 'Open Snapshot Activity', 'zignites-sentinel' ); ?></a></p>
+					<?php if ( ! empty( $site_status_card['activity_url'] ) ) : ?>
+						<p><a href="<?php echo esc_url( $site_status_card['activity_url'] ); ?>"><?php echo esc_html__( 'Open Snapshot Activity', 'zignites-sentinel' ); ?></a></p>
 					<?php endif; ?>
 				</div>
-				<?php if ( ! empty( $restore_summary['snapshot']['id'] ) ) : ?>
+				<?php if ( ! empty( $site_status_card['latest_snapshot']['id'] ) ) : ?>
 					<div class="znts-actions znts-dashboard-actions">
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 							<input type="hidden" name="action" value="znts_capture_snapshot_health_baseline" />
-							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $restore_summary['snapshot']['id'] ); ?>" />
+							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $site_status_card['latest_snapshot']['id'] ); ?>" />
 							<?php wp_nonce_field( 'znts_capture_snapshot_health_baseline_action' ); ?>
 							<?php submit_button( __( 'Capture Baseline', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 						</form>
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 							<input type="hidden" name="action" value="znts_download_snapshot_audit_report" />
-							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $restore_summary['snapshot']['id'] ); ?>" />
+							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $site_status_card['latest_snapshot']['id'] ); ?>" />
 							<?php wp_nonce_field( 'znts_download_snapshot_audit_report_action' ); ?>
 							<?php submit_button( __( 'Export Audit', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 						</form>
@@ -244,12 +246,14 @@ defined( 'ABSPATH' ) || exit;
 							<th><?php echo esc_html__( 'Created', 'zignites-sentinel' ); ?></th>
 							<th><?php echo esc_html__( 'Type', 'zignites-sentinel' ); ?></th>
 							<th><?php echo esc_html__( 'Status', 'zignites-sentinel' ); ?></th>
+							<th><?php echo esc_html__( 'Readiness', 'zignites-sentinel' ); ?></th>
 							<th><?php echo esc_html__( 'Label', 'zignites-sentinel' ); ?></th>
 							<th><?php echo esc_html__( 'Activity', 'zignites-sentinel' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
 						<?php foreach ( $view_data['recent_snapshots'] as $snapshot ) : ?>
+							<?php $snapshot_status = isset( $snapshot_status_index[ (int) $snapshot['id'] ] ) ? $snapshot_status_index[ (int) $snapshot['id'] ] : array(); ?>
 							<tr>
 								<td><?php echo esc_html( $snapshot['created_at'] ); ?></td>
 								<td><?php echo esc_html( ucfirst( $snapshot['snapshot_type'] ) ); ?></td>
@@ -257,6 +261,15 @@ defined( 'ABSPATH' ) || exit;
 									<span class="znts-pill znts-pill-info">
 										<?php echo esc_html( ucfirst( $snapshot['status'] ) ); ?>
 									</span>
+								</td>
+								<td>
+									<div class="znts-badge-row">
+										<?php foreach ( isset( $snapshot_status['status_badges'] ) && is_array( $snapshot_status['status_badges'] ) ? $snapshot_status['status_badges'] : array() as $badge ) : ?>
+											<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $badge['badge'] ) ? $badge['badge'] : 'info' ); ?>">
+												<?php echo esc_html( isset( $badge['label'] ) ? $badge['label'] : '' ); ?>
+											</span>
+										<?php endforeach; ?>
+									</div>
 								</td>
 								<td>
 									<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-update-readiness', 'snapshot_id' => (int) $snapshot['id'] ), admin_url( 'admin.php' ) ) ); ?>">

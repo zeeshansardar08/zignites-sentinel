@@ -34,6 +34,9 @@ $audit_report_verification = isset( $view_data['audit_report_verification'] ) &&
 $snapshot_activity       = isset( $view_data['snapshot_activity'] ) && is_array( $view_data['snapshot_activity'] ) ? $view_data['snapshot_activity'] : array();
 $snapshot_activity_url   = isset( $view_data['snapshot_activity_url'] ) ? (string) $view_data['snapshot_activity_url'] : '';
 $snapshot_search         = isset( $view_data['snapshot_search'] ) ? (string) $view_data['snapshot_search'] : '';
+$snapshot_status_filter  = isset( $view_data['snapshot_status_filter'] ) ? (string) $view_data['snapshot_status_filter'] : '';
+$snapshot_status_filter_options = isset( $view_data['snapshot_status_filter_options'] ) && is_array( $view_data['snapshot_status_filter_options'] ) ? $view_data['snapshot_status_filter_options'] : array();
+$snapshot_status_index   = isset( $view_data['snapshot_status_index'] ) && is_array( $view_data['snapshot_status_index'] ) ? $view_data['snapshot_status_index'] : array();
 $plan_validation           = isset( $last_plan['validation'] ) && is_array( $last_plan['validation'] ) ? $last_plan['validation'] : array();
 $restore_source_validation = isset( $last_restore_check['source_validation'] ) && is_array( $last_restore_check['source_validation'] ) ? $last_restore_check['source_validation'] : array();
 $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['metadata_decoded']['component_manifest'] ) && is_array( $snapshot_detail['metadata_decoded']['component_manifest'] ) ) ? $snapshot_detail['metadata_decoded']['component_manifest'] : array();
@@ -480,33 +483,54 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 					<label for="znts-snapshot-search"><?php echo esc_html__( 'Filter by label', 'zignites-sentinel' ); ?></label><br />
 					<input id="znts-snapshot-search" type="search" name="snapshot_search" value="<?php echo esc_attr( $snapshot_search ); ?>" />
 				</p>
+				<p>
+					<label for="znts-snapshot-status-filter"><?php echo esc_html__( 'Filter by status', 'zignites-sentinel' ); ?></label><br />
+					<select id="znts-snapshot-status-filter" name="snapshot_status_filter">
+						<?php foreach ( $snapshot_status_filter_options as $filter_value => $filter_label ) : ?>
+							<option value="<?php echo esc_attr( $filter_value ); ?>" <?php selected( $snapshot_status_filter, (string) $filter_value ); ?>>
+								<?php echo esc_html( $filter_label ); ?>
+							</option>
+						<?php endforeach; ?>
+					</select>
+				</p>
 				<p class="znts-filter-actions">
 					<?php submit_button( __( 'Filter Snapshots', 'zignites-sentinel' ), 'secondary', '', false ); ?>
-					<?php if ( '' !== $snapshot_search ) : ?>
+					<?php if ( '' !== $snapshot_search || '' !== $snapshot_status_filter ) : ?>
 						<a class="button" href="<?php echo esc_url( add_query_arg( array_filter( array( 'page' => 'zignites-sentinel-update-readiness', 'snapshot_id' => $snapshot_detail && ! empty( $snapshot_detail['id'] ) ? (int) $snapshot_detail['id'] : 0 ) ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html__( 'Clear', 'zignites-sentinel' ); ?></a>
 					<?php endif; ?>
 				</p>
 			</form>
 			<?php if ( empty( $view_data['recent_snapshots'] ) ) : ?>
-				<p><?php echo esc_html( '' !== $snapshot_search ? __( 'No snapshot labels matched the current filter.', 'zignites-sentinel' ) : __( 'No snapshot metadata has been recorded yet.', 'zignites-sentinel' ) ); ?></p>
+				<p><?php echo esc_html( '' !== $snapshot_search || '' !== $snapshot_status_filter ? __( 'No snapshots matched the current filters.', 'zignites-sentinel' ) : __( 'No snapshot metadata has been recorded yet.', 'zignites-sentinel' ) ); ?></p>
 			<?php else : ?>
 				<table class="widefat striped">
 					<thead>
 						<tr>
 							<th><?php echo esc_html__( 'Created', 'zignites-sentinel' ); ?></th>
 							<th><?php echo esc_html__( 'Label', 'zignites-sentinel' ); ?></th>
+							<th><?php echo esc_html__( 'Readiness', 'zignites-sentinel' ); ?></th>
 							<th><?php echo esc_html__( 'Core', 'zignites-sentinel' ); ?></th>
 							<th><?php echo esc_html__( 'PHP', 'zignites-sentinel' ); ?></th>
 						</tr>
 					</thead>
 					<tbody>
 						<?php foreach ( $view_data['recent_snapshots'] as $snapshot ) : ?>
+							<?php $snapshot_status = isset( $snapshot_status_index[ (int) $snapshot['id'] ] ) ? $snapshot_status_index[ (int) $snapshot['id'] ] : array(); ?>
 							<tr>
 								<td><?php echo esc_html( $snapshot['created_at'] ); ?></td>
 								<td>
 									<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-update-readiness', 'snapshot_id' => (int) $snapshot['id'] ), admin_url( 'admin.php' ) ) ); ?>">
 										<?php echo esc_html( $snapshot['label'] ); ?>
 									</a>
+								</td>
+								<td>
+									<div class="znts-badge-row">
+										<?php foreach ( isset( $snapshot_status['status_badges'] ) && is_array( $snapshot_status['status_badges'] ) ? $snapshot_status['status_badges'] : array() as $badge ) : ?>
+											<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $badge['badge'] ) ? $badge['badge'] : 'info' ); ?>">
+												<?php echo esc_html( isset( $badge['label'] ) ? $badge['label'] : '' ); ?>
+											</span>
+										<?php endforeach; ?>
+									</div>
 								</td>
 								<td><?php echo esc_html( $snapshot['core_version'] ); ?></td>
 								<td><?php echo esc_html( $snapshot['php_version'] ); ?></td>
