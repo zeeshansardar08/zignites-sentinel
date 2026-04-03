@@ -2619,6 +2619,24 @@ class Admin {
 			return array();
 		}
 
+		$rollback_checkpoint = $this->restore_checkpoint_store->get_rollback_checkpoint(
+			(int) $snapshot['id'],
+			isset( $context['run_id'] ) ? (string) $context['run_id'] : ''
+		);
+		$checkpoint_state    = isset( $rollback_checkpoint['checkpoint'] ) && is_array( $rollback_checkpoint['checkpoint'] ) ? $rollback_checkpoint['checkpoint'] : array();
+		$checkpoint_items    = isset( $checkpoint_state['items'] ) && is_array( $checkpoint_state['items'] ) ? $checkpoint_state['items'] : array();
+
+		$context['checkpoint_generated_at'] = isset( $rollback_checkpoint['generated_at'] ) ? (string) $rollback_checkpoint['generated_at'] : '';
+		$context['checkpoint_item_count']   = count( $checkpoint_items );
+		$context['checkpoint_completed_count'] = count(
+			array_filter(
+				$checkpoint_items,
+				static function ( $item ) {
+					return ! empty( $item['completed'] );
+				}
+			)
+		);
+
 		return $context;
 	}
 

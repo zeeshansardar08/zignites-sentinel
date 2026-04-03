@@ -35,14 +35,22 @@ class RestoreRollbackManager {
 	protected $journal_recorder;
 
 	/**
+	 * Checkpoint store.
+	 *
+	 * @var RestoreCheckpointStore|null
+	 */
+	protected $checkpoint_store;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Logger|null                 $logger           Logger.
 	 * @param RestoreJournalRecorder|null $journal_recorder Journal recorder.
 	 */
-	public function __construct( Logger $logger = null, RestoreJournalRecorder $journal_recorder = null ) {
+	public function __construct( Logger $logger = null, RestoreJournalRecorder $journal_recorder = null, RestoreCheckpointStore $checkpoint_store = null ) {
 		$this->logger           = $logger;
 		$this->journal_recorder = $journal_recorder;
+		$this->checkpoint_store = $checkpoint_store;
 	}
 
 	/**
@@ -104,12 +112,21 @@ class RestoreRollbackManager {
 			}
 		}
 
-		$resume_state = $this->get_resume_state( $snapshot_id, $run_id );
+		$this->store_rollback_checkpoint(
+			$snapshot,
+			$run_id,
+			array(
+				'backup_root' => isset( $restore_execution['backup_root'] ) ? (string) $restore_execution['backup_root'] : '',
+			)
+		);
+
+		$rollback_checkpoint = $this->get_rollback_checkpoint( $snapshot_id, $run_id );
+		$resume_state = $this->get_resume_state( $snapshot_id, $run_id, $rollback_checkpoint );
 		$item_results = array();
 		$items        = $this->get_rollback_items( $restore_execution );
 
 		foreach ( $items as $item ) {
-			$item_result = $this->rollback_item( $item, $resume_state );
+			$item_result = $this->rollback_item( $snapshot, $run_id, $item, $resume_state );
 			$item_results[] = $item_result;
 
 			if ( ! empty( $item_result['journal'] ) && is_array( $item_result['journal'] ) ) {
@@ -126,6 +143,10 @@ class RestoreRollbackManager {
 		$result = $this->finalize_result( $snapshot, $checks, $item_results, false, $journal, $run_id );
 		$this->append_run_completion_entry( $journal, $snapshot_id, $run_id, $result );
 		$result['journal'] = $journal;
+
+		if ( $this->checkpoint_store && isset( $result['status'] ) && 'partial' !== $result['status'] ) {
+			$this->checkpoint_store->clear_rollback_checkpoint( $snapshot_id, $run_id );
+		}
 
 		return $result;
 	}
@@ -192,7 +213,7 @@ class RestoreRollbackManager {
 	 * @param array $resume_state Resume state.
 	 * @return array
 	 */
-	protected function rollback_item( array $item, array $resume_state = array() ) {
+	protected function rollback_item( array $snapshot, $run_id, array $item, array $resume_state = array() ) {
 		$label       = isset( $item['label'] ) ? $item['label'] : '';
 		$target_path = isset( $item['target_path'] ) ? wp_normalize_path( $item['target_path'] ) : '';
 		$backup_path = isset( $item['backup_path'] ) ? wp_normalize_path( $item['backup_path'] ) : '';
@@ -202,6 +223,13 @@ class RestoreRollbackManager {
 		$item_key    = isset( $item['item_key'] ) ? $item['item_key'] : '';
 
 		if ( ! empty( $resume_state['completed_items'][ $item_key ] ) ) {
+			$this->store_rollback_item_checkpoint(
+				$snapshot,
+				$run_id,
+				$item_key,
+				$this->build_item_checkpoint( $item, 'resume_skip', 'pass', true, array() )
+			);
+
 			return array(
 				'label'   => $label,
 				'status'  => 'pass',
@@ -215,6 +243,13 @@ class RestoreRollbackManager {
 		}
 
 		if ( 'reuse' === $action ) {
+			$this->store_rollback_item_checkpoint(
+				$snapshot,
+				$run_id,
+				$item_key,
+				$this->build_item_checkpoint( $item, 'completed', 'pass', true, array() )
+			);
+
 			return array(
 				'label'   => $label,
 				'status'  => 'pass',
@@ -228,6 +263,13 @@ class RestoreRollbackManager {
 
 		if ( 'create' === $action ) {
 			if ( '' === $target_path || ! file_exists( $target_path ) ) {
+				$this->store_rollback_item_checkpoint(
+					$snapshot,
+					$run_id,
+					$item_key,
+					$this->build_item_checkpoint( $item, 'completed', 'pass', true, array( 'target_path' => $target_path ) )
+				);
+
 				return array(
 					'label'   => $label,
 					'status'  => 'pass',
@@ -240,6 +282,12 @@ class RestoreRollbackManager {
 			}
 
 			$removed = is_dir( $target_path ) ? $this->delete_directory_recursive( $target_path ) : wp_delete_file( $target_path );
+			$this->store_rollback_item_checkpoint(
+				$snapshot,
+				$run_id,
+				$item_key,
+				$this->build_item_checkpoint( $item, 'completed', $removed ? 'pass' : 'fail', $removed, array( 'target_path' => $target_path ) )
+			);
 
 			return array(
 				'label'   => $label,
@@ -255,6 +303,13 @@ class RestoreRollbackManager {
 		}
 
 		if ( '' === $backup_path || ! file_exists( $backup_path ) ) {
+			$this->store_rollback_item_checkpoint(
+				$snapshot,
+				$run_id,
+				$item_key,
+				$this->build_item_checkpoint( $item, 'completed', 'fail', false, array( 'backup_path' => $backup_path, 'target_path' => $target_path ) )
+			);
+
 			return array(
 				'label'   => $label,
 				'status'  => 'fail',
@@ -270,6 +325,13 @@ class RestoreRollbackManager {
 			$removed = is_dir( $target_path ) ? $this->delete_directory_recursive( $target_path ) : wp_delete_file( $target_path );
 
 			if ( ! $removed && file_exists( $target_path ) ) {
+				$this->store_rollback_item_checkpoint(
+					$snapshot,
+					$run_id,
+					$item_key,
+					$this->build_item_checkpoint( $item, 'completed', 'fail', false, array( 'backup_path' => $backup_path, 'target_path' => $target_path ) )
+				);
+
 				return array(
 					'label'   => $label,
 					'status'  => 'fail',
@@ -282,11 +344,24 @@ class RestoreRollbackManager {
 			}
 
 			$journal[] = $this->build_journal_entry( 'item', $label, 'target_removed', 'pass', __( 'The live payload was removed before rollback restore.', 'zignites-sentinel' ), $item );
+			$this->store_rollback_item_checkpoint(
+				$snapshot,
+				$run_id,
+				$item_key,
+				$this->build_item_checkpoint( $item, 'target_removed', 'pass', false, array( 'backup_path' => $backup_path, 'target_path' => $target_path ) )
+			);
 		}
 
 		$target_parent = dirname( $target_path );
 
 		if ( '' !== $target_parent && ! is_dir( $target_parent ) && ! wp_mkdir_p( $target_parent ) ) {
+			$this->store_rollback_item_checkpoint(
+				$snapshot,
+				$run_id,
+				$item_key,
+				$this->build_item_checkpoint( $item, 'completed', 'fail', false, array( 'backup_path' => $backup_path, 'target_path' => $target_path ) )
+			);
+
 			return array(
 				'label'   => $label,
 				'status'  => 'fail',
@@ -308,6 +383,13 @@ class RestoreRollbackManager {
 				? $this->copy_directory_recursive( $backup_path, $target_path )
 				: copy( $backup_path, $target_path );
 		}
+
+		$this->store_rollback_item_checkpoint(
+			$snapshot,
+			$run_id,
+			$item_key,
+			$this->build_item_checkpoint( $item, 'completed', $restored ? 'pass' : 'fail', $restored, array( 'backup_path' => $backup_path, 'target_path' => $target_path ) )
+		);
 
 		return array(
 			'label'   => $label,
@@ -397,10 +479,11 @@ class RestoreRollbackManager {
 	 * @param string $run_id      Run ID.
 	 * @return array
 	 */
-	protected function get_resume_state( $snapshot_id, $run_id ) {
+	protected function get_resume_state( $snapshot_id, $run_id, array $rollback_checkpoint = array() ) {
 		$state = array(
 			'entries'         => array(),
 			'completed_items' => array(),
+			'checkpoint_items' => array(),
 		);
 
 		if ( ! $this->journal_recorder || '' === $run_id ) {
@@ -424,7 +507,106 @@ class RestoreRollbackManager {
 			}
 		}
 
+		$checkpoint_items = isset( $rollback_checkpoint['checkpoint']['items'] ) && is_array( $rollback_checkpoint['checkpoint']['items'] ) ? $rollback_checkpoint['checkpoint']['items'] : array();
+
+		foreach ( $checkpoint_items as $item_key => $item_state ) {
+			if ( ! is_array( $item_state ) ) {
+				continue;
+			}
+
+			$item_key = sanitize_text_field( (string) $item_key );
+
+			if ( '' === $item_key ) {
+				continue;
+			}
+
+			$state['checkpoint_items'][ $item_key ] = $item_state;
+
+			if ( ! empty( $item_state['completed'] ) ) {
+				$state['completed_items'][ $item_key ] = array_merge(
+					array(
+						'item_key'    => $item_key,
+						'backup_path' => isset( $item_state['backup_path'] ) ? $item_state['backup_path'] : '',
+						'target_path' => isset( $item_state['target_path'] ) ? $item_state['target_path'] : '',
+					),
+					$item_state
+				);
+			}
+		}
+
 		return $state;
+	}
+
+	/**
+	 * Build a normalized rollback item checkpoint.
+	 *
+	 * @param array  $item      Rollback item.
+	 * @param string $phase     Current phase.
+	 * @param string $status    Current status.
+	 * @param bool   $completed Whether rollback is complete for the item.
+	 * @param array  $context   Additional context.
+	 * @return array
+	 */
+	protected function build_item_checkpoint( array $item, $phase, $status, $completed, array $context = array() ) {
+		return array(
+			'item_key'    => isset( $item['item_key'] ) ? (string) $item['item_key'] : '',
+			'label'       => isset( $item['label'] ) ? (string) $item['label'] : '',
+			'action'      => isset( $item['action'] ) ? (string) $item['action'] : '',
+			'phase'       => sanitize_key( (string) $phase ),
+			'status'      => sanitize_key( (string) $status ),
+			'completed'   => (bool) $completed,
+			'backup_path' => isset( $context['backup_path'] ) ? wp_normalize_path( (string) $context['backup_path'] ) : '',
+			'target_path' => isset( $context['target_path'] ) ? wp_normalize_path( (string) $context['target_path'] ) : '',
+			'updated_at'  => current_time( 'mysql', true ),
+		);
+	}
+
+	/**
+	 * Fetch a rollback checkpoint for a run when storage is available.
+	 *
+	 * @param int    $snapshot_id Snapshot ID.
+	 * @param string $run_id      Run ID.
+	 * @return array
+	 */
+	protected function get_rollback_checkpoint( $snapshot_id, $run_id ) {
+		if ( ! $this->checkpoint_store || '' === (string) $run_id ) {
+			return array();
+		}
+
+		return $this->checkpoint_store->get_rollback_checkpoint( $snapshot_id, $run_id );
+	}
+
+	/**
+	 * Store rollback checkpoint state when storage is available.
+	 *
+	 * @param array  $snapshot   Snapshot row.
+	 * @param string $run_id     Run ID.
+	 * @param array  $checkpoint Checkpoint state.
+	 * @return void
+	 */
+	protected function store_rollback_checkpoint( array $snapshot, $run_id, array $checkpoint ) {
+		if ( ! $this->checkpoint_store || '' === (string) $run_id ) {
+			return;
+		}
+
+		$this->checkpoint_store->store_rollback_checkpoint( $snapshot, $run_id, $checkpoint );
+	}
+
+	/**
+	 * Store per-item rollback checkpoint state when storage is available.
+	 *
+	 * @param array  $snapshot        Snapshot row.
+	 * @param string $run_id          Run ID.
+	 * @param string $item_key        Stable item key.
+	 * @param array  $item_checkpoint Item checkpoint state.
+	 * @return void
+	 */
+	protected function store_rollback_item_checkpoint( array $snapshot, $run_id, $item_key, array $item_checkpoint ) {
+		if ( ! $this->checkpoint_store || '' === (string) $run_id || '' === (string) $item_key ) {
+			return;
+		}
+
+		$this->checkpoint_store->store_rollback_item_checkpoint( $snapshot, $run_id, $item_key, $item_checkpoint );
 	}
 
 	/**

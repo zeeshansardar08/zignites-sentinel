@@ -168,6 +168,65 @@ class RestoreCheckpointStore {
 	}
 
 	/**
+	 * Store a rollback checkpoint for a specific run.
+	 *
+	 * @param array  $snapshot   Snapshot row.
+	 * @param string $run_id     Run ID.
+	 * @param array  $checkpoint Rollback checkpoint data.
+	 * @return void
+	 */
+	public function store_rollback_checkpoint( array $snapshot, $run_id, array $checkpoint ) {
+		$snapshot_id = isset( $snapshot['id'] ) ? absint( $snapshot['id'] ) : 0;
+		$run_id      = sanitize_text_field( (string) $run_id );
+
+		if ( $snapshot_id < 1 || '' === $run_id ) {
+			return;
+		}
+
+		$existing          = $this->get_rollback_checkpoint( $snapshot_id, $run_id );
+		$existing_state    = isset( $existing['checkpoint'] ) && is_array( $existing['checkpoint'] ) ? $existing['checkpoint'] : array();
+		$merged_checkpoint = array_replace_recursive( $existing_state, $checkpoint );
+
+		update_option(
+			ZNTS_OPTION_RESTORE_ROLLBACK_CHECKPOINT,
+			array(
+				'snapshot_id'  => $snapshot_id,
+				'run_id'       => $run_id,
+				'generated_at' => current_time( 'mysql', true ),
+				'checkpoint'   => $merged_checkpoint,
+			),
+			false
+		);
+	}
+
+	/**
+	 * Store or update a per-item rollback checkpoint.
+	 *
+	 * @param array  $snapshot        Snapshot row.
+	 * @param string $run_id          Run ID.
+	 * @param string $item_key        Stable item key.
+	 * @param array  $item_checkpoint Item checkpoint payload.
+	 * @return void
+	 */
+	public function store_rollback_item_checkpoint( array $snapshot, $run_id, $item_key, array $item_checkpoint ) {
+		$item_key = sanitize_text_field( (string) $item_key );
+
+		if ( '' === $item_key ) {
+			return;
+		}
+
+		$this->store_rollback_checkpoint(
+			$snapshot,
+			$run_id,
+			array(
+				'items' => array(
+					$item_key => $item_checkpoint,
+				),
+			)
+		);
+	}
+
+	/**
 	 * Get a matching execution checkpoint for a run.
 	 *
 	 * @param array  $snapshot  Snapshot row.
@@ -232,6 +291,33 @@ class RestoreCheckpointStore {
 	}
 
 	/**
+	 * Get the stored rollback checkpoint for a snapshot and optional run.
+	 *
+	 * @param int    $snapshot_id Snapshot ID.
+	 * @param string $run_id      Optional run ID.
+	 * @return array
+	 */
+	public function get_rollback_checkpoint( $snapshot_id, $run_id = '' ) {
+		$stored      = get_option( ZNTS_OPTION_RESTORE_ROLLBACK_CHECKPOINT, array() );
+		$snapshot_id = absint( $snapshot_id );
+		$run_id      = sanitize_text_field( (string) $run_id );
+
+		if ( ! is_array( $stored ) || empty( $stored['snapshot_id'] ) ) {
+			return array();
+		}
+
+		if ( $snapshot_id > 0 && (int) $stored['snapshot_id'] !== $snapshot_id ) {
+			return array();
+		}
+
+		if ( '' !== $run_id && ( empty( $stored['run_id'] ) || $run_id !== sanitize_text_field( (string) $stored['run_id'] ) ) ) {
+			return array();
+		}
+
+		return $stored;
+	}
+
+	/**
 	 * Clear the stored execution checkpoint for a run or snapshot.
 	 *
 	 * @param int    $snapshot_id Snapshot ID.
@@ -256,6 +342,33 @@ class RestoreCheckpointStore {
 		}
 
 		delete_option( ZNTS_OPTION_RESTORE_EXECUTION_CHECKPOINT );
+	}
+
+	/**
+	 * Clear the stored rollback checkpoint for a run or snapshot.
+	 *
+	 * @param int    $snapshot_id Snapshot ID.
+	 * @param string $run_id      Optional run ID.
+	 * @return void
+	 */
+	public function clear_rollback_checkpoint( $snapshot_id = 0, $run_id = '' ) {
+		$stored      = get_option( ZNTS_OPTION_RESTORE_ROLLBACK_CHECKPOINT, array() );
+		$snapshot_id = absint( $snapshot_id );
+		$run_id      = sanitize_text_field( (string) $run_id );
+
+		if ( ! is_array( $stored ) ) {
+			return;
+		}
+
+		if ( $snapshot_id > 0 && ( empty( $stored['snapshot_id'] ) || (int) $stored['snapshot_id'] !== $snapshot_id ) ) {
+			return;
+		}
+
+		if ( '' !== $run_id && ( empty( $stored['run_id'] ) || $run_id !== sanitize_text_field( (string) $stored['run_id'] ) ) ) {
+			return;
+		}
+
+		delete_option( ZNTS_OPTION_RESTORE_ROLLBACK_CHECKPOINT );
 	}
 
 	/**

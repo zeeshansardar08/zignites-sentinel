@@ -9,6 +9,7 @@ define( 'HOUR_IN_SECONDS', 3600 );
 define( 'ZNTS_OPTION_SETTINGS', 'znts_settings' );
 define( 'ZNTS_OPTION_LAST_SNAPSHOT_HEALTH_BASELINE', 'znts_last_snapshot_health_baseline' );
 define( 'ZNTS_OPTION_RESTORE_EXECUTION_CHECKPOINT', 'znts_restore_execution_checkpoint' );
+define( 'ZNTS_OPTION_RESTORE_ROLLBACK_CHECKPOINT', 'znts_restore_rollback_checkpoint' );
 
 $GLOBALS['znts_test_options'] = array();
 

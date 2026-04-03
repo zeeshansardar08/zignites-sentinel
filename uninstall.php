@@ -37,6 +37,7 @@ if ( empty( $settings['delete_data_on_uninstall'] ) ) {
 	delete_option( 'znts_last_restore_execution' );
 	delete_option( 'znts_restore_execution_checkpoint' );
 	delete_option( 'znts_last_restore_rollback' );
+	delete_option( 'znts_restore_rollback_checkpoint' );
 	delete_option( 'znts_last_snapshot_health_baseline' );
 	delete_option( 'znts_last_audit_report_verification' );
 	delete_option( 'znts_restore_checkpoint_expiry_log' );
@@ -56,6 +57,7 @@ delete_option( 'znts_restore_plan_checkpoint' );
 delete_option( 'znts_last_restore_execution' );
 delete_option( 'znts_restore_execution_checkpoint' );
 delete_option( 'znts_last_restore_rollback' );
+delete_option( 'znts_restore_rollback_checkpoint' );
 delete_option( 'znts_last_snapshot_health_baseline' );
 delete_option( 'znts_last_audit_report_verification' );
 delete_option( 'znts_restore_checkpoint_expiry_log' );

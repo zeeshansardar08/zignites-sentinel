@@ -80,7 +80,7 @@ class Plugin {
 		$checkpoint_store    = new RestoreCheckpointStore();
 		$restore_verifier    = new RestoreHealthVerifier();
 		$restore_executor    = new RestoreExecutor( $restore_staging, $restore_planner, $restore_verifier, $logger, $journal_recorder, $checkpoint_store );
-		$restore_rollback    = new RestoreRollbackManager( $logger, $journal_recorder );
+		$restore_rollback    = new RestoreRollbackManager( $logger, $journal_recorder, $checkpoint_store );
 		$artifact_inspector  = new SnapshotArtifactInspector( $export_manager, $package_manager );
 		$source_validator    = new SourceValidator( $artifact_repository, $export_manager, $package_manager );
 		$snapshot_manager    = new SnapshotManager( $snapshot_repository, $artifact_repository, null, $export_manager, $package_manager, $logger );

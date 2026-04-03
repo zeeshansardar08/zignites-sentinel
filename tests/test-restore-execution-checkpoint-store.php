@@ -182,3 +182,74 @@ function znts_test_execution_checkpoint_requires_matching_package_fingerprint() 
 
 	znts_assert_same( array(), $checkpoint, 'Execution checkpoints should not be reused when the package fingerprint has changed.' );
 }
+
+function znts_test_rollback_checkpoint_merges_item_completion_state() {
+	$GLOBALS['znts_test_options'] = array();
+
+	$store = new RestoreCheckpointStore();
+	$snapshot = array(
+		'id' => 47,
+	);
+
+	$store->store_rollback_checkpoint(
+		$snapshot,
+		'rollback-47',
+		array(
+			'backup_root' => 'C:\\backup\\snapshot-47',
+		)
+	);
+
+	$store->store_rollback_item_checkpoint(
+		$snapshot,
+		'rollback-47',
+		'item-rollback-1',
+		array(
+			'phase'       => 'target_removed',
+			'status'      => 'pass',
+			'completed'   => false,
+			'target_path' => 'C:\\live\\plugin-b',
+		)
+	);
+
+	$store->store_rollback_item_checkpoint(
+		$snapshot,
+		'rollback-47',
+		'item-rollback-1',
+		array(
+			'phase'       => 'completed',
+			'status'      => 'pass',
+			'completed'   => true,
+			'target_path' => 'C:\\live\\plugin-b',
+			'backup_path' => 'C:\\backup\\plugin-b',
+		)
+	);
+
+	$checkpoint = $store->get_rollback_checkpoint( 47, 'rollback-47' );
+
+	znts_assert_same( 'C:\\backup\\snapshot-47', $checkpoint['checkpoint']['backup_root'], 'Rollback checkpoint should preserve backup root context.' );
+	znts_assert_true( ! empty( $checkpoint['checkpoint']['items']['item-rollback-1']['completed'] ), 'Rollback item completion should be merged into the checkpoint.' );
+	znts_assert_same( 'completed', $checkpoint['checkpoint']['items']['item-rollback-1']['phase'], 'Rollback item phase should update to the latest checkpoint.' );
+}
+
+function znts_test_rollback_checkpoint_can_be_cleared_by_snapshot_and_run() {
+	$GLOBALS['znts_test_options'] = array();
+
+	$store = new RestoreCheckpointStore();
+	$snapshot = array(
+		'id' => 48,
+	);
+
+	$store->store_rollback_checkpoint(
+		$snapshot,
+		'rollback-48',
+		array(
+			'backup_root' => 'C:\\backup\\snapshot-48',
+		)
+	);
+
+	znts_assert_true( ! empty( $store->get_rollback_checkpoint( 48, 'rollback-48' ) ), 'Rollback checkpoint should exist before clearing.' );
+
+	$store->clear_rollback_checkpoint( 48, 'rollback-48' );
+
+	znts_assert_same( array(), $store->get_rollback_checkpoint( 48, 'rollback-48' ), 'Rollback checkpoint should be cleared for the matching snapshot and run.' );
+}

@@ -1467,6 +1467,20 @@ $workspace_next_action     = ! empty( $operator_checklist['can_execute'] )
 							);
 							?>
 						</p>
+						<?php if ( ! empty( $restore_rollback_resume_context['checkpoint_item_count'] ) ) : ?>
+							<p class="description">
+								<?php
+								echo esc_html(
+									sprintf(
+										/* translators: 1: completed count, 2: tracked item count */
+										__( 'Rollback checkpoint state currently tracks %1$d completed items across %2$d item checkpoints.', 'zignites-sentinel' ),
+										isset( $restore_rollback_resume_context['checkpoint_completed_count'] ) ? (int) $restore_rollback_resume_context['checkpoint_completed_count'] : 0,
+										(int) $restore_rollback_resume_context['checkpoint_item_count']
+									)
+								);
+								?>
+							</p>
+						<?php endif; ?>
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 							<input type="hidden" name="action" value="znts_resume_restore_rollback" />
 							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
