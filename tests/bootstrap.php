@@ -91,20 +91,29 @@ if ( ! function_exists( 'wp_normalize_path' ) ) {
 	}
 }
 
-if ( ! class_exists( 'Zignites\\Sentinel\\Snapshots\\RestoreExecutor' ) ) {
+if ( ! class_exists( 'Zignites\\Sentinel\\Logging\\Logger' ) ) {
 	eval(
-		'namespace Zignites\\Sentinel\\Snapshots; class RestoreExecutor { const JOURNAL_SOURCE = "restore-execution"; }'
+		'namespace Zignites\\Sentinel\\Logging; class Logger { public function log() { return true; } }'
 	);
 }
 
-if ( ! class_exists( 'Zignites\\Sentinel\\Snapshots\\RestoreRollbackManager' ) ) {
+if ( ! class_exists( 'Zignites\\Sentinel\\Snapshots\\RestoreStagingManager' ) ) {
 	eval(
-		'namespace Zignites\\Sentinel\\Snapshots; class RestoreRollbackManager { const JOURNAL_SOURCE = "restore-rollback"; }'
+		'namespace Zignites\\Sentinel\\Snapshots; class RestoreStagingManager {}'
 	);
 }
 
+if ( ! class_exists( 'Zignites\\Sentinel\\Snapshots\\RestoreExecutionPlanner' ) ) {
+	eval(
+		'namespace Zignites\\Sentinel\\Snapshots; class RestoreExecutionPlanner {}'
+	);
+}
+
+require_once __DIR__ . '/../includes/snapshots/class-restore-health-verifier.php';
 require_once __DIR__ . '/../includes/logging/class-log-repository.php';
 require_once __DIR__ . '/../includes/snapshots/class-restore-checkpoint-store.php';
 require_once __DIR__ . '/../includes/snapshots/class-restore-journal-recorder.php';
+require_once __DIR__ . '/../includes/snapshots/class-restore-executor.php';
+require_once __DIR__ . '/../includes/snapshots/class-restore-rollback-manager.php';
 require_once __DIR__ . '/../includes/snapshots/class-snapshot-artifact-repository.php';
 require_once __DIR__ . '/../includes/admin/class-snapshot-status-resolver.php';

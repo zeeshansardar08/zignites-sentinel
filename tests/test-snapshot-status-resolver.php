@@ -8,6 +8,7 @@ require_once __DIR__ . '/bootstrap.php';
 use Zignites\Sentinel\Admin\SnapshotStatusResolver;
 use Zignites\Sentinel\Logging\LogRepository;
 use Zignites\Sentinel\Snapshots\RestoreCheckpointStore;
+use Zignites\Sentinel\Snapshots\RestoreExecutor;
 use Zignites\Sentinel\Snapshots\RestoreJournalRecorder;
 use Zignites\Sentinel\Snapshots\SnapshotArtifactRepository;
 
@@ -241,7 +242,7 @@ function znts_test_site_status_becomes_at_risk_on_recent_failure() {
 		array(
 			'run_id'           => 'run-1',
 			'snapshot_id'      => 30,
-			'source'           => 'restore-execution',
+			'source'           => RestoreExecutor::JOURNAL_SOURCE,
 			'latest_timestamp' => gmdate( 'Y-m-d H:i:s', time() - 120 ),
 			'terminal_status'  => 'fail',
 			'last_message'     => 'Restore failed.',
