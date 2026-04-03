@@ -1,7 +1,7 @@
 # Zignites Sentinel Progress Audit
 
 ## Current State
-- Plugin version: `1.21.0`
+- Plugin version: `1.22.0`
 - Database version: `1.4.0`
 - Status: advanced MVP / controlled-restore product foundation
 - Current objective achieved: the plugin now covers snapshot capture, advisory readiness, staged validation, restore planning, guarded live restore, guarded rollback, health verification, audit reporting, checkpointing, resumability, and operator-facing admin workflows
@@ -99,6 +99,7 @@
   - front-end
   - login endpoint
   - REST API endpoint
+  - authenticated admin endpoint
   - status codes
   - body presence
   - content sanity
@@ -275,26 +276,21 @@
 - Reason: reduce clicks and operator ambiguity
 
 ### Safety-Focused Next Steps
-3. Add stronger post-restore validation
-- Extend beyond front-end/login/REST viability
-- Check admin page load or a lightweight authenticated admin endpoint
-- Reason: current health verification is good but still not full application validation
-
-4. Add restore execution item checkpoints beyond current phase reuse
+3. Add restore execution item checkpoints beyond current phase reuse
 - Persist finer-grained file/item completion state
 - Reason: improve resume reliability for large restores
 
 ### Product Maturity Next Steps
-5. Add export/import of configuration and non-destructive preferences
+4. Add export/import of configuration and non-destructive preferences
 - Keep restore execution state out of config export
 - Reason: operational portability
 
-6. Add reporting polish
+5. Add reporting polish
 - downloadable CSV or HTML summary for logs/run journals
 - snapshot summary print/export view
 - Reason: agency/client handoff use case
 
-7. Add automated tests
+6. Add automated tests
 - Highest-value targets:
   - checkpoint freshness logic
   - audit report verification
