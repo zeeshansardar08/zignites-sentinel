@@ -255,3 +255,26 @@
 	padding: 16px;
 	white-space: pre-wrap;
 }
+
+.znts-dashboard-widget .znts-readiness-row {
+	margin-bottom: 10px;
+}
+
+.znts-widget-summary {
+	margin: 0 0 12px;
+}
+
+.znts-widget-health {
+	margin-top: 12px;
+}
+
+.znts-widget-health p {
+	margin: 0 0 8px;
+}
+
+.znts-widget-links {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 12px;
+}

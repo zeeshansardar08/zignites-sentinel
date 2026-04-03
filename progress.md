@@ -1,7 +1,7 @@
 # Zignites Sentinel Progress Audit
 
 ## Current State
-- Plugin version: `1.16.0`
+- Plugin version: `1.20.0`
 - Database version: `1.4.0`
 - Status: advanced MVP / controlled-restore product foundation
 - Current objective achieved: the plugin now covers snapshot capture, advisory readiness, staged validation, restore planning, guarded live restore, guarded rollback, health verification, audit reporting, checkpointing, resumability, and operator-facing admin workflows
@@ -167,6 +167,11 @@
   - Capture Baseline
   - Export Audit
 - Countdown/expiry messaging for stage and plan checkpoints
+- Compact WordPress Dashboard widget for:
+  - site status
+  - recommended action
+  - latest snapshot readiness badges
+  - latest health summary
 
 ### 14. Update Readiness Operator UX
 - Snapshot detail view
@@ -253,12 +258,7 @@
   - has recent restore activity
 - Reason: once the snapshot list grows, label-only filtering is not enough
 
-2. Add a compact dashboard widget variant
-- Reuse the existing restore summary and health strip logic
-- Keep it read-only
-- Reason: make the product useful without opening the full plugin screen
-
-3. Add per-snapshot readiness badges in the snapshot list
+2. Add per-snapshot readiness badges in the snapshot list
 - Show at-a-glance markers for:
   - baseline exists
   - stage fresh
@@ -267,30 +267,30 @@
 - Reason: reduce clicks and operator ambiguity
 
 ### Safety-Focused Next Steps
-4. Add stronger post-restore validation
+3. Add stronger post-restore validation
 - Extend beyond front-end/login/REST viability
 - Check admin page load or a lightweight authenticated admin endpoint
 - Reason: current health verification is good but still not full application validation
 
-5. Add restore execution item checkpoints beyond current phase reuse
+4. Add restore execution item checkpoints beyond current phase reuse
 - Persist finer-grained file/item completion state
 - Reason: improve resume reliability for large restores
 
-6. Add explicit pre-execution impact summary
+5. Add explicit pre-execution impact summary
 - Show overwrite counts, new items, backup location, and health baseline summary in one final confirmation panel
 - Reason: reduce operator error before destructive execution
 
 ### Product Maturity Next Steps
-7. Add export/import of configuration and non-destructive preferences
+6. Add export/import of configuration and non-destructive preferences
 - Keep restore execution state out of config export
 - Reason: operational portability
 
-8. Add reporting polish
+7. Add reporting polish
 - downloadable CSV or HTML summary for logs/run journals
 - snapshot summary print/export view
 - Reason: agency/client handoff use case
 
-9. Add automated tests
+8. Add automated tests
 - Highest-value targets:
   - checkpoint freshness logic
   - audit report verification
