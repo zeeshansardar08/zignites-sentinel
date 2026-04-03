@@ -1,7 +1,7 @@
 # Zignites Sentinel Progress Audit
 
 ## Current State
-- Plugin version: `1.27.0`
+- Plugin version: `1.28.0`
 - Database version: `1.4.0`
 - Status: advanced MVP / controlled-restore product foundation
 - Current objective achieved: the plugin now covers snapshot capture, advisory readiness, staged validation, restore planning, guarded live restore, guarded rollback, health verification, audit reporting, checkpointing, resumability, and operator-facing admin workflows
@@ -137,6 +137,7 @@
 
 ### 11. Audit and Traceability
 - Snapshot audit report export as JSON
+- Snapshot summary export as Markdown for operator/client handoff
 - Audit report includes:
   - snapshot data
   - artifact data
@@ -179,6 +180,11 @@
 
 ### 14. Update Readiness Operator UX
 - Snapshot detail view
+- Snapshot summary card with:
+  - overview
+  - evidence
+  - current risks
+  - recommended next steps
 - Artifact detail and diff
 - Health baseline section
 - Operator checklist section

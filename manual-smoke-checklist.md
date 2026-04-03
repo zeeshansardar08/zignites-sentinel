@@ -86,9 +86,28 @@ For each filter:
 3. Confirm the same centralized readiness badges appear for the selected snapshot.
 4. Confirm existing operator actions still render normally:
    - baseline capture
+   - summary export
    - audit export
    - checklist refresh
    - non-destructive validation actions
+
+## Snapshot Summary
+
+1. Open a selected snapshot in `Update Readiness`.
+2. Confirm the `Snapshot Summary` card renders before the health baseline section.
+3. Confirm it shows:
+   - overview blocks
+   - evidence list
+   - current risks
+   - recommended next steps
+4. Click `Download Summary`.
+5. Confirm a Markdown file downloads and includes:
+   - snapshot metadata
+   - overview
+   - evidence
+   - risks
+   - recommended next steps
+   - recent activity
 
 ## Restore Impact Summary
 

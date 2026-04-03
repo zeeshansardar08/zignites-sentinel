@@ -305,6 +305,7 @@ class Admin {
 		add_action( 'admin_post_znts_resume_restore', array( $this, 'handle_resume_restore' ) );
 		add_action( 'admin_post_znts_discard_restore_execution_checkpoint', array( $this, 'handle_discard_restore_execution_checkpoint' ) );
 		add_action( 'admin_post_znts_capture_snapshot_health_baseline', array( $this, 'handle_capture_snapshot_health_baseline' ) );
+		add_action( 'admin_post_znts_download_snapshot_summary', array( $this, 'handle_download_snapshot_summary' ) );
 		add_action( 'admin_post_znts_download_snapshot_audit_report', array( $this, 'handle_download_snapshot_audit_report' ) );
 		add_action( 'admin_post_znts_verify_snapshot_audit_report', array( $this, 'handle_verify_snapshot_audit_report' ) );
 		add_action( 'admin_post_znts_rollback_restore', array( $this, 'handle_rollback_restore' ) );
@@ -516,6 +517,7 @@ class Admin {
 			'restore_run_cards'      => $this->get_restore_run_cards( $snapshot_detail ),
 			'snapshot_health_baseline' => $this->get_snapshot_health_baseline( $snapshot_detail ),
 			'snapshot_health_comparison' => $this->get_snapshot_health_comparison( $snapshot_detail ),
+			'snapshot_summary'       => $this->get_snapshot_summary( $snapshot_detail ),
 			'operator_checklist'     => $this->get_restore_operator_checklist( $snapshot_detail ),
 			'restore_impact_summary' => $this->get_restore_impact_summary( $snapshot_detail ),
 			'audit_report_verification' => $this->get_audit_report_verification( $snapshot_detail ),
@@ -1202,6 +1204,44 @@ class Admin {
 	}
 
 	/**
+	 * Handle download of a human-readable snapshot summary.
+	 *
+	 * @return void
+	 */
+	public function handle_download_snapshot_summary() {
+		$this->assert_admin_action_permissions( 'znts_download_snapshot_summary_action' );
+
+		$snapshot_id = isset( $_POST['snapshot_id'] ) ? absint( wp_unslash( $_POST['snapshot_id'] ) ) : 0;
+		$snapshot    = $this->get_snapshot_detail_by_id( $snapshot_id );
+
+		if ( ! is_array( $snapshot ) ) {
+			$this->redirect_with_notice( 'snapshot-summary-missing' );
+		}
+
+		$summary  = $this->get_snapshot_summary( $snapshot );
+		$markdown = $this->build_snapshot_summary_markdown( $summary );
+		$filename = sprintf( 'znts-snapshot-%d-summary-%s.md', $snapshot_id, gmdate( 'Ymd-His' ) );
+
+		$this->logger->log(
+			'snapshot_summary_downloaded',
+			'info',
+			'snapshots',
+			__( 'Snapshot summary downloaded.', 'zignites-sentinel' ),
+			array(
+				'snapshot_id' => $snapshot_id,
+				'filename'    => $filename,
+			)
+		);
+
+		nocache_headers();
+		header( 'Content-Type: text/markdown; charset=' . get_option( 'blog_charset' ) );
+		header( 'Content-Disposition: attachment; filename=' . $filename );
+
+		echo $markdown; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Markdown export output.
+		exit;
+	}
+
+	/**
 	 * Handle verification of a pasted snapshot audit report.
 	 *
 	 * @return void
@@ -1493,6 +1533,10 @@ class Admin {
 				'type'    => 'error',
 				'message' => __( 'The selected snapshot could not be found for audit report export.', 'zignites-sentinel' ),
 			),
+			'snapshot-summary-missing' => array(
+				'type'    => 'error',
+				'message' => __( 'The selected snapshot could not be found for summary export.', 'zignites-sentinel' ),
+			),
 			'snapshot-audit-verified' => array(
 				'type'    => 'success',
 				'message' => __( 'Snapshot audit report verification completed.', 'zignites-sentinel' ),
@@ -1755,6 +1799,292 @@ class Admin {
 		}
 
 		return $activity;
+	}
+
+	/**
+	 * Build a compact human-readable snapshot summary for operator handoff.
+	 *
+	 * @param array|null $snapshot Snapshot detail.
+	 * @return array
+	 */
+	protected function get_snapshot_summary( $snapshot ) {
+		if ( ! is_array( $snapshot ) || empty( $snapshot['id'] ) ) {
+			return array();
+		}
+
+		$artifacts          = $this->get_snapshot_artifacts( $snapshot );
+		$activity           = array_slice( $this->get_snapshot_activity( $snapshot ), 0, 5 );
+		$operator_checklist = $this->get_restore_operator_checklist( $snapshot );
+		$restore_check      = $this->get_last_restore_check( $snapshot );
+		$restore_stage      = $this->get_last_restore_stage( $snapshot );
+		$restore_plan       = $this->get_last_restore_plan( $snapshot );
+		$last_execution     = $this->get_last_restore_execution( $snapshot );
+		$last_rollback      = $this->get_last_restore_rollback( $snapshot );
+		$baseline           = $this->get_snapshot_health_baseline( $snapshot );
+		$stage_checkpoint   = $this->get_restore_stage_checkpoint( $snapshot );
+		$plan_checkpoint    = $this->get_restore_plan_checkpoint( $snapshot );
+		$status_index       = $this->snapshot_status_resolver->build_snapshot_status_index( array( $snapshot ) );
+		$snapshot_status    = isset( $status_index[ (int) $snapshot['id'] ] ) ? $status_index[ (int) $snapshot['id'] ] : array();
+		$plugin_count       = ! empty( $snapshot['active_plugins_decoded'] ) && is_array( $snapshot['active_plugins_decoded'] ) ? count( $snapshot['active_plugins_decoded'] ) : 0;
+		$artifact_counts    = $this->summarize_snapshot_artifacts( $artifacts );
+		$stage_timing       = ! empty( $stage_checkpoint ) ? $this->get_checkpoint_timing_summary( $stage_checkpoint ) : array();
+		$plan_timing        = ! empty( $plan_checkpoint ) ? $this->get_checkpoint_timing_summary( $plan_checkpoint ) : array();
+
+		return array(
+			'title'            => isset( $snapshot['label'] ) ? (string) $snapshot['label'] : '',
+			'snapshot_id'      => isset( $snapshot['id'] ) ? (int) $snapshot['id'] : 0,
+			'generated_at'     => current_time( 'mysql', true ),
+			'created_at'       => isset( $snapshot['created_at'] ) ? (string) $snapshot['created_at'] : '',
+			'theme'            => isset( $snapshot['theme_stylesheet'] ) ? (string) $snapshot['theme_stylesheet'] : '',
+			'core_version'     => isset( $snapshot['core_version'] ) ? (string) $snapshot['core_version'] : '',
+			'php_version'      => isset( $snapshot['php_version'] ) ? (string) $snapshot['php_version'] : '',
+			'plugin_count'     => $plugin_count,
+			'status_badges'    => isset( $snapshot_status['status_badges'] ) && is_array( $snapshot_status['status_badges'] ) ? $snapshot_status['status_badges'] : array(),
+			'overview'         => array(
+				array(
+					'label' => __( 'Restore status', 'zignites-sentinel' ),
+					'value' => ! empty( $snapshot_status['restore_ready'] ) ? __( 'Restore ready', 'zignites-sentinel' ) : __( 'Restore blocked', 'zignites-sentinel' ),
+					'note'  => ! empty( $operator_checklist['can_execute'] ) ? __( 'All current restore gates pass for this snapshot.', 'zignites-sentinel' ) : __( 'One or more current restore gates still require attention.', 'zignites-sentinel' ),
+				),
+				array(
+					'label' => __( 'Runtime', 'zignites-sentinel' ),
+					'value' => sprintf( __( 'WordPress %1$s / PHP %2$s', 'zignites-sentinel' ), isset( $snapshot['core_version'] ) ? (string) $snapshot['core_version'] : '-', isset( $snapshot['php_version'] ) ? (string) $snapshot['php_version'] : '-' ),
+					'note'  => sprintf( __( 'Theme: %1$s. Active plugins: %2$d.', 'zignites-sentinel' ), isset( $snapshot['theme_stylesheet'] ) ? (string) $snapshot['theme_stylesheet'] : '-', $plugin_count ),
+				),
+				array(
+					'label' => __( 'Artifacts', 'zignites-sentinel' ),
+					'value' => sprintf( __( '%1$d total artifacts', 'zignites-sentinel' ), isset( $artifact_counts['total'] ) ? (int) $artifact_counts['total'] : 0 ),
+					'note'  => sprintf( __( 'Package: %1$d. Export: %2$d. Components: %3$d.', 'zignites-sentinel' ), isset( $artifact_counts['package'] ) ? (int) $artifact_counts['package'] : 0, isset( $artifact_counts['export'] ) ? (int) $artifact_counts['export'] : 0, isset( $artifact_counts['component'] ) ? (int) $artifact_counts['component'] : 0 ),
+				),
+				array(
+					'label' => __( 'Recent activity', 'zignites-sentinel' ),
+					'value' => sprintf( __( '%d recent events', 'zignites-sentinel' ), count( $activity ) ),
+					'note'  => ! empty( $activity[0]['message'] ) ? (string) $activity[0]['message'] : __( 'No recent snapshot-scoped events were recorded.', 'zignites-sentinel' ),
+				),
+			),
+			'evidence'         => array(
+				array(
+					'label' => __( 'Baseline status', 'zignites-sentinel' ),
+					'value' => ! empty( $baseline['status'] ) ? (string) $baseline['status'] : __( 'Not captured', 'zignites-sentinel' ),
+					'note'  => ! empty( $baseline['generated_at'] ) ? sprintf( __( 'Captured on %s.', 'zignites-sentinel' ), (string) $baseline['generated_at'] ) : __( 'No baseline is currently stored for this snapshot.', 'zignites-sentinel' ),
+				),
+				array(
+					'label' => __( 'Restore readiness', 'zignites-sentinel' ),
+					'value' => ! empty( $restore_check['status'] ) ? (string) $restore_check['status'] : __( 'Not evaluated', 'zignites-sentinel' ),
+					'note'  => ! empty( $restore_check['note'] ) ? (string) $restore_check['note'] : __( 'Run restore readiness when you need a current advisory check.', 'zignites-sentinel' ),
+				),
+				array(
+					'label' => __( 'Stage checkpoint', 'zignites-sentinel' ),
+					'value' => ! empty( $snapshot_status['stage']['label'] ) ? (string) $snapshot_status['stage']['label'] : __( 'Stage missing', 'zignites-sentinel' ),
+					'note'  => ! empty( $stage_timing['label'] ) ? (string) $stage_timing['label'] : __( 'No staged validation checkpoint is currently available.', 'zignites-sentinel' ),
+				),
+				array(
+					'label' => __( 'Restore plan', 'zignites-sentinel' ),
+					'value' => ! empty( $snapshot_status['plan']['label'] ) ? (string) $snapshot_status['plan']['label'] : __( 'Plan missing', 'zignites-sentinel' ),
+					'note'  => ! empty( $plan_timing['label'] ) ? (string) $plan_timing['label'] : __( 'No current restore plan checkpoint is currently available.', 'zignites-sentinel' ),
+				),
+			),
+			'risks'            => $this->build_snapshot_summary_risks( $snapshot_status, $baseline, $restore_check, $last_execution, $last_rollback ),
+			'next_steps'       => $this->build_snapshot_summary_next_steps( $snapshot_status, $baseline, $restore_check, $restore_stage, $restore_plan, $last_execution, $last_rollback ),
+			'activity'         => $activity,
+		);
+	}
+
+	/**
+	 * Summarize artifact counts by type for a snapshot.
+	 *
+	 * @param array $artifacts Snapshot artifacts.
+	 * @return array
+	 */
+	protected function summarize_snapshot_artifacts( array $artifacts ) {
+		$summary = array(
+			'total'     => count( $artifacts ),
+			'package'   => 0,
+			'export'    => 0,
+			'component' => 0,
+		);
+
+		foreach ( $artifacts as $artifact ) {
+			$type = isset( $artifact['artifact_type'] ) ? sanitize_key( (string) $artifact['artifact_type'] ) : '';
+
+			if ( isset( $summary[ $type ] ) ) {
+				++$summary[ $type ];
+				continue;
+			}
+
+			if ( 'component' !== $type ) {
+				++$summary['component'];
+			}
+		}
+
+		return $summary;
+	}
+
+	/**
+	 * Build human-readable risk bullets for a snapshot summary.
+	 *
+	 * @param array $snapshot_status Snapshot status payload.
+	 * @param array $baseline        Baseline payload.
+	 * @param array $restore_check   Restore readiness payload.
+	 * @param array $last_execution  Last restore execution payload.
+	 * @param array $last_rollback   Last rollback payload.
+	 * @return array
+	 */
+	protected function build_snapshot_summary_risks( array $snapshot_status, array $baseline, array $restore_check, array $last_execution, array $last_rollback ) {
+		$risks = array();
+
+		if ( empty( $snapshot_status['artifacts']['package_present'] ) ) {
+			$risks[] = __( 'No rollback package is currently saved for this snapshot.', 'zignites-sentinel' );
+		}
+
+		if ( empty( $baseline ) ) {
+			$risks[] = __( 'No health baseline has been captured for this snapshot yet.', 'zignites-sentinel' );
+		}
+
+		if ( ! empty( $snapshot_status['stage']['key'] ) && 'current' !== $snapshot_status['stage']['key'] ) {
+			$risks[] = __( 'The staged validation checkpoint is missing or stale.', 'zignites-sentinel' );
+		}
+
+		if ( ! empty( $snapshot_status['plan']['key'] ) && 'current' !== $snapshot_status['plan']['key'] ) {
+			$risks[] = __( 'The restore plan checkpoint is missing or stale.', 'zignites-sentinel' );
+		}
+
+		if ( ! empty( $restore_check['status'] ) && in_array( $restore_check['status'], array( 'blocked', 'caution' ), true ) ) {
+			$risks[] = ! empty( $restore_check['note'] ) ? (string) $restore_check['note'] : __( 'The last restore readiness assessment reported warnings or blockers.', 'zignites-sentinel' );
+		}
+
+		if ( ! empty( $last_execution['status'] ) && in_array( $last_execution['status'], array( 'blocked', 'partial' ), true ) ) {
+			$risks[] = ! empty( $last_execution['note'] ) ? (string) $last_execution['note'] : __( 'The last restore execution did not finish cleanly.', 'zignites-sentinel' );
+		}
+
+		if ( ! empty( $last_rollback['status'] ) && in_array( $last_rollback['status'], array( 'blocked', 'partial' ), true ) ) {
+			$risks[] = ! empty( $last_rollback['note'] ) ? (string) $last_rollback['note'] : __( 'The last rollback did not finish cleanly.', 'zignites-sentinel' );
+		}
+
+		return array_values( array_unique( $risks ) );
+	}
+
+	/**
+	 * Build recommended next steps for a snapshot summary.
+	 *
+	 * @param array $snapshot_status Snapshot status payload.
+	 * @param array $baseline        Baseline payload.
+	 * @param array $restore_check   Restore readiness payload.
+	 * @param array $restore_stage   Restore stage payload.
+	 * @param array $restore_plan    Restore plan payload.
+	 * @param array $last_execution  Last restore execution payload.
+	 * @param array $last_rollback   Last rollback payload.
+	 * @return array
+	 */
+	protected function build_snapshot_summary_next_steps( array $snapshot_status, array $baseline, array $restore_check, array $restore_stage, array $restore_plan, array $last_execution, array $last_rollback ) {
+		$steps = array();
+
+		if ( empty( $baseline ) ) {
+			$steps[] = __( 'Capture a health baseline before any guarded restore work.', 'zignites-sentinel' );
+		}
+
+		if ( empty( $snapshot_status['stage']['key'] ) || 'current' !== $snapshot_status['stage']['key'] ) {
+			$steps[] = __( 'Run staged restore validation to refresh the stage checkpoint.', 'zignites-sentinel' );
+		}
+
+		if ( empty( $snapshot_status['plan']['key'] ) || 'current' !== $snapshot_status['plan']['key'] ) {
+			$steps[] = __( 'Build or refresh the restore plan before considering live restore.', 'zignites-sentinel' );
+		}
+
+		if ( ! empty( $restore_check['status'] ) && in_array( $restore_check['status'], array( 'blocked', 'caution' ), true ) ) {
+			$steps[] = __( 'Review the last restore readiness findings and resolve the flagged issues.', 'zignites-sentinel' );
+		}
+
+		if ( ! empty( $last_execution['status'] ) && in_array( $last_execution['status'], array( 'blocked', 'partial' ), true ) ) {
+			$steps[] = __( 'Review the last restore execution result and its backup context before running anything again.', 'zignites-sentinel' );
+		}
+
+		if ( ! empty( $last_rollback['status'] ) && in_array( $last_rollback['status'], array( 'blocked', 'partial' ), true ) ) {
+			$steps[] = __( 'Review the last rollback result before treating this snapshot as stable again.', 'zignites-sentinel' );
+		}
+
+		if ( empty( $steps ) ) {
+			$steps[] = __( 'No immediate action is required. Keep the current evidence fresh before future update or restore work.', 'zignites-sentinel' );
+		}
+
+		return array_values( array_unique( $steps ) );
+	}
+
+	/**
+	 * Build Markdown output for a snapshot summary.
+	 *
+	 * @param array $summary Snapshot summary payload.
+	 * @return string
+	 */
+	protected function build_snapshot_summary_markdown( array $summary ) {
+		$lines   = array();
+		$title   = ! empty( $summary['title'] ) ? (string) $summary['title'] : __( 'Snapshot Summary', 'zignites-sentinel' );
+		$lines[] = '# ' . $title;
+		$lines[] = '';
+		$lines[] = '- ' . sprintf( __( 'Snapshot ID: %d', 'zignites-sentinel' ), isset( $summary['snapshot_id'] ) ? (int) $summary['snapshot_id'] : 0 );
+		$lines[] = '- ' . sprintf( __( 'Generated: %s', 'zignites-sentinel' ), isset( $summary['generated_at'] ) ? (string) $summary['generated_at'] : '' );
+		$lines[] = '- ' . sprintf( __( 'Created: %s', 'zignites-sentinel' ), isset( $summary['created_at'] ) ? (string) $summary['created_at'] : '' );
+		$lines[] = '';
+
+		$lines[] = '## Overview';
+		$lines[] = '';
+
+		foreach ( isset( $summary['overview'] ) && is_array( $summary['overview'] ) ? $summary['overview'] : array() as $item ) {
+			$lines[] = '- **' . ( isset( $item['label'] ) ? (string) $item['label'] : '' ) . ':** ' . ( isset( $item['value'] ) ? (string) $item['value'] : '' );
+
+			if ( ! empty( $item['note'] ) ) {
+				$lines[] = '  - ' . (string) $item['note'];
+			}
+		}
+
+		$lines[] = '';
+		$lines[] = '## Evidence';
+		$lines[] = '';
+
+		foreach ( isset( $summary['evidence'] ) && is_array( $summary['evidence'] ) ? $summary['evidence'] : array() as $item ) {
+			$lines[] = '- **' . ( isset( $item['label'] ) ? (string) $item['label'] : '' ) . ':** ' . ( isset( $item['value'] ) ? (string) $item['value'] : '' );
+
+			if ( ! empty( $item['note'] ) ) {
+				$lines[] = '  - ' . (string) $item['note'];
+			}
+		}
+
+		$lines[] = '';
+		$lines[] = '## Risks';
+		$lines[] = '';
+
+		foreach ( ! empty( $summary['risks'] ) ? $summary['risks'] : array( __( 'No material risks are highlighted by the current snapshot summary.', 'zignites-sentinel' ) ) as $risk ) {
+			$lines[] = '- ' . (string) $risk;
+		}
+
+		$lines[] = '';
+		$lines[] = '## Recommended Next Steps';
+		$lines[] = '';
+
+		foreach ( isset( $summary['next_steps'] ) && is_array( $summary['next_steps'] ) ? $summary['next_steps'] : array() as $step ) {
+			$lines[] = '- ' . (string) $step;
+		}
+
+		$lines[] = '';
+		$lines[] = '## Recent Activity';
+		$lines[] = '';
+
+		foreach ( isset( $summary['activity'] ) && is_array( $summary['activity'] ) ? $summary['activity'] : array() as $activity ) {
+			$lines[] = '- ' . sprintf(
+				'[%s] %s: %s',
+				isset( $activity['created_at'] ) ? (string) $activity['created_at'] : '',
+				isset( $activity['source'] ) ? (string) $activity['source'] : '',
+				isset( $activity['message'] ) ? (string) $activity['message'] : ''
+			);
+		}
+
+		if ( empty( $summary['activity'] ) ) {
+			$lines[] = '- ' . __( 'No recent snapshot-scoped events were recorded.', 'zignites-sentinel' );
+		}
+
+		$lines[] = '';
+
+		return implode( "\n", $lines ) . "\n";
 	}
 
 	/**
