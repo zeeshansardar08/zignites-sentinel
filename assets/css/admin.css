@@ -1,0 +1,223 @@
+.znts-admin-page {
+	max-width: 1200px;
+}
+
+.znts-admin-grid {
+	display: grid;
+	gap: 20px;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	margin-top: 24px;
+}
+
+.znts-card {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+	padding: 20px;
+}
+
+.znts-card-full {
+	grid-column: 1 / -1;
+}
+
+.znts-subgrid {
+	margin-top: 20px;
+}
+
+.znts-card h2 {
+	margin-top: 0;
+}
+
+.znts-score-header {
+	align-items: center;
+	display: flex;
+	gap: 16px;
+	justify-content: space-between;
+	margin-bottom: 16px;
+}
+
+.znts-score-badge {
+	align-items: center;
+	border-radius: 999px;
+	display: inline-flex;
+	flex-direction: column;
+	gap: 2px;
+	justify-content: center;
+	min-height: 88px;
+	min-width: 88px;
+	padding: 10px;
+}
+
+.znts-score-stable {
+	background: #edf7ed;
+	color: #185c37;
+}
+
+.znts-score-warning {
+	background: #fff4e5;
+	color: #8a4b00;
+}
+
+.znts-score-critical {
+	background: #fbeaea;
+	color: #8a2424;
+}
+
+.znts-score-value {
+	font-size: 28px;
+	font-weight: 600;
+	line-height: 1;
+}
+
+.znts-score-label {
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+}
+
+.znts-pill {
+	border-radius: 999px;
+	display: inline-block;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1;
+	padding: 6px 10px;
+}
+
+.znts-pill-info {
+	background: #eef4ff;
+	color: #1d4f91;
+}
+
+.znts-pill-warning {
+	background: #fff4e5;
+	color: #8a4b00;
+}
+
+.znts-pill-error,
+.znts-pill-critical {
+	background: #fbeaea;
+	color: #8a2424;
+}
+
+.znts-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+.znts-actions form {
+	margin: 0;
+}
+
+.znts-filter-form {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+.znts-filter-form label {
+	font-weight: 600;
+}
+
+.znts-filter-form p {
+	margin: 0;
+}
+
+.znts-filter-form input[type="search"],
+.znts-filter-form select {
+	min-width: 180px;
+}
+
+.znts-filter-actions {
+	align-items: end;
+	display: flex;
+	gap: 8px;
+}
+
+.znts-readiness-row {
+	align-items: center;
+	display: flex;
+	gap: 12px;
+	margin-bottom: 12px;
+}
+
+.znts-status-grid {
+	display: grid;
+	gap: 16px;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.znts-status-card {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	padding: 16px;
+}
+
+.znts-status-card h3 {
+	margin: 0 0 8px;
+}
+
+.znts-status-card p {
+	margin: 0 0 8px;
+}
+
+.znts-status-card p:last-child {
+	margin-bottom: 0;
+}
+
+.znts-card-note {
+	margin-top: 16px;
+}
+
+.znts-dashboard-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+.znts-dashboard-links p {
+	margin: 0;
+}
+
+.znts-dashboard-actions {
+	margin-top: 16px;
+}
+
+.znts-section-header {
+	align-items: flex-start;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	justify-content: space-between;
+	margin-bottom: 16px;
+}
+
+.znts-section-header h2,
+.znts-section-header p {
+	margin: 0;
+}
+
+.znts-list {
+	list-style: disc;
+	margin: 0;
+	padding-left: 20px;
+}
+
+.znts-json-block {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	font-size: 12px;
+	line-height: 1.5;
+	margin: 0;
+	max-width: 100%;
+	overflow: auto;
+	padding: 16px;
+	white-space: pre-wrap;
+}
