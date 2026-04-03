@@ -209,6 +209,27 @@ class Admin {
 	protected $snapshot_status_resolver;
 
 	/**
+	 * Settings portability helper.
+	 *
+	 * @var SettingsPortability
+	 */
+	protected $settings_portability;
+
+	/**
+	 * Audit report verifier.
+	 *
+	 * @var AuditReportVerifier
+	 */
+	protected $audit_report_verifier;
+
+	/**
+	 * Restore operator checklist evaluator.
+	 *
+	 * @var RestoreOperatorChecklistEvaluator
+	 */
+	protected $restore_operator_checklist_evaluator;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Logger                   $logger              Structured logger.
@@ -274,6 +295,9 @@ class Admin {
 		$this->restore_rollback_manager = $restore_rollback_manager;
 		$this->restore_journal_recorder = $restore_journal_recorder;
 		$this->restore_checkpoint_store = $restore_checkpoint_store;
+		$this->settings_portability     = new SettingsPortability();
+		$this->audit_report_verifier    = new AuditReportVerifier();
+		$this->restore_operator_checklist_evaluator = new RestoreOperatorChecklistEvaluator();
 		$this->snapshot_status_resolver = new SnapshotStatusResolver(
 			$logs,
 			$restore_checkpoint_store,
@@ -294,6 +318,8 @@ class Admin {
 		add_action( 'admin_post_znts_run_preflight', array( $this, 'handle_run_preflight' ) );
 		add_action( 'admin_post_znts_export_event_logs', array( $this, 'handle_export_event_logs' ) );
 		add_action( 'admin_post_znts_create_snapshot', array( $this, 'handle_create_snapshot' ) );
+		add_action( 'admin_post_znts_download_settings_export', array( $this, 'handle_download_settings_export' ) );
+		add_action( 'admin_post_znts_import_settings', array( $this, 'handle_import_settings' ) );
 		add_action( 'admin_post_znts_save_settings', array( $this, 'handle_save_settings' ) );
 		add_action( 'admin_post_znts_build_update_plan', array( $this, 'handle_build_update_plan' ) );
 		add_action( 'admin_post_znts_check_restore_readiness', array( $this, 'handle_check_restore_readiness' ) );
@@ -651,16 +677,78 @@ class Admin {
 	public function handle_save_settings() {
 		$this->assert_admin_action_permissions( 'znts_save_settings_action' );
 
-		$settings = $this->get_settings();
-
-		$settings['logging_enabled']         = isset( $_POST['logging_enabled'] ) ? 1 : 0;
-		$settings['delete_data_on_uninstall'] = isset( $_POST['delete_data_on_uninstall'] ) ? 1 : 0;
-		$settings['auto_snapshot_on_plan']   = isset( $_POST['auto_snapshot_on_plan'] ) ? 1 : 0;
-		$settings['snapshot_retention_days'] = isset( $_POST['snapshot_retention_days'] ) ? max( 1, absint( wp_unslash( $_POST['snapshot_retention_days'] ) ) ) : 30;
-		$settings['restore_checkpoint_max_age_hours'] = isset( $_POST['restore_checkpoint_max_age_hours'] ) ? max( 1, absint( wp_unslash( $_POST['restore_checkpoint_max_age_hours'] ) ) ) : 24;
+		$settings = $this->sanitize_settings_input( wp_unslash( $_POST ) );
 
 		update_option( ZNTS_OPTION_SETTINGS, $settings, false );
 		$this->redirect_with_notice( 'settings-saved' );
+	}
+
+	/**
+	 * Handle download of a non-destructive settings export.
+	 *
+	 * @return void
+	 */
+	public function handle_download_settings_export() {
+		$this->assert_admin_action_permissions( 'znts_download_settings_export_action' );
+
+		$payload  = $this->settings_portability->build_export_payload( $this->get_settings() );
+		$filename = sprintf( 'znts-settings-%s.json', gmdate( 'Ymd-His' ) );
+
+		$this->logger->log(
+			'settings_export_downloaded',
+			'info',
+			'settings',
+			__( 'Sentinel settings export downloaded.', 'zignites-sentinel' ),
+			array(
+				'filename' => $filename,
+			)
+		);
+
+		nocache_headers();
+		header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
+		header( 'Content-Disposition: attachment; filename=' . $filename );
+
+		echo wp_json_encode( $payload, JSON_PRETTY_PRINT );
+		exit;
+	}
+
+	/**
+	 * Handle import of a non-destructive settings export.
+	 *
+	 * @return void
+	 */
+	public function handle_import_settings() {
+		$this->assert_admin_action_permissions( 'znts_import_settings_action' );
+
+		$payload = isset( $_POST['settings_import_payload'] ) ? wp_unslash( $_POST['settings_import_payload'] ) : '';
+		$result  = $this->settings_portability->import_payload( $payload );
+
+		if ( empty( $result['success'] ) ) {
+			$this->logger->log(
+				'settings_import_failed',
+				'warning',
+				'settings',
+				__( 'Sentinel settings import failed.', 'zignites-sentinel' ),
+				array(
+					'error' => isset( $result['error'] ) ? (string) $result['error'] : '',
+				)
+			);
+			$this->redirect_with_notice( 'settings-import-invalid' );
+		}
+
+		update_option( ZNTS_OPTION_SETTINGS, $result['settings'], false );
+
+		$this->logger->log(
+			'settings_import_completed',
+			'info',
+			'settings',
+			__( 'Sentinel settings import completed.', 'zignites-sentinel' ),
+			array(
+				'settings' => $result['settings'],
+			)
+		);
+
+		$this->redirect_with_notice( 'settings-imported' );
 	}
 
 	/**
@@ -1493,6 +1581,14 @@ class Admin {
 				'type'    => 'error',
 				'message' => __( 'The selected snapshot could not be found for restore gate refresh.', 'zignites-sentinel' ),
 			),
+			'settings-imported' => array(
+				'type'    => 'success',
+				'message' => __( 'Sentinel settings imported.', 'zignites-sentinel' ),
+			),
+			'settings-import-invalid' => array(
+				'type'    => 'error',
+				'message' => __( 'The provided Sentinel settings export could not be imported.', 'zignites-sentinel' ),
+			),
 			'restore-execution-complete' => array(
 				'type'    => 'success',
 				'message' => __( 'Restore execution attempt completed.', 'zignites-sentinel' ),
@@ -1575,15 +1671,28 @@ class Admin {
 		$settings = get_option( ZNTS_OPTION_SETTINGS, array() );
 		$settings = is_array( $settings ) ? $settings : array();
 
-		return wp_parse_args(
+		return $this->settings_portability->normalize_settings(
 			$settings,
+			$this->settings_portability->get_default_settings()
+		);
+	}
+
+	/**
+	 * Sanitize posted settings form values.
+	 *
+	 * @param array $raw_input Raw form input.
+	 * @return array
+	 */
+	protected function sanitize_settings_input( array $raw_input ) {
+		return $this->settings_portability->normalize_settings(
 			array(
-				'delete_data_on_uninstall' => 1,
-				'logging_enabled'          => 1,
-				'snapshot_retention_days'  => 30,
-				'auto_snapshot_on_plan'    => 1,
-				'restore_checkpoint_max_age_hours' => 24,
-			)
+				'logging_enabled'                  => isset( $raw_input['logging_enabled'] ) ? 1 : 0,
+				'delete_data_on_uninstall'         => isset( $raw_input['delete_data_on_uninstall'] ) ? 1 : 0,
+				'auto_snapshot_on_plan'            => isset( $raw_input['auto_snapshot_on_plan'] ) ? 1 : 0,
+				'snapshot_retention_days'          => isset( $raw_input['snapshot_retention_days'] ) ? $raw_input['snapshot_retention_days'] : null,
+				'restore_checkpoint_max_age_hours' => isset( $raw_input['restore_checkpoint_max_age_hours'] ) ? $raw_input['restore_checkpoint_max_age_hours'] : null,
+			),
+			$this->settings_portability->get_default_settings()
 		);
 	}
 
@@ -2420,56 +2529,15 @@ class Admin {
 			$this->maybe_log_checkpoint_expiry( 'plan', $snapshot, $plan_checkpoint, $max_age_hours );
 		}
 
-		$checks           = array(
+		return $this->restore_operator_checklist_evaluator->evaluate(
 			array(
-				'label'   => __( 'Health baseline captured', 'zignites-sentinel' ),
-				'status'  => is_array( $baseline ) ? 'pass' : 'fail',
-				'message' => is_array( $baseline )
-					? __( 'A health baseline exists for this snapshot.', 'zignites-sentinel' )
-					: __( 'Capture a snapshot health baseline before offering live restore.', 'zignites-sentinel' ),
-			),
-			array(
-				'label'   => __( 'Staged validation current', 'zignites-sentinel' ),
-				'status'  => ! empty( $stage_result ) ? 'pass' : 'fail',
-				'message' => ! empty( $stage_result )
-					? sprintf(
-						/* translators: %d: max age in hours */
-						__( 'A matching staged validation checkpoint is ready and no older than %d hours.', 'zignites-sentinel' ),
-						$max_age_hours
-					)
-					: ( ! empty( $stage_checkpoint )
-						? __( 'The stored staged validation checkpoint is stale, expired, or no longer ready.', 'zignites-sentinel' )
-						: __( 'Run staged restore validation for this snapshot package.', 'zignites-sentinel' ) ),
-			),
-			array(
-				'label'   => __( 'Restore plan current', 'zignites-sentinel' ),
-				'status'  => ! empty( $plan_result ) ? 'pass' : 'fail',
-				'message' => ! empty( $plan_result )
-					? sprintf(
-						/* translators: %d: max age in hours */
-						__( 'A matching restore plan checkpoint is ready and no older than %d hours.', 'zignites-sentinel' ),
-						$max_age_hours
-					)
-					: ( ! empty( $plan_checkpoint )
-						? __( 'The stored restore plan checkpoint is stale, expired, or blocked.', 'zignites-sentinel' )
-						: __( 'Build a restore plan for this snapshot package.', 'zignites-sentinel' ) ),
-			),
-		);
-
-		$can_execute = true;
-
-		foreach ( $checks as $check ) {
-			if ( 'pass' !== $check['status'] ) {
-				$can_execute = false;
-				break;
-			}
-		}
-
-		return array(
-			'status'      => $can_execute ? 'ready' : 'blocked',
-			'can_execute' => $can_execute,
-			'max_age_hours' => $max_age_hours,
-			'checks'      => $checks,
+				'baseline_present'        => is_array( $baseline ),
+				'stage_result_ready'      => ! empty( $stage_result ),
+				'plan_result_ready'       => ! empty( $plan_result ),
+				'stage_checkpoint_exists' => ! empty( $stage_checkpoint ),
+				'plan_checkpoint_exists'  => ! empty( $plan_checkpoint ),
+				'max_age_hours'           => $max_age_hours,
+			)
 		);
 	}
 
@@ -3935,15 +4003,9 @@ class Admin {
 			'activity' => $this->get_snapshot_activity( $snapshot ),
 		);
 
-		$payload_hash = hash( 'sha256', (string) wp_json_encode( $payload ) );
-
 		return array(
 			'report'    => $payload,
-			'integrity' => array(
-				'algorithm'      => 'sha256',
-				'payload_hash'   => $payload_hash,
-				'site_signature' => function_exists( 'wp_salt' ) ? hash_hmac( 'sha256', $payload_hash, wp_salt( 'auth' ) ) : '',
-			),
+			'integrity' => $this->audit_report_verifier->build_integrity( $payload ),
 		);
 	}
 
@@ -4014,98 +4076,7 @@ class Admin {
 	 * @return array
 	 */
 	protected function verify_snapshot_audit_report_payload( $payload_text, $snapshot_id ) {
-		$decoded = json_decode( (string) $payload_text, true );
-		$checks  = array();
-
-		if ( ! is_array( $decoded ) ) {
-			return array(
-				'generated_at' => current_time( 'mysql', true ),
-				'snapshot_id'  => absint( $snapshot_id ),
-				'status'       => 'blocked',
-				'summary'      => array(
-					'pass'    => 0,
-					'warning' => 0,
-					'fail'    => 1,
-				),
-				'checks'       => array(
-					array(
-						'label'   => __( 'Report payload', 'zignites-sentinel' ),
-						'status'  => 'fail',
-						'message' => __( 'The provided audit report is not valid JSON.', 'zignites-sentinel' ),
-					),
-				),
-				'note'         => __( 'Audit report verification failed.', 'zignites-sentinel' ),
-			);
-		}
-
-		$report            = isset( $decoded['report'] ) && is_array( $decoded['report'] ) ? $decoded['report'] : array();
-		$integrity         = isset( $decoded['integrity'] ) && is_array( $decoded['integrity'] ) ? $decoded['integrity'] : array();
-		$algorithm         = isset( $integrity['algorithm'] ) ? sanitize_text_field( (string) $integrity['algorithm'] ) : '';
-		$stored_hash       = isset( $integrity['payload_hash'] ) ? sanitize_text_field( (string) $integrity['payload_hash'] ) : '';
-		$stored_signature  = isset( $integrity['site_signature'] ) ? sanitize_text_field( (string) $integrity['site_signature'] ) : '';
-		$expected_id       = absint( $snapshot_id );
-		$report_snapshot_id = isset( $report['snapshot']['id'] ) ? absint( $report['snapshot']['id'] ) : 0;
-		$computed_hash     = ( 'sha256' === $algorithm && ! empty( $report ) ) ? hash( 'sha256', (string) wp_json_encode( $report ) ) : '';
-		$computed_signature = ( 'sha256' === $algorithm && '' !== $computed_hash && function_exists( 'wp_salt' ) ) ? hash_hmac( 'sha256', $computed_hash, wp_salt( 'auth' ) ) : '';
-
-		$checks[] = array(
-			'label'   => __( 'Report envelope', 'zignites-sentinel' ),
-			'status'  => ( ! empty( $report ) && ! empty( $integrity ) ) ? 'pass' : 'fail',
-			'message' => ( ! empty( $report ) && ! empty( $integrity ) )
-				? __( 'The audit report contains report and integrity sections.', 'zignites-sentinel' )
-				: __( 'The audit report is missing report or integrity sections.', 'zignites-sentinel' ),
-		);
-		$checks[] = array(
-			'label'   => __( 'Integrity algorithm', 'zignites-sentinel' ),
-			'status'  => 'sha256' === $algorithm ? 'pass' : 'fail',
-			'message' => 'sha256' === $algorithm
-				? __( 'The audit report uses the supported SHA-256 integrity algorithm.', 'zignites-sentinel' )
-				: __( 'The audit report uses an unsupported integrity algorithm.', 'zignites-sentinel' ),
-		);
-		$checks[] = array(
-			'label'   => __( 'Snapshot match', 'zignites-sentinel' ),
-			'status'  => $expected_id > 0 && $report_snapshot_id === $expected_id ? 'pass' : 'fail',
-			'message' => $expected_id > 0 && $report_snapshot_id === $expected_id
-				? __( 'The audit report matches the selected snapshot.', 'zignites-sentinel' )
-				: __( 'The audit report does not match the selected snapshot.', 'zignites-sentinel' ),
-		);
-		$checks[] = array(
-			'label'   => __( 'Payload hash', 'zignites-sentinel' ),
-			'status'  => '' !== $computed_hash && hash_equals( $stored_hash, $computed_hash ) ? 'pass' : 'fail',
-			'message' => '' !== $computed_hash && hash_equals( $stored_hash, $computed_hash )
-				? __( 'The audit report payload hash matches.', 'zignites-sentinel' )
-				: __( 'The audit report payload hash does not match.', 'zignites-sentinel' ),
-		);
-		$checks[] = array(
-			'label'   => __( 'Site signature', 'zignites-sentinel' ),
-			'status'  => '' !== $computed_signature && hash_equals( $stored_signature, $computed_signature ) ? 'pass' : 'fail',
-			'message' => '' !== $computed_signature && hash_equals( $stored_signature, $computed_signature )
-				? __( 'The audit report site signature matches this site.', 'zignites-sentinel' )
-				: __( 'The audit report site signature does not match this site.', 'zignites-sentinel' ),
-		);
-
-		$summary = array(
-			'pass'    => 0,
-			'warning' => 0,
-			'fail'    => 0,
-		);
-
-		foreach ( $checks as $check ) {
-			if ( isset( $summary[ $check['status'] ] ) ) {
-				++$summary[ $check['status'] ];
-			}
-		}
-
-		$status = ! empty( $summary['fail'] ) ? 'blocked' : ( ! empty( $summary['warning'] ) ? 'caution' : 'ready' );
-
-		return array(
-			'generated_at' => current_time( 'mysql', true ),
-			'snapshot_id'  => $expected_id,
-			'status'       => $status,
-			'summary'      => $summary,
-			'checks'       => $checks,
-			'note'         => 'ready' === $status ? __( 'Audit report verification passed for this site and snapshot.', 'zignites-sentinel' ) : __( 'Audit report verification found integrity or snapshot mismatches.', 'zignites-sentinel' ),
-		);
+		return $this->audit_report_verifier->verify_payload( $payload_text, $snapshot_id );
 	}
 
 	/**

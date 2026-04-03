@@ -6,6 +6,9 @@
 require_once __DIR__ . '/test-snapshot-status-resolver.php';
 require_once __DIR__ . '/test-restore-execution-checkpoint-store.php';
 require_once __DIR__ . '/test-restore-resume-state.php';
+require_once __DIR__ . '/test-settings-portability.php';
+require_once __DIR__ . '/test-audit-report-verifier.php';
+require_once __DIR__ . '/test-restore-operator-checklist-evaluator.php';
 
 $tests = array_filter(
 	get_defined_functions()['user'],

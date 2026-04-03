@@ -6,6 +6,7 @@
 define( 'ABSPATH', __DIR__ . '/../' );
 define( 'DAY_IN_SECONDS', 86400 );
 define( 'HOUR_IN_SECONDS', 3600 );
+define( 'ZNTS_VERSION', '1.29.0-test' );
 define( 'ZNTS_OPTION_SETTINGS', 'znts_settings' );
 define( 'ZNTS_OPTION_LAST_SNAPSHOT_HEALTH_BASELINE', 'znts_last_snapshot_health_baseline' );
 define( 'ZNTS_OPTION_RESTORE_EXECUTION_CHECKPOINT', 'znts_restore_execution_checkpoint' );
@@ -54,6 +55,12 @@ if ( ! function_exists( 'wp_parse_args' ) ) {
 if ( ! function_exists( 'wp_json_encode' ) ) {
 	function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
 		return json_encode( $value, $flags, $depth );
+	}
+}
+
+if ( ! function_exists( 'wp_salt' ) ) {
+	function wp_salt( $scheme = 'auth' ) {
+		return 'znts-test-salt-' . (string) $scheme;
 	}
 }
 
@@ -116,4 +123,7 @@ require_once __DIR__ . '/../includes/snapshots/class-restore-journal-recorder.ph
 require_once __DIR__ . '/../includes/snapshots/class-restore-executor.php';
 require_once __DIR__ . '/../includes/snapshots/class-restore-rollback-manager.php';
 require_once __DIR__ . '/../includes/snapshots/class-snapshot-artifact-repository.php';
+require_once __DIR__ . '/../includes/admin/class-audit-report-verifier.php';
+require_once __DIR__ . '/../includes/admin/class-restore-operator-checklist-evaluator.php';
+require_once __DIR__ . '/../includes/admin/class-settings-portability.php';
 require_once __DIR__ . '/../includes/admin/class-snapshot-status-resolver.php';

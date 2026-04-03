@@ -91,6 +91,24 @@ For each filter:
    - checklist refresh
    - non-destructive validation actions
 
+## Settings Portability
+
+1. Open `Sentinel > Update Readiness`.
+2. In `Sentinel Settings`, confirm the `Settings Portability` panel renders below the main settings form.
+3. Click `Export Settings`.
+4. Confirm a JSON file downloads.
+5. Confirm the export includes only Sentinel preference keys and not:
+   - snapshots
+   - logs
+   - checkpoints
+   - restore results
+   - audit verification state
+6. Paste the exported JSON back into `Import settings JSON`.
+7. Click `Import Settings`.
+8. Confirm the success notice appears and the settings remain unchanged.
+9. Try an invalid JSON payload.
+10. Confirm the import is rejected cleanly with an error notice.
+
 ## Snapshot Summary
 
 1. Open a selected snapshot in `Update Readiness`.
