@@ -7,6 +7,8 @@
 
 namespace Zignites\Sentinel\Snapshots;
 
+use Zignites\Sentinel\Admin\Admin;
+
 defined( 'ABSPATH' ) || exit;
 
 class RestoreHealthVerifier {
@@ -37,6 +39,14 @@ class RestoreHealthVerifier {
 				'label'             => __( 'REST API', 'zignites-sentinel' ),
 				'allow_empty_body'  => false,
 				'expected_types'    => array( 'json' ),
+			),
+			array(
+				'url'               => admin_url( 'admin.php?page=' . Admin::MENU_SLUG ),
+				'label'             => __( 'Admin', 'zignites-sentinel' ),
+				'allow_empty_body'  => false,
+				'expected_types'    => array( 'html', 'text' ),
+				'requires_auth'     => true,
+				'expected_markers'  => array( 'Zignites Sentinel', 'wpadminbar', 'wp-menu' ),
 			),
 		);
 
@@ -85,14 +95,24 @@ class RestoreHealthVerifier {
 			return $checks;
 		}
 
-		$response = wp_remote_get(
-			$url,
-			array(
-				'timeout'     => 10,
-				'redirection' => 3,
-				'user-agent'  => 'ZignitesSentinel/1.5.0',
-			)
+		$request_args = array(
+			'timeout'     => 10,
+			'redirection' => 3,
+			'user-agent'  => 'ZignitesSentinel/1.21.0',
 		);
+
+		if ( ! empty( $endpoint['requires_auth'] ) ) {
+			$cookie_check = $this->build_authenticated_request_context();
+			$checks[]     = $cookie_check['check'];
+
+			if ( 'pass' !== $cookie_check['check']['status'] ) {
+				return $checks;
+			}
+
+			$request_args['cookies'] = $cookie_check['cookies'];
+		}
+
+		$response = wp_remote_get( $url, $request_args );
 
 		if ( is_wp_error( $response ) ) {
 			$checks[] = array(
@@ -165,8 +185,54 @@ class RestoreHealthVerifier {
 					/* translators: %s = endpoint label */
 					__( '%s did not return a content type header.', 'zignites-sentinel' ),
 					$label
-				),
+			),
 		);
+
+		if ( ! empty( $endpoint['requires_auth'] ) ) {
+			$is_login_response = $this->looks_like_login_response( $response, $body );
+			$checks[]          = array(
+				'label'   => sprintf(
+					/* translators: %s = endpoint label */
+					__( '%s authenticated access', 'zignites-sentinel' ),
+					$label
+				),
+				'status'  => $is_login_response ? 'fail' : 'pass',
+				'message' => $is_login_response
+					? sprintf(
+						/* translators: %s = endpoint label */
+						__( '%s redirected to login or returned a login form instead of authenticated admin content.', 'zignites-sentinel' ),
+						$label
+					)
+					: sprintf(
+						/* translators: %s = endpoint label */
+						__( '%s returned authenticated admin content.', 'zignites-sentinel' ),
+						$label
+					),
+			);
+		}
+
+		if ( ! empty( $endpoint['expected_markers'] ) && is_array( $endpoint['expected_markers'] ) ) {
+			$marker_match = $this->contains_expected_marker( $body, $endpoint['expected_markers'] );
+			$checks[]     = array(
+				'label'   => sprintf(
+					/* translators: %s = endpoint label */
+					__( '%s content markers', 'zignites-sentinel' ),
+					$label
+				),
+				'status'  => $marker_match ? 'pass' : 'warning',
+				'message' => $marker_match
+					? sprintf(
+						/* translators: %s = endpoint label */
+						__( '%s returned expected page markers.', 'zignites-sentinel' ),
+						$label
+					)
+					: sprintf(
+						/* translators: %s = endpoint label */
+						__( '%s did not include the expected page markers.', 'zignites-sentinel' ),
+						$label
+					),
+			);
+		}
 
 		if ( $this->contains_fatal_signature( $body ) ) {
 			$checks[] = array(
@@ -271,6 +337,90 @@ class RestoreHealthVerifier {
 
 		foreach ( $expected_types as $expected ) {
 			if ( false !== strpos( $content_type, strtolower( (string) $expected ) ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Build cookie context for an authenticated same-site admin request.
+	 *
+	 * @return array
+	 */
+	protected function build_authenticated_request_context() {
+		$cookies = array();
+
+		if ( ! is_user_logged_in() ) {
+			return array(
+				'cookies' => array(),
+				'check'   => array(
+					'label'   => __( 'Admin authentication context', 'zignites-sentinel' ),
+					'status'  => 'fail',
+					'message' => __( 'No logged-in admin session is available for the authenticated admin health check.', 'zignites-sentinel' ),
+				),
+			);
+		}
+
+		foreach ( $_COOKIE as $name => $value ) {
+			$name = (string) $name;
+
+			if ( 0 !== strpos( $name, 'wordpress_' ) && 0 !== strpos( $name, 'wordpress_logged_in_' ) && 0 !== strpos( $name, 'wp-settings-' ) && 0 !== strpos( $name, 'wp-settings-time-' ) ) {
+				continue;
+			}
+
+			$cookies[] = new \WP_Http_Cookie(
+				array(
+					'name'  => $name,
+					'value' => (string) $value,
+				)
+			);
+		}
+
+		return array(
+			'cookies' => $cookies,
+			'check'   => array(
+				'label'   => __( 'Admin authentication context', 'zignites-sentinel' ),
+				'status'  => ! empty( $cookies ) ? 'pass' : 'fail',
+				'message' => ! empty( $cookies )
+					? __( 'Authenticated cookies are available for the admin health check.', 'zignites-sentinel' )
+					: __( 'Authenticated cookies were not available for the admin health check.', 'zignites-sentinel' ),
+			),
+		);
+	}
+
+	/**
+	 * Detect whether an authenticated admin request fell back to login.
+	 *
+	 * @param array  $response HTTP response.
+	 * @param string $body     Response body.
+	 * @return bool
+	 */
+	protected function looks_like_login_response( array $response, $body ) {
+		$final_url     = (string) wp_remote_retrieve_header( $response, 'x-redirect-by' );
+		$response_code = (int) wp_remote_retrieve_response_code( $response );
+		$body          = strtolower( (string) $body );
+
+		if ( false !== strpos( $body, 'id="loginform"' ) || false !== strpos( $body, 'name="log"' ) || false !== strpos( $body, 'wp-login.php' ) ) {
+			return true;
+		}
+
+		return 401 === $response_code || 403 === $response_code || false !== strpos( strtolower( $final_url ), 'login' );
+	}
+
+	/**
+	 * Determine whether a response body contains any expected marker.
+	 *
+	 * @param string $body    Response body.
+	 * @param array  $markers Expected markers.
+	 * @return bool
+	 */
+	protected function contains_expected_marker( $body, array $markers ) {
+		$body = strtolower( (string) $body );
+
+		foreach ( $markers as $marker ) {
+			if ( false !== strpos( $body, strtolower( (string) $marker ) ) ) {
 				return true;
 			}
 		}

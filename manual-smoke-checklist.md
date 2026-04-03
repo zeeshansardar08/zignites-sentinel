@@ -1,6 +1,6 @@
 # Zignites Sentinel Manual Smoke Checklist
 
-Branch scope: `feature/snapshot-operator-clarity`
+Branch scope: current operator-safety phase
 
 Purpose: quick admin verification for the operator-clarity phase before merge.
 
@@ -104,6 +104,17 @@ For each filter:
    - confirmation phrase
 4. If the checklist is blocked, confirm `Execution blockers` is shown and readable.
 5. If a resumable execution exists, confirm the impact summary mentions the resume state.
+
+## Health Verification
+
+1. Open a snapshot that already has baseline, post-restore, or post-rollback health data.
+2. Confirm health verification still reports the existing probes:
+   - front-end
+   - login
+   - REST API
+3. Confirm health verification now also reports an authenticated `Admin` probe.
+4. Confirm the admin probe does not report a login form when the current admin session is valid.
+5. Confirm the health status and summary counts still render without layout regressions.
 
 ## Pagination
 
