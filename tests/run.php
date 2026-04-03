@@ -11,6 +11,7 @@ require_once __DIR__ . '/test-audit-report-verifier.php';
 require_once __DIR__ . '/test-restore-operator-checklist-evaluator.php';
 require_once __DIR__ . '/test-log-repository-filters.php';
 require_once __DIR__ . '/test-event-log-export-row.php';
+require_once __DIR__ . '/test-snapshot-summary-export.php';
 
 $tests = array_filter(
 	get_defined_functions()['user'],
