@@ -58,6 +58,12 @@ if ( ! function_exists( 'wp_json_encode' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_salt' ) ) {
+	function wp_salt( $scheme = 'auth' ) {
+		return 'znts-test-salt-' . (string) $scheme;
+	}
+}
+
 if ( ! function_exists( 'get_option' ) ) {
 	function get_option( $name, $default = false ) {
 		return array_key_exists( $name, $GLOBALS['znts_test_options'] ) ? $GLOBALS['znts_test_options'][ $name ] : $default;
@@ -117,5 +123,7 @@ require_once __DIR__ . '/../includes/snapshots/class-restore-journal-recorder.ph
 require_once __DIR__ . '/../includes/snapshots/class-restore-executor.php';
 require_once __DIR__ . '/../includes/snapshots/class-restore-rollback-manager.php';
 require_once __DIR__ . '/../includes/snapshots/class-snapshot-artifact-repository.php';
+require_once __DIR__ . '/../includes/admin/class-audit-report-verifier.php';
+require_once __DIR__ . '/../includes/admin/class-restore-operator-checklist-evaluator.php';
 require_once __DIR__ . '/../includes/admin/class-settings-portability.php';
 require_once __DIR__ . '/../includes/admin/class-snapshot-status-resolver.php';
