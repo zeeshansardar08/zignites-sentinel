@@ -32,6 +32,7 @@ $restore_resume_context   = isset( $view_data['restore_resume_context'] ) && is_
 $restore_rollback_resume_context = isset( $view_data['restore_rollback_resume_context'] ) && is_array( $view_data['restore_rollback_resume_context'] ) ? $view_data['restore_rollback_resume_context'] : array();
 $snapshot_health_baseline = isset( $view_data['snapshot_health_baseline'] ) && is_array( $view_data['snapshot_health_baseline'] ) ? $view_data['snapshot_health_baseline'] : array();
 $snapshot_health_comparison = isset( $view_data['snapshot_health_comparison'] ) && is_array( $view_data['snapshot_health_comparison'] ) ? $view_data['snapshot_health_comparison'] : array();
+$snapshot_summary       = isset( $view_data['snapshot_summary'] ) && is_array( $view_data['snapshot_summary'] ) ? $view_data['snapshot_summary'] : array();
 $operator_checklist      = isset( $view_data['operator_checklist'] ) && is_array( $view_data['operator_checklist'] ) ? $view_data['operator_checklist'] : array();
 $restore_impact_summary  = isset( $view_data['restore_impact_summary'] ) && is_array( $view_data['restore_impact_summary'] ) ? $view_data['restore_impact_summary'] : array();
 $audit_report_verification = isset( $view_data['audit_report_verification'] ) && is_array( $view_data['audit_report_verification'] ) ? $view_data['audit_report_verification'] : array();
@@ -240,6 +241,90 @@ $workspace_next_action     = ! empty( $operator_checklist['can_execute'] )
 			<section class="znts-card znts-card-full znts-card-soft">
 				<div class="znts-section-header">
 					<div>
+						<h2><?php echo esc_html__( 'Snapshot Summary', 'zignites-sentinel' ); ?></h2>
+						<p><?php echo esc_html__( 'Use this summary for a quick operator handoff. It condenses the current snapshot state, evidence, risks, and recommended next steps into one read-only view.', 'zignites-sentinel' ); ?></p>
+					</div>
+					<div class="znts-actions">
+						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+							<input type="hidden" name="action" value="znts_download_snapshot_summary" />
+							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
+							<?php wp_nonce_field( 'znts_download_snapshot_summary_action' ); ?>
+							<?php submit_button( __( 'Download Summary', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
+						</form>
+						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+							<input type="hidden" name="action" value="znts_download_snapshot_audit_report" />
+							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
+							<?php wp_nonce_field( 'znts_download_snapshot_audit_report_action' ); ?>
+							<?php submit_button( __( 'Download Audit Report', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
+						</form>
+					</div>
+				</div>
+				<?php if ( ! empty( $snapshot_summary['status_badges'] ) ) : ?>
+					<div class="znts-badge-row znts-card-note">
+						<?php foreach ( $snapshot_summary['status_badges'] as $badge ) : ?>
+							<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $badge['badge'] ) ? $badge['badge'] : 'info' ); ?>">
+								<?php echo esc_html( isset( $badge['label'] ) ? $badge['label'] : '' ); ?>
+							</span>
+						<?php endforeach; ?>
+					</div>
+				<?php endif; ?>
+				<div class="znts-snapshot-overview">
+					<?php foreach ( isset( $snapshot_summary['overview'] ) && is_array( $snapshot_summary['overview'] ) ? $snapshot_summary['overview'] : array() as $item ) : ?>
+						<div class="znts-overview-block">
+							<strong><?php echo esc_html( isset( $item['label'] ) ? $item['label'] : '' ); ?></strong>
+							<span><?php echo esc_html( isset( $item['value'] ) ? $item['value'] : '' ); ?></span>
+							<?php if ( ! empty( $item['note'] ) ) : ?>
+								<p class="description"><?php echo esc_html( $item['note'] ); ?></p>
+							<?php endif; ?>
+						</div>
+					<?php endforeach; ?>
+				</div>
+				<div class="znts-dashboard-support">
+					<section class="znts-helper-block">
+						<h3><?php echo esc_html__( 'Evidence', 'zignites-sentinel' ); ?></h3>
+						<ul class="znts-list">
+							<?php foreach ( isset( $snapshot_summary['evidence'] ) && is_array( $snapshot_summary['evidence'] ) ? $snapshot_summary['evidence'] : array() as $item ) : ?>
+								<li>
+									<strong><?php echo esc_html( isset( $item['label'] ) ? $item['label'] : '' ); ?>:</strong>
+									<?php echo esc_html( isset( $item['value'] ) ? $item['value'] : '' ); ?>
+									<?php if ( ! empty( $item['note'] ) ) : ?>
+										<span class="znts-inline-note"><?php echo esc_html( ' ' . $item['note'] ); ?></span>
+									<?php endif; ?>
+								</li>
+							<?php endforeach; ?>
+						</ul>
+					</section>
+					<section class="znts-helper-block">
+						<h3><?php echo esc_html__( 'Current Risks', 'zignites-sentinel' ); ?></h3>
+						<?php if ( empty( $snapshot_summary['risks'] ) ) : ?>
+							<div class="znts-empty-state">
+								<strong><?php echo esc_html__( 'No active risk callouts', 'zignites-sentinel' ); ?></strong>
+								<p><?php echo esc_html__( 'The summary does not currently flag an operator-visible risk for this snapshot.', 'zignites-sentinel' ); ?></p>
+							</div>
+						<?php else : ?>
+							<ul class="znts-list">
+								<?php foreach ( $snapshot_summary['risks'] as $risk ) : ?>
+									<li><?php echo esc_html( $risk ); ?></li>
+								<?php endforeach; ?>
+							</ul>
+						<?php endif; ?>
+					</section>
+					<section class="znts-helper-block">
+						<h3><?php echo esc_html__( 'Recommended Next Steps', 'zignites-sentinel' ); ?></h3>
+						<ul class="znts-list">
+							<?php foreach ( isset( $snapshot_summary['next_steps'] ) && is_array( $snapshot_summary['next_steps'] ) ? $snapshot_summary['next_steps'] : array() as $step ) : ?>
+								<li><?php echo esc_html( $step ); ?></li>
+							<?php endforeach; ?>
+						</ul>
+					</section>
+				</div>
+			</section>
+		<?php endif; ?>
+
+		<?php if ( $snapshot_detail ) : ?>
+			<section class="znts-card znts-card-full znts-card-soft">
+				<div class="znts-section-header">
+					<div>
 						<h2><?php echo esc_html__( 'Snapshot Health Baseline', 'zignites-sentinel' ); ?></h2>
 						<p><?php echo esc_html__( 'Capture a read-only site health snapshot before restore execution, then compare it against post-restore and post-rollback verification.', 'zignites-sentinel' ); ?></p>
 					</div>
@@ -249,12 +334,6 @@ $workspace_next_action     = ! empty( $operator_checklist['can_execute'] )
 							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
 							<?php wp_nonce_field( 'znts_capture_snapshot_health_baseline_action' ); ?>
 							<?php submit_button( __( 'Capture Health Baseline', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
-						</form>
-						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-							<input type="hidden" name="action" value="znts_download_snapshot_audit_report" />
-							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
-							<?php wp_nonce_field( 'znts_download_snapshot_audit_report_action' ); ?>
-							<?php submit_button( __( 'Download Audit Report', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 						</form>
 					</div>
 				</div>
