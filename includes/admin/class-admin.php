@@ -290,6 +290,7 @@ class Admin {
 	public function register_hooks() {
 		add_action( 'admin_menu', array( $this, 'register_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+		add_action( 'wp_dashboard_setup', array( $this, 'register_dashboard_widget' ) );
 		add_action( 'admin_post_znts_run_preflight', array( $this, 'handle_run_preflight' ) );
 		add_action( 'admin_post_znts_create_snapshot', array( $this, 'handle_create_snapshot' ) );
 		add_action( 'admin_post_znts_save_settings', array( $this, 'handle_save_settings' ) );
@@ -351,7 +352,7 @@ class Admin {
 	 * @return void
 	 */
 	public function enqueue_assets( $hook_suffix ) {
-		if ( ! in_array( $hook_suffix, $this->hook_suffixes, true ) ) {
+		if ( ! in_array( $hook_suffix, $this->hook_suffixes, true ) && 'index.php' !== $hook_suffix ) {
 			return;
 		}
 
@@ -373,7 +374,76 @@ class Admin {
 			wp_die( esc_html__( 'You do not have permission to access this page.', 'zignites-sentinel' ) );
 		}
 
-		$recent_snapshots      = $this->snapshots->get_recent( 5 );
+		$summary = $this->get_dashboard_summary_payload( 5 );
+
+		$view_data = array(
+			'plugin_version'        => ZNTS_VERSION,
+			'db_version'            => get_option( ZNTS_OPTION_DB_VERSION, ZNTS_DB_VERSION ),
+			'logs_table'            => Installer::get_logs_table_name(),
+			'conflicts_table'       => Installer::get_conflicts_table_name(),
+			'wordpress'             => get_bloginfo( 'version' ),
+			'php'                   => PHP_VERSION,
+			'site_url'              => home_url(),
+			'recent_logs'           => $this->logs->get_recent( 8 ),
+			'recent_conflicts'      => $this->conflicts->get_recent_open( 6 ),
+			'recent_snapshots'      => $summary['recent_snapshots'],
+			'health_score'          => $summary['health_score'],
+			'restore_health_strip'  => $summary['restore_health_strip'],
+			'snapshot_status_index' => $summary['snapshot_status_index'],
+			'site_status_card'      => $summary['site_status_card'],
+		);
+
+		require ZNTS_PLUGIN_DIR . 'includes/admin/views/dashboard.php';
+	}
+
+	/**
+	 * Register a compact Sentinel widget on the core WordPress dashboard.
+	 *
+	 * @return void
+	 */
+	public function register_dashboard_widget() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		wp_add_dashboard_widget(
+			'znts-site-status-widget',
+			__( 'Sentinel Site Status', 'zignites-sentinel' ),
+			array( $this, 'render_dashboard_widget' ),
+			null,
+			null,
+			'side',
+			'high'
+		);
+	}
+
+	/**
+	 * Render the compact WordPress dashboard widget.
+	 *
+	 * @return void
+	 */
+	public function render_dashboard_widget() {
+		$summary = $this->get_dashboard_summary_payload( 1 );
+		$view_data = array(
+			'site_status_card'     => $summary['site_status_card'],
+			'restore_health_strip' => $summary['restore_health_strip'],
+			'latest_snapshot'      => ! empty( $summary['recent_snapshots'][0] ) ? $summary['recent_snapshots'][0] : array(),
+			'snapshot_status'      => ! empty( $summary['recent_snapshots'][0]['id'] ) && isset( $summary['snapshot_status_index'][ (int) $summary['recent_snapshots'][0]['id'] ] )
+				? $summary['snapshot_status_index'][ (int) $summary['recent_snapshots'][0]['id'] ]
+				: array(),
+		);
+
+		require ZNTS_PLUGIN_DIR . 'includes/admin/views/dashboard-widget.php';
+	}
+
+	/**
+	 * Build shared dashboard summary payloads for full and compact dashboard views.
+	 *
+	 * @param int $snapshot_limit Number of recent snapshots to include.
+	 * @return array
+	 */
+	protected function get_dashboard_summary_payload( $snapshot_limit = 5 ) {
+		$recent_snapshots      = $this->snapshots->get_recent( max( 1, absint( $snapshot_limit ) ) );
 		$health_score          = $this->health_score->calculate();
 		$snapshot_status_index = $this->snapshot_status_resolver->build_snapshot_status_index( $recent_snapshots );
 		$site_status_card      = $this->snapshot_status_resolver->build_site_status_card( $health_score, $recent_snapshots, $snapshot_status_index );
@@ -389,24 +459,13 @@ class Admin {
 			$site_status_card['activity_url'] = $this->get_snapshot_activity_url( (int) $site_status_card['latest_snapshot']['id'] );
 		}
 
-		$view_data = array(
-			'plugin_version'        => ZNTS_VERSION,
-			'db_version'            => get_option( ZNTS_OPTION_DB_VERSION, ZNTS_DB_VERSION ),
-			'logs_table'            => Installer::get_logs_table_name(),
-			'conflicts_table'       => Installer::get_conflicts_table_name(),
-			'wordpress'             => get_bloginfo( 'version' ),
-			'php'                   => PHP_VERSION,
-			'site_url'              => home_url(),
-			'recent_logs'           => $this->logs->get_recent( 8 ),
-			'recent_conflicts'      => $this->conflicts->get_recent_open( 6 ),
+		return array(
 			'recent_snapshots'      => $recent_snapshots,
 			'health_score'          => $health_score,
 			'restore_health_strip'  => $this->get_restore_dashboard_health_strip(),
 			'snapshot_status_index' => $snapshot_status_index,
 			'site_status_card'      => $site_status_card,
 		);
-
-		require ZNTS_PLUGIN_DIR . 'includes/admin/views/dashboard.php';
 	}
 
 	/**
