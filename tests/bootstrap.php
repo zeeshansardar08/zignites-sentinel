@@ -127,3 +127,4 @@ require_once __DIR__ . '/../includes/admin/class-audit-report-verifier.php';
 require_once __DIR__ . '/../includes/admin/class-restore-operator-checklist-evaluator.php';
 require_once __DIR__ . '/../includes/admin/class-settings-portability.php';
 require_once __DIR__ . '/../includes/admin/class-snapshot-status-resolver.php';
+require_once __DIR__ . '/../includes/admin/class-admin.php';

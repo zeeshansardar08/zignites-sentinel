@@ -9,6 +9,8 @@ require_once __DIR__ . '/test-restore-resume-state.php';
 require_once __DIR__ . '/test-settings-portability.php';
 require_once __DIR__ . '/test-audit-report-verifier.php';
 require_once __DIR__ . '/test-restore-operator-checklist-evaluator.php';
+require_once __DIR__ . '/test-log-repository-filters.php';
+require_once __DIR__ . '/test-event-log-export-row.php';
 
 $tests = array_filter(
 	get_defined_functions()['user'],
