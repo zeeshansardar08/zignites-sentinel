@@ -30,6 +30,7 @@ $restore_rollback_resume_context = isset( $view_data['restore_rollback_resume_co
 $snapshot_health_baseline = isset( $view_data['snapshot_health_baseline'] ) && is_array( $view_data['snapshot_health_baseline'] ) ? $view_data['snapshot_health_baseline'] : array();
 $snapshot_health_comparison = isset( $view_data['snapshot_health_comparison'] ) && is_array( $view_data['snapshot_health_comparison'] ) ? $view_data['snapshot_health_comparison'] : array();
 $operator_checklist      = isset( $view_data['operator_checklist'] ) && is_array( $view_data['operator_checklist'] ) ? $view_data['operator_checklist'] : array();
+$restore_impact_summary  = isset( $view_data['restore_impact_summary'] ) && is_array( $view_data['restore_impact_summary'] ) ? $view_data['restore_impact_summary'] : array();
 $audit_report_verification = isset( $view_data['audit_report_verification'] ) && is_array( $view_data['audit_report_verification'] ) ? $view_data['audit_report_verification'] : array();
 $snapshot_activity       = isset( $view_data['snapshot_activity'] ) && is_array( $view_data['snapshot_activity'] ) ? $view_data['snapshot_activity'] : array();
 $snapshot_activity_url   = isset( $view_data['snapshot_activity_url'] ) ? (string) $view_data['snapshot_activity_url'] : '';
@@ -1133,8 +1134,48 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 						</tbody>
 					</table>
 				<?php endif; ?>
+				<?php if ( ! empty( $restore_impact_summary ) ) : ?>
+					<h3><?php echo esc_html__( 'Restore Impact Summary', 'zignites-sentinel' ); ?></h3>
+					<div class="znts-readiness-row">
+						<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $restore_impact_summary['status'] ) ? $restore_impact_summary['status'] : 'info' ); ?>">
+							<?php echo esc_html( isset( $restore_impact_summary['title'] ) ? $restore_impact_summary['title'] : '' ); ?>
+						</span>
+					</div>
+					<p><?php echo esc_html( isset( $restore_impact_summary['message'] ) ? $restore_impact_summary['message'] : '' ); ?></p>
+					<?php if ( ! empty( $restore_impact_summary['rows'] ) ) : ?>
+						<table class="widefat striped">
+							<tbody>
+								<?php foreach ( $restore_impact_summary['rows'] as $impact_row ) : ?>
+									<tr>
+										<th scope="row"><?php echo esc_html( isset( $impact_row['label'] ) ? $impact_row['label'] : '' ); ?></th>
+										<td><?php echo esc_html( isset( $impact_row['value'] ) ? $impact_row['value'] : '' ); ?></td>
+									</tr>
+								<?php endforeach; ?>
+							</tbody>
+						</table>
+					<?php endif; ?>
+					<?php if ( ! empty( $restore_impact_summary['blockers'] ) ) : ?>
+						<h4><?php echo esc_html__( 'Execution blockers', 'zignites-sentinel' ); ?></h4>
+						<ul class="znts-list">
+							<?php foreach ( $restore_impact_summary['blockers'] as $blocker ) : ?>
+								<li>
+									<?php
+									echo esc_html(
+										sprintf(
+											/* translators: 1: blocker label, 2: blocker message */
+											__( '%1$s: %2$s', 'zignites-sentinel' ),
+											isset( $blocker['label'] ) ? (string) $blocker['label'] : __( 'Requirement', 'zignites-sentinel' ),
+											isset( $blocker['message'] ) ? (string) $blocker['message'] : ''
+										)
+									);
+									?>
+								</li>
+							<?php endforeach; ?>
+						</ul>
+					<?php endif; ?>
+				<?php endif; ?>
 				<h3><?php echo esc_html__( 'Guarded Live Restore', 'zignites-sentinel' ); ?></h3>
-				<p><?php echo esc_html__( 'This writes the staged snapshot payload into live theme and plugin paths. It only runs when staged validation passed for the same snapshot and the confirmation phrase is exact.', 'zignites-sentinel' ); ?></p>
+				<p><?php echo esc_html__( 'This writes the staged snapshot payload into live theme and plugin paths. Review the impact summary first. It only runs when staged validation passed for the same snapshot and the confirmation phrase is exact.', 'zignites-sentinel' ); ?></p>
 				<?php if ( ! empty( $operator_checklist['can_execute'] ) ) : ?>
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="znts_execute_restore" />

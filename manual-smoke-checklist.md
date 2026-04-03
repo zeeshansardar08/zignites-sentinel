@@ -90,6 +90,21 @@ For each filter:
    - checklist refresh
    - non-destructive validation actions
 
+## Restore Impact Summary
+
+1. Open a snapshot that has a restore plan.
+2. Confirm the `Restore Impact Summary` appears before live restore execution.
+3. Confirm it shows:
+   - create/replace/unchanged counts
+   - conflict count
+   - backup storage summary
+   - baseline status
+   - stage gate summary
+   - restore plan summary
+   - confirmation phrase
+4. If the checklist is blocked, confirm `Execution blockers` is shown and readable.
+5. If a resumable execution exists, confirm the impact summary mentions the resume state.
+
 ## Pagination
 
 1. If enough snapshots exist, move between pages.
