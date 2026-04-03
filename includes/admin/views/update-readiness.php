@@ -527,6 +527,27 @@ $workspace_next_action     = ! empty( $operator_checklist['can_execute'] )
 				</table>
 				<?php submit_button( __( 'Save Settings', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 			</form>
+			<div class="znts-form-panel">
+				<h3><?php echo esc_html__( 'Settings Portability', 'zignites-sentinel' ); ?></h3>
+				<p><?php echo esc_html__( 'Export or import Sentinel preferences only. This excludes logs, snapshots, checkpoints, restore results, health baselines, and any live execution state.', 'zignites-sentinel' ); ?></p>
+				<div class="znts-actions">
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+						<input type="hidden" name="action" value="znts_download_settings_export" />
+						<?php wp_nonce_field( 'znts_download_settings_export_action' ); ?>
+						<?php submit_button( __( 'Export Settings', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
+					</form>
+				</div>
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<input type="hidden" name="action" value="znts_import_settings" />
+					<?php wp_nonce_field( 'znts_import_settings_action' ); ?>
+					<p>
+						<label for="znts-settings-import-payload"><?php echo esc_html__( 'Import settings JSON', 'zignites-sentinel' ); ?></label><br />
+						<textarea id="znts-settings-import-payload" name="settings_import_payload" rows="8" class="large-text code"></textarea>
+					</p>
+					<p class="description"><?php echo esc_html__( 'Only supported Sentinel preference keys are imported. Unknown fields are ignored.', 'zignites-sentinel' ); ?></p>
+					<?php submit_button( __( 'Import Settings', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
+				</form>
+			</div>
 		</section>
 
 		<section class="znts-card znts-card-soft">

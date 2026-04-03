@@ -209,6 +209,13 @@ class Admin {
 	protected $snapshot_status_resolver;
 
 	/**
+	 * Settings portability helper.
+	 *
+	 * @var SettingsPortability
+	 */
+	protected $settings_portability;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Logger                   $logger              Structured logger.
@@ -274,6 +281,7 @@ class Admin {
 		$this->restore_rollback_manager = $restore_rollback_manager;
 		$this->restore_journal_recorder = $restore_journal_recorder;
 		$this->restore_checkpoint_store = $restore_checkpoint_store;
+		$this->settings_portability     = new SettingsPortability();
 		$this->snapshot_status_resolver = new SnapshotStatusResolver(
 			$logs,
 			$restore_checkpoint_store,
@@ -294,6 +302,8 @@ class Admin {
 		add_action( 'admin_post_znts_run_preflight', array( $this, 'handle_run_preflight' ) );
 		add_action( 'admin_post_znts_export_event_logs', array( $this, 'handle_export_event_logs' ) );
 		add_action( 'admin_post_znts_create_snapshot', array( $this, 'handle_create_snapshot' ) );
+		add_action( 'admin_post_znts_download_settings_export', array( $this, 'handle_download_settings_export' ) );
+		add_action( 'admin_post_znts_import_settings', array( $this, 'handle_import_settings' ) );
 		add_action( 'admin_post_znts_save_settings', array( $this, 'handle_save_settings' ) );
 		add_action( 'admin_post_znts_build_update_plan', array( $this, 'handle_build_update_plan' ) );
 		add_action( 'admin_post_znts_check_restore_readiness', array( $this, 'handle_check_restore_readiness' ) );
@@ -651,16 +661,78 @@ class Admin {
 	public function handle_save_settings() {
 		$this->assert_admin_action_permissions( 'znts_save_settings_action' );
 
-		$settings = $this->get_settings();
-
-		$settings['logging_enabled']         = isset( $_POST['logging_enabled'] ) ? 1 : 0;
-		$settings['delete_data_on_uninstall'] = isset( $_POST['delete_data_on_uninstall'] ) ? 1 : 0;
-		$settings['auto_snapshot_on_plan']   = isset( $_POST['auto_snapshot_on_plan'] ) ? 1 : 0;
-		$settings['snapshot_retention_days'] = isset( $_POST['snapshot_retention_days'] ) ? max( 1, absint( wp_unslash( $_POST['snapshot_retention_days'] ) ) ) : 30;
-		$settings['restore_checkpoint_max_age_hours'] = isset( $_POST['restore_checkpoint_max_age_hours'] ) ? max( 1, absint( wp_unslash( $_POST['restore_checkpoint_max_age_hours'] ) ) ) : 24;
+		$settings = $this->sanitize_settings_input( wp_unslash( $_POST ) );
 
 		update_option( ZNTS_OPTION_SETTINGS, $settings, false );
 		$this->redirect_with_notice( 'settings-saved' );
+	}
+
+	/**
+	 * Handle download of a non-destructive settings export.
+	 *
+	 * @return void
+	 */
+	public function handle_download_settings_export() {
+		$this->assert_admin_action_permissions( 'znts_download_settings_export_action' );
+
+		$payload  = $this->settings_portability->build_export_payload( $this->get_settings() );
+		$filename = sprintf( 'znts-settings-%s.json', gmdate( 'Ymd-His' ) );
+
+		$this->logger->log(
+			'settings_export_downloaded',
+			'info',
+			'settings',
+			__( 'Sentinel settings export downloaded.', 'zignites-sentinel' ),
+			array(
+				'filename' => $filename,
+			)
+		);
+
+		nocache_headers();
+		header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
+		header( 'Content-Disposition: attachment; filename=' . $filename );
+
+		echo wp_json_encode( $payload, JSON_PRETTY_PRINT );
+		exit;
+	}
+
+	/**
+	 * Handle import of a non-destructive settings export.
+	 *
+	 * @return void
+	 */
+	public function handle_import_settings() {
+		$this->assert_admin_action_permissions( 'znts_import_settings_action' );
+
+		$payload = isset( $_POST['settings_import_payload'] ) ? wp_unslash( $_POST['settings_import_payload'] ) : '';
+		$result  = $this->settings_portability->import_payload( $payload );
+
+		if ( empty( $result['success'] ) ) {
+			$this->logger->log(
+				'settings_import_failed',
+				'warning',
+				'settings',
+				__( 'Sentinel settings import failed.', 'zignites-sentinel' ),
+				array(
+					'error' => isset( $result['error'] ) ? (string) $result['error'] : '',
+				)
+			);
+			$this->redirect_with_notice( 'settings-import-invalid' );
+		}
+
+		update_option( ZNTS_OPTION_SETTINGS, $result['settings'], false );
+
+		$this->logger->log(
+			'settings_import_completed',
+			'info',
+			'settings',
+			__( 'Sentinel settings import completed.', 'zignites-sentinel' ),
+			array(
+				'settings' => $result['settings'],
+			)
+		);
+
+		$this->redirect_with_notice( 'settings-imported' );
 	}
 
 	/**
@@ -1493,6 +1565,14 @@ class Admin {
 				'type'    => 'error',
 				'message' => __( 'The selected snapshot could not be found for restore gate refresh.', 'zignites-sentinel' ),
 			),
+			'settings-imported' => array(
+				'type'    => 'success',
+				'message' => __( 'Sentinel settings imported.', 'zignites-sentinel' ),
+			),
+			'settings-import-invalid' => array(
+				'type'    => 'error',
+				'message' => __( 'The provided Sentinel settings export could not be imported.', 'zignites-sentinel' ),
+			),
 			'restore-execution-complete' => array(
 				'type'    => 'success',
 				'message' => __( 'Restore execution attempt completed.', 'zignites-sentinel' ),
@@ -1575,15 +1655,28 @@ class Admin {
 		$settings = get_option( ZNTS_OPTION_SETTINGS, array() );
 		$settings = is_array( $settings ) ? $settings : array();
 
-		return wp_parse_args(
+		return $this->settings_portability->normalize_settings(
 			$settings,
+			$this->settings_portability->get_default_settings()
+		);
+	}
+
+	/**
+	 * Sanitize posted settings form values.
+	 *
+	 * @param array $raw_input Raw form input.
+	 * @return array
+	 */
+	protected function sanitize_settings_input( array $raw_input ) {
+		return $this->settings_portability->normalize_settings(
 			array(
-				'delete_data_on_uninstall' => 1,
-				'logging_enabled'          => 1,
-				'snapshot_retention_days'  => 30,
-				'auto_snapshot_on_plan'    => 1,
-				'restore_checkpoint_max_age_hours' => 24,
-			)
+				'logging_enabled'                  => isset( $raw_input['logging_enabled'] ) ? 1 : 0,
+				'delete_data_on_uninstall'         => isset( $raw_input['delete_data_on_uninstall'] ) ? 1 : 0,
+				'auto_snapshot_on_plan'            => isset( $raw_input['auto_snapshot_on_plan'] ) ? 1 : 0,
+				'snapshot_retention_days'          => isset( $raw_input['snapshot_retention_days'] ) ? $raw_input['snapshot_retention_days'] : null,
+				'restore_checkpoint_max_age_hours' => isset( $raw_input['restore_checkpoint_max_age_hours'] ) ? $raw_input['restore_checkpoint_max_age_hours'] : null,
+			),
+			$this->settings_portability->get_default_settings()
 		);
 	}
 

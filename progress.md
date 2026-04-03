@@ -1,7 +1,7 @@
 # Zignites Sentinel Progress Audit
 
 ## Current State
-- Plugin version: `1.28.0`
+- Plugin version: `1.29.0`
 - Database version: `1.4.0`
 - Status: advanced MVP / controlled-restore product foundation
 - Current objective achieved: the plugin now covers snapshot capture, advisory readiness, staged validation, restore planning, guarded live restore, guarded rollback, health verification, audit reporting, checkpointing, resumability, and operator-facing admin workflows
@@ -21,6 +21,10 @@
   - Dashboard
   - Update Readiness
   - Event Logs
+- Non-destructive settings portability:
+  - JSON export of Sentinel preferences
+  - JSON import of Sentinel preferences
+  - import sanitization against supported keys only
 
 ### 2. Snapshot System
 - Manual snapshot metadata creation
@@ -207,6 +211,7 @@
 
 ## Important Safety Characteristics
 - Most destructive operations are guarded by nonce + capability + explicit operator confirmation
+- Settings export/import only touches `znts_settings` and explicitly excludes runtime restore state
 - Live restore is blocked if baseline/stage/plan gates are incomplete or stale
 - Resume uses persisted journal and checkpoint state instead of guessing
 - Checkpoints are fingerprint-bound to package artifacts
