@@ -278,3 +278,93 @@ function znts_test_site_status_becomes_at_risk_on_recent_failure() {
 
 	znts_assert_same( 'at_risk', $site_card['status'], 'Recent failed restore activity should mark the site as at risk.' );
 }
+
+function znts_test_baseline_falls_back_to_snapshot_health_logs() {
+	$GLOBALS['znts_test_options'] = array(
+		ZNTS_OPTION_SETTINGS => array(
+			'restore_checkpoint_max_age_hours' => 24,
+		),
+		ZNTS_OPTION_LAST_SNAPSHOT_HEALTH_BASELINE => array(),
+	);
+
+	$fixture = znts_build_resolver_fixture();
+
+	$fixture['logs']->rows_by_source['snapshot-health'] = array(
+		array(
+			'event_type' => 'snapshot_health_baseline_captured',
+			'created_at' => gmdate( 'Y-m-d H:i:s', time() - 600 ),
+			'context'    => wp_json_encode(
+				array(
+					'snapshot_id' => 41,
+					'status'      => 'healthy',
+				)
+			),
+		),
+	);
+
+	$index = $fixture['resolver']->build_snapshot_status_index(
+		array(
+			array(
+				'id'    => 41,
+				'label' => 'Logged baseline snapshot',
+			),
+		)
+	);
+
+	znts_assert_true( ! empty( $index[41]['baseline']['present'] ), 'Baseline should be considered present when a baseline capture event exists in logs.' );
+	znts_assert_same( 'Baseline present', $index[41]['baseline']['label'], 'Baseline label should reflect the fallback log state.' );
+}
+
+function znts_test_stale_checkpoint_state_respects_age_limit() {
+	$GLOBALS['znts_test_options'] = array(
+		ZNTS_OPTION_SETTINGS => array(
+			'restore_checkpoint_max_age_hours' => 24,
+		),
+		ZNTS_OPTION_LAST_SNAPSHOT_HEALTH_BASELINE => array(
+			'snapshot_id'  => 51,
+			'generated_at' => gmdate( 'Y-m-d H:i:s', time() - 300 ),
+			'status'       => 'healthy',
+		),
+	);
+
+	$fixture = znts_build_resolver_fixture();
+
+	$fixture['checkpoints']->stage[51] = array(
+		'snapshot_id'  => 51,
+		'generated_at' => gmdate( 'Y-m-d H:i:s', time() - ( 30 * HOUR_IN_SECONDS ) ),
+		'status'       => 'ready',
+	);
+	$fixture['artifacts']->artifacts_by_snapshot[51] = array(
+		array(
+			'snapshot_id'   => 51,
+			'artifact_type' => 'package',
+		),
+	);
+
+	$index = $fixture['resolver']->build_snapshot_status_index(
+		array(
+			array(
+				'id'    => 51,
+				'label' => 'Stale stage snapshot',
+			),
+		)
+	);
+
+	znts_assert_same( 'stale', $index[51]['stage']['key'], 'Expired stage checkpoints should be marked stale.' );
+	znts_assert_true( ! empty( $index[51]['has_stale_checkpoint'] ), 'Snapshot should report stale checkpoints when stage has expired.' );
+
+	$filtered = $fixture['resolver']->filter_snapshots(
+		array(
+			array(
+				'id'    => 51,
+				'label' => 'Stale stage snapshot',
+			),
+		),
+		$index,
+		'',
+		'checkpoint-stale',
+		12
+	);
+
+	znts_assert_same( 1, count( $filtered ), 'Expired checkpoints should match the checkpoint-stale filter.' );
+}

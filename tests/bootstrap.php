@@ -49,6 +49,12 @@ if ( ! function_exists( 'wp_parse_args' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_json_encode' ) ) {
+	function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
+		return json_encode( $value, $flags, $depth );
+	}
+}
+
 if ( ! function_exists( 'get_option' ) ) {
 	function get_option( $name, $default = false ) {
 		return array_key_exists( $name, $GLOBALS['znts_test_options'] ) ? $GLOBALS['znts_test_options'][ $name ] : $default;
