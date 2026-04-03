@@ -127,6 +127,32 @@ class LogRepository {
 	}
 
 	/**
+	 * Fetch filtered logs for export.
+	 *
+	 * @param array $args  Query arguments.
+	 * @param int   $limit Maximum rows to export.
+	 * @return array
+	 */
+	public function get_filtered_for_export( array $args = array(), $limit = 5000 ) {
+		global $wpdb;
+
+		$args      = $this->normalize_query_args( $args );
+		$table     = Installer::get_logs_table_name();
+		$where     = $this->build_where_sql( $args, $values );
+		$limit     = max( 1, absint( $limit ) );
+		$values[]  = $limit;
+		$query     = "SELECT id, event_type, severity, source, message, context, created_at
+			FROM {$table}
+			{$where}
+			ORDER BY created_at DESC, id DESC
+			LIMIT %d";
+		$prepared  = $wpdb->prepare( $query, $values );
+		$results   = $wpdb->get_results( $prepared, ARRAY_A );
+
+		return is_array( $results ) ? $results : array();
+	}
+
+	/**
 	 * Count logs by severity within a date window.
 	 *
 	 * @param int $days Number of days to inspect.
