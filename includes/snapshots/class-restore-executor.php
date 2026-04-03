@@ -102,8 +102,8 @@ class RestoreExecutor {
 	public function execute( array $snapshot, array $artifacts, array $last_stage_result, array $last_plan_result, $confirmation_phrase, $resume_run_id = '' ) {
 		$snapshot_id  = isset( $snapshot['id'] ) ? (int) $snapshot['id'] : 0;
 		$run_id       = $this->journal_recorder ? $this->journal_recorder->start_run( self::JOURNAL_SOURCE, $snapshot_id, $resume_run_id ) : '';
-		$resume_state = $this->get_resume_state( $snapshot_id, $run_id );
 		$execution_checkpoint = $this->get_execution_checkpoint( $snapshot, $artifacts, $run_id );
+		$resume_state = $this->get_resume_state( $snapshot_id, $run_id, $execution_checkpoint );
 		$journal      = array();
 		$checks       = array(
 			$this->check_confirmation_phrase( $snapshot, $confirmation_phrase ),
@@ -154,6 +154,7 @@ class RestoreExecutor {
 			array(
 				'stage_ready'         => true,
 				'stage_path'          => isset( $stage['stage_path'] ) ? $stage['stage_path'] : '',
+				'backup_root'         => ! empty( $execution_checkpoint['backup_root'] ) ? $execution_checkpoint['backup_root'] : '',
 				'health_completed'    => ! empty( $execution_checkpoint['health_completed'] ),
 				'health_verification' => ! empty( $execution_checkpoint['health_verification'] ) && is_array( $execution_checkpoint['health_verification'] ) ? $execution_checkpoint['health_verification'] : array(),
 			)
@@ -226,12 +227,20 @@ class RestoreExecutor {
 			'message' => $backup_message,
 		);
 		$this->append_journal_entry( $journal, $snapshot_id, $run_id, $this->build_journal_entry( 'backup', 'root', 'completed', 'pass', $backup_message, array( 'backup_root' => $backup_root ) ) );
+		$this->store_execution_checkpoint(
+			$snapshot,
+			$artifacts,
+			$run_id,
+			array(
+				'backup_root' => $backup_root,
+			)
+		);
 
 		$item_results = array();
 		$pending_item_count = $this->count_pending_plan_items( $plan['items'], $resume_state );
 
 		foreach ( $plan['items'] as $item ) {
-			$item_result   = $this->execute_plan_item( $item, $stage['stage_path'], $backup_root, $resume_state );
+			$item_result   = $this->execute_plan_item( $snapshot, $artifacts, $run_id, $item, $stage['stage_path'], $backup_root, $resume_state );
 			$item_results[] = $item_result;
 
 			if ( ! empty( $item_result['journal'] ) && is_array( $item_result['journal'] ) ) {
@@ -385,13 +394,16 @@ class RestoreExecutor {
 	/**
 	 * Execute a single plan item.
 	 *
+	 * @param array  $snapshot     Snapshot row.
+	 * @param array  $artifacts    Artifact rows.
+	 * @param string $run_id       Run ID.
 	 * @param array  $item         Plan item.
 	 * @param string $stage_path   Stage path.
 	 * @param string $backup_root  Backup root.
 	 * @param array  $resume_state Resume state.
 	 * @return array
 	 */
-	protected function execute_plan_item( array $item, $stage_path, $backup_root, array $resume_state = array() ) {
+	protected function execute_plan_item( array $snapshot, array $artifacts, $run_id, array $item, $stage_path, $backup_root, array $resume_state = array() ) {
 		$journal  = array();
 		$item     = $this->normalize_item( $item );
 		$item_key = isset( $item['item_key'] ) ? $item['item_key'] : '';
@@ -409,6 +421,21 @@ class RestoreExecutor {
 		}
 
 		if ( ! empty( $resume_state['completed_items'][ $item_key ] ) ) {
+			$this->store_execution_item_checkpoint(
+				$snapshot,
+				$artifacts,
+				$run_id,
+				$item_key,
+				$this->build_item_checkpoint(
+					$item,
+					'resume_skip',
+					'pass',
+					true,
+					! empty( $resume_state['completed_items'][ $item_key ]['backup_path'] ),
+					$resume_state['completed_items'][ $item_key ]
+				)
+			);
+
 			return array(
 				'label'       => $item['label'],
 				'status'      => 'pass',
@@ -424,6 +451,23 @@ class RestoreExecutor {
 		}
 
 		if ( 'reuse' === $item['action'] ) {
+			$this->store_execution_item_checkpoint(
+				$snapshot,
+				$artifacts,
+				$run_id,
+				$item_key,
+				$this->build_item_checkpoint(
+					$item,
+					'completed',
+					'pass',
+					true,
+					false,
+					array(
+						'target_path' => isset( $item['target_path'] ) ? $item['target_path'] : '',
+					)
+				)
+			);
+
 			return array(
 				'label'   => $item['label'],
 				'status'  => 'pass',
@@ -442,6 +486,23 @@ class RestoreExecutor {
 		$backup_already_moved = ! empty( $resume_state['backed_up_items'][ $item_key ]['backup_path'] ) && file_exists( $resume_state['backed_up_items'][ $item_key ]['backup_path'] );
 
 		if ( ! file_exists( $source_path ) ) {
+			$this->store_execution_item_checkpoint(
+				$snapshot,
+				$artifacts,
+				$run_id,
+				$item_key,
+				$this->build_item_checkpoint(
+					$item,
+					'completed',
+					'fail',
+					false,
+					false,
+					array(
+						'target_path' => $target_path,
+					)
+				)
+			);
+
 			return array(
 				'label'   => $item['label'],
 				'status'  => 'fail',
@@ -458,10 +519,47 @@ class RestoreExecutor {
 		if ( $backup_already_moved ) {
 			$backup_path = wp_normalize_path( $resume_state['backed_up_items'][ $item_key ]['backup_path'] );
 			$journal[]   = $this->build_journal_entry( 'item', $item['label'], 'backup_reused', 'pass', __( 'The existing backup payload was reused for resume execution.', 'zignites-sentinel' ), array_merge( $item, array( 'backup_path' => $backup_path, 'target_path' => $target_path ) ) );
+			$this->store_execution_item_checkpoint(
+				$snapshot,
+				$artifacts,
+				$run_id,
+				$item_key,
+				$this->build_item_checkpoint(
+					$item,
+					'backup_reused',
+					'pass',
+					false,
+					true,
+					array(
+						'backup_path' => $backup_path,
+						'target_path' => $target_path,
+						'backup_root' => $backup_root,
+					)
+				)
+			);
 		} elseif ( file_exists( $target_path ) ) {
 			$backup_parent = dirname( $backup_path );
 
 			if ( ! is_dir( $backup_parent ) && ! wp_mkdir_p( $backup_parent ) ) {
+				$this->store_execution_item_checkpoint(
+					$snapshot,
+					$artifacts,
+					$run_id,
+					$item_key,
+					$this->build_item_checkpoint(
+						$item,
+						'completed',
+						'fail',
+						false,
+						false,
+						array(
+							'backup_path' => $backup_path,
+							'target_path' => $target_path,
+							'backup_root' => $backup_root,
+						)
+					)
+				);
+
 				return array(
 					'label'   => $item['label'],
 					'status'  => 'fail',
@@ -476,6 +574,25 @@ class RestoreExecutor {
 			}
 
 			if ( ! @rename( $target_path, $backup_path ) ) {
+				$this->store_execution_item_checkpoint(
+					$snapshot,
+					$artifacts,
+					$run_id,
+					$item_key,
+					$this->build_item_checkpoint(
+						$item,
+						'completed',
+						'fail',
+						false,
+						false,
+						array(
+							'backup_path' => $backup_path,
+							'target_path' => $target_path,
+							'backup_root' => $backup_root,
+						)
+					)
+				);
+
 				return array(
 					'label'   => $item['label'],
 					'status'  => 'fail',
@@ -490,12 +607,49 @@ class RestoreExecutor {
 			}
 
 			$journal[] = $this->build_journal_entry( 'item', $item['label'], 'backup_moved', 'pass', __( 'The existing live payload was moved into backup storage.', 'zignites-sentinel' ), array_merge( $item, array( 'backup_path' => $backup_path, 'target_path' => $target_path ) ) );
+			$this->store_execution_item_checkpoint(
+				$snapshot,
+				$artifacts,
+				$run_id,
+				$item_key,
+				$this->build_item_checkpoint(
+					$item,
+					'backup_moved',
+					'pass',
+					false,
+					true,
+					array(
+						'backup_path' => $backup_path,
+						'target_path' => $target_path,
+						'backup_root' => $backup_root,
+					)
+				)
+			);
 		}
 
 		if ( $backup_already_moved && file_exists( $target_path ) ) {
 			$removed_existing_target = $this->delete_path( $target_path );
 
 			if ( ! $removed_existing_target && file_exists( $target_path ) ) {
+				$this->store_execution_item_checkpoint(
+					$snapshot,
+					$artifacts,
+					$run_id,
+					$item_key,
+					$this->build_item_checkpoint(
+						$item,
+						'completed',
+						'fail',
+						false,
+						true,
+						array(
+							'backup_path' => $backup_path,
+							'target_path' => $target_path,
+							'backup_root' => $backup_root,
+						)
+					)
+				);
+
 				return array(
 					'label'       => $item['label'],
 					'status'      => 'fail',
@@ -513,11 +667,48 @@ class RestoreExecutor {
 			}
 
 			$journal[] = $this->build_journal_entry( 'item', $item['label'], 'target_reset', 'pass', __( 'The partially restored live payload was removed before resume execution.', 'zignites-sentinel' ), array_merge( $item, array( 'target_path' => $target_path ) ) );
+			$this->store_execution_item_checkpoint(
+				$snapshot,
+				$artifacts,
+				$run_id,
+				$item_key,
+				$this->build_item_checkpoint(
+					$item,
+					'target_reset',
+					'pass',
+					false,
+					true,
+					array(
+						'backup_path' => $backup_path,
+						'target_path' => $target_path,
+						'backup_root' => $backup_root,
+					)
+				)
+			);
 		}
 
 		$target_parent = dirname( $target_path );
 
 		if ( ! is_dir( $target_parent ) && ! wp_mkdir_p( $target_parent ) ) {
+			$this->store_execution_item_checkpoint(
+				$snapshot,
+				$artifacts,
+				$run_id,
+				$item_key,
+				$this->build_item_checkpoint(
+					$item,
+					'completed',
+					'fail',
+					false,
+					! empty( $backup_path ),
+					array(
+						'backup_path' => $backup_path,
+						'target_path' => $target_path,
+						'backup_root' => $backup_root,
+					)
+				)
+			);
+
 			return array(
 				'label'   => $item['label'],
 				'status'  => 'fail',
@@ -540,6 +731,25 @@ class RestoreExecutor {
 				: copy( $source_path, $target_path );
 
 			if ( ! $copied ) {
+				$this->store_execution_item_checkpoint(
+					$snapshot,
+					$artifacts,
+					$run_id,
+					$item_key,
+					$this->build_item_checkpoint(
+						$item,
+						'completed',
+						'fail',
+						false,
+						! empty( $backup_path ),
+						array(
+							'backup_path' => $backup_path,
+							'target_path' => $target_path,
+							'backup_root' => $backup_root,
+						)
+					)
+				);
+
 				return array(
 					'label'   => $item['label'],
 					'status'  => 'fail',
@@ -558,6 +768,24 @@ class RestoreExecutor {
 		}
 
 		$journal[] = $this->build_journal_entry( 'item', $item['label'], 'payload_written', 'pass', __( 'The staged payload was written to the live target path.', 'zignites-sentinel' ), array_merge( $item, array( 'backup_path' => file_exists( $backup_path ) ? $backup_path : '', 'target_path' => $target_path ) ) );
+		$this->store_execution_item_checkpoint(
+			$snapshot,
+			$artifacts,
+			$run_id,
+			$item_key,
+			$this->build_item_checkpoint(
+				$item,
+				'payload_written',
+				'pass',
+				true,
+				file_exists( $backup_path ),
+				array(
+					'backup_path' => file_exists( $backup_path ) ? $backup_path : '',
+					'target_path' => $target_path,
+					'backup_root' => $backup_root,
+				)
+			)
+		);
 
 		return array(
 			'label'       => $item['label'],
@@ -725,6 +953,24 @@ class RestoreExecutor {
 	}
 
 	/**
+	 * Store a per-item execution checkpoint when checkpoint storage is available.
+	 *
+	 * @param array  $snapshot        Snapshot row.
+	 * @param array  $artifacts       Artifact rows.
+	 * @param string $run_id          Run ID.
+	 * @param string $item_key        Stable item key.
+	 * @param array  $item_checkpoint Item checkpoint state.
+	 * @return void
+	 */
+	protected function store_execution_item_checkpoint( array $snapshot, array $artifacts, $run_id, $item_key, array $item_checkpoint ) {
+		if ( ! $this->checkpoint_store || '' === (string) $run_id || '' === (string) $item_key ) {
+			return;
+		}
+
+		$this->checkpoint_store->store_execution_item_checkpoint( $snapshot, $artifacts, $run_id, $item_key, $item_checkpoint );
+	}
+
+	/**
 	 * Resolve a reusable execution stage.
 	 *
 	 * @param array $snapshot             Snapshot row.
@@ -800,6 +1046,7 @@ class RestoreExecutor {
 				array(
 					'stage_ready'         => true,
 					'stage_path'          => wp_normalize_path( $stage_path ),
+					'backup_root'         => isset( $result['backup_root'] ) ? (string) $result['backup_root'] : '',
 					'health_completed'    => ! empty( $health ),
 					'health_verification' => $health,
 				)
@@ -886,16 +1133,18 @@ class RestoreExecutor {
 	/**
 	 * Build resume state from persisted journal entries.
 	 *
-	 * @param int    $snapshot_id Snapshot ID.
-	 * @param string $run_id      Run ID.
+	 * @param int    $snapshot_id          Snapshot ID.
+	 * @param string $run_id               Run ID.
+	 * @param array  $execution_checkpoint Matching execution checkpoint.
 	 * @return array
 	 */
-	protected function get_resume_state( $snapshot_id, $run_id ) {
+	protected function get_resume_state( $snapshot_id, $run_id, array $execution_checkpoint = array() ) {
 		$state = array(
 			'entries'         => array(),
 			'backup_root'     => '',
 			'completed_items' => array(),
 			'backed_up_items' => array(),
+			'checkpoint_items' => array(),
 		);
 
 		if ( ! $this->journal_recorder || '' === $run_id ) {
@@ -925,7 +1174,81 @@ class RestoreExecutor {
 			}
 		}
 
+		$checkpoint_items = isset( $execution_checkpoint['items'] ) && is_array( $execution_checkpoint['items'] ) ? $execution_checkpoint['items'] : array();
+
+		foreach ( $checkpoint_items as $item_key => $item_state ) {
+			if ( ! is_array( $item_state ) ) {
+				continue;
+			}
+
+			$item_key = sanitize_text_field( (string) $item_key );
+
+			if ( '' === $item_key ) {
+				continue;
+			}
+
+			$state['checkpoint_items'][ $item_key ] = $item_state;
+
+			if ( empty( $state['backup_root'] ) && ! empty( $item_state['backup_root'] ) ) {
+				$state['backup_root'] = wp_normalize_path( (string) $item_state['backup_root'] );
+			}
+
+			if ( ! empty( $item_state['backup_completed'] ) ) {
+				$state['backed_up_items'][ $item_key ] = array_merge(
+					array(
+						'item_key'    => $item_key,
+						'backup_path' => isset( $item_state['backup_path'] ) ? $item_state['backup_path'] : '',
+						'target_path' => isset( $item_state['target_path'] ) ? $item_state['target_path'] : '',
+					),
+					$item_state
+				);
+			}
+
+			if ( ! empty( $item_state['write_completed'] ) ) {
+				$state['completed_items'][ $item_key ] = array_merge(
+					array(
+						'item_key'    => $item_key,
+						'backup_path' => isset( $item_state['backup_path'] ) ? $item_state['backup_path'] : '',
+						'target_path' => isset( $item_state['target_path'] ) ? $item_state['target_path'] : '',
+					),
+					$item_state
+				);
+			}
+		}
+
+		if ( empty( $state['backup_root'] ) && ! empty( $execution_checkpoint['backup_root'] ) ) {
+			$state['backup_root'] = wp_normalize_path( (string) $execution_checkpoint['backup_root'] );
+		}
+
 		return $state;
+	}
+
+	/**
+	 * Build a normalized per-item execution checkpoint.
+	 *
+	 * @param array  $item             Plan item.
+	 * @param string $phase            Current phase.
+	 * @param string $status           Current status.
+	 * @param bool   $write_completed  Whether the payload write is complete.
+	 * @param bool   $backup_completed Whether backup movement is complete.
+	 * @param array  $context          Additional context.
+	 * @return array
+	 */
+	protected function build_item_checkpoint( array $item, $phase, $status, $write_completed, $backup_completed, array $context = array() ) {
+		return array(
+			'item_key'          => isset( $item['item_key'] ) ? (string) $item['item_key'] : '',
+			'label'             => isset( $item['label'] ) ? (string) $item['label'] : '',
+			'action'            => isset( $item['action'] ) ? (string) $item['action'] : '',
+			'type'              => isset( $item['type'] ) ? (string) $item['type'] : '',
+			'phase'             => sanitize_key( (string) $phase ),
+			'status'            => sanitize_key( (string) $status ),
+			'write_completed'   => (bool) $write_completed,
+			'backup_completed'  => (bool) $backup_completed,
+			'backup_path'       => isset( $context['backup_path'] ) ? wp_normalize_path( (string) $context['backup_path'] ) : '',
+			'target_path'       => isset( $context['target_path'] ) ? wp_normalize_path( (string) $context['target_path'] ) : '',
+			'backup_root'       => isset( $context['backup_root'] ) ? wp_normalize_path( (string) $context['backup_root'] ) : '',
+			'updated_at'        => current_time( 'mysql', true ),
+		);
 	}
 
 	/**

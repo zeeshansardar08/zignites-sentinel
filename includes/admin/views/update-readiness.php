@@ -24,6 +24,9 @@ $last_restore_rollback    = isset( $view_data['last_restore_rollback'] ) && is_a
 $stage_checkpoint         = isset( $view_data['stage_checkpoint'] ) && is_array( $view_data['stage_checkpoint'] ) ? $view_data['stage_checkpoint'] : array();
 $plan_checkpoint          = isset( $view_data['plan_checkpoint'] ) && is_array( $view_data['plan_checkpoint'] ) ? $view_data['plan_checkpoint'] : array();
 $execution_checkpoint     = isset( $view_data['execution_checkpoint'] ) && is_array( $view_data['execution_checkpoint'] ) ? $view_data['execution_checkpoint'] : array();
+$execution_checkpoint_summary = isset( $view_data['execution_checkpoint_summary'] ) && is_array( $view_data['execution_checkpoint_summary'] ) ? $view_data['execution_checkpoint_summary'] : array();
+$rollback_checkpoint      = isset( $view_data['rollback_checkpoint'] ) && is_array( $view_data['rollback_checkpoint'] ) ? $view_data['rollback_checkpoint'] : array();
+$rollback_checkpoint_summary = isset( $view_data['rollback_checkpoint_summary'] ) && is_array( $view_data['rollback_checkpoint_summary'] ) ? $view_data['rollback_checkpoint_summary'] : array();
 $restore_run_cards        = isset( $view_data['restore_run_cards'] ) && is_array( $view_data['restore_run_cards'] ) ? $view_data['restore_run_cards'] : array();
 $restore_resume_context   = isset( $view_data['restore_resume_context'] ) && is_array( $view_data['restore_resume_context'] ) ? $view_data['restore_resume_context'] : array();
 $restore_rollback_resume_context = isset( $view_data['restore_rollback_resume_context'] ) && is_array( $view_data['restore_rollback_resume_context'] ) ? $view_data['restore_rollback_resume_context'] : array();
@@ -138,35 +141,93 @@ $workspace_next_action     = ! empty( $operator_checklist['can_execute'] )
 				<?php if ( ! empty( $stage_checkpoint ) || ! empty( $plan_checkpoint ) ) : ?>
 					<p class="description"><?php echo esc_html__( 'Stage and plan checkpoints are pinned to the current snapshot package fingerprint and are reused during resume when they still match.', 'zignites-sentinel' ); ?></p>
 				<?php endif; ?>
-				<?php if ( ! empty( $execution_checkpoint['checkpoint'] ) && is_array( $execution_checkpoint['checkpoint'] ) ) : ?>
-					<?php $execution_checkpoint_state = $execution_checkpoint['checkpoint']; ?>
+				<?php if ( ! empty( $execution_checkpoint_summary ) ) : ?>
 					<h3><?php echo esc_html__( 'Execution Checkpoint', 'zignites-sentinel' ); ?></h3>
 					<table class="widefat striped">
 						<tbody>
 							<tr>
 								<th scope="row"><?php echo esc_html__( 'Run ID', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( isset( $execution_checkpoint['run_id'] ) ? (string) $execution_checkpoint['run_id'] : '' ); ?></td>
+								<td><?php echo esc_html( isset( $execution_checkpoint_summary['run_id'] ) ? (string) $execution_checkpoint_summary['run_id'] : '' ); ?></td>
 							</tr>
 							<tr>
 								<th scope="row"><?php echo esc_html__( 'Generated', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( isset( $execution_checkpoint['generated_at'] ) ? (string) $execution_checkpoint['generated_at'] : '' ); ?></td>
+								<td><?php echo esc_html( isset( $execution_checkpoint_summary['generated_at'] ) ? (string) $execution_checkpoint_summary['generated_at'] : '' ); ?></td>
 							</tr>
 							<tr>
 								<th scope="row"><?php echo esc_html__( 'Stage Reuse', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( ! empty( $execution_checkpoint_state['stage_ready'] ) ? __( 'Ready', 'zignites-sentinel' ) : __( 'Not available', 'zignites-sentinel' ) ); ?></td>
+								<td><?php echo esc_html( ! empty( $execution_checkpoint_summary['stage_ready'] ) ? __( 'Ready', 'zignites-sentinel' ) : __( 'Not available', 'zignites-sentinel' ) ); ?></td>
 							</tr>
 							<tr>
 								<th scope="row"><?php echo esc_html__( 'Stage Path', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( isset( $execution_checkpoint_state['stage_path'] ) ? (string) $execution_checkpoint_state['stage_path'] : '' ); ?></td>
+								<td><?php echo esc_html( isset( $execution_checkpoint_summary['stage_path'] ) ? (string) $execution_checkpoint_summary['stage_path'] : '' ); ?></td>
 							</tr>
 							<tr>
 								<th scope="row"><?php echo esc_html__( 'Health Reuse', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( ! empty( $execution_checkpoint_state['health_completed'] ) ? __( 'Ready', 'zignites-sentinel' ) : __( 'Health will rerun', 'zignites-sentinel' ) ); ?></td>
+								<td><?php echo esc_html( ! empty( $execution_checkpoint_summary['health_completed'] ) ? __( 'Ready', 'zignites-sentinel' ) : __( 'Health will rerun', 'zignites-sentinel' ) ); ?></td>
 							</tr>
-							<?php if ( ! empty( $execution_checkpoint_state['health_verification']['status'] ) ) : ?>
+							<tr>
+								<th scope="row"><?php echo esc_html__( 'Backed-Up Items', 'zignites-sentinel' ); ?></th>
+								<td><?php echo esc_html( isset( $execution_checkpoint_summary['backup_count'] ) ? (string) $execution_checkpoint_summary['backup_count'] : '0' ); ?></td>
+							</tr>
+							<tr>
+								<th scope="row"><?php echo esc_html__( 'Written Items', 'zignites-sentinel' ); ?></th>
+								<td><?php echo esc_html( isset( $execution_checkpoint_summary['write_count'] ) ? (string) $execution_checkpoint_summary['write_count'] : '0' ); ?></td>
+							</tr>
+							<tr>
+								<th scope="row"><?php echo esc_html__( 'Tracked Items', 'zignites-sentinel' ); ?></th>
+								<td><?php echo esc_html( isset( $execution_checkpoint_summary['item_count'] ) ? (string) $execution_checkpoint_summary['item_count'] : '0' ); ?></td>
+							</tr>
+							<tr>
+								<th scope="row"><?php echo esc_html__( 'Failed Items', 'zignites-sentinel' ); ?></th>
+								<td><?php echo esc_html( isset( $execution_checkpoint_summary['failed_count'] ) ? (string) $execution_checkpoint_summary['failed_count'] : '0' ); ?></td>
+							</tr>
+							<?php if ( ! empty( $execution_checkpoint_summary['phase_counts'] ) ) : ?>
+								<tr>
+									<th scope="row"><?php echo esc_html__( 'Checkpoint Phases', 'zignites-sentinel' ); ?></th>
+									<td><?php echo esc_html( implode( ', ', array_map( static function ( $phase, $count ) { return sprintf( '%s (%d)', str_replace( '_', ' ', (string) $phase ), (int) $count ); }, array_keys( $execution_checkpoint_summary['phase_counts'] ), $execution_checkpoint_summary['phase_counts'] ) ) ); ?></td>
+								</tr>
+							<?php endif; ?>
+							<?php if ( ! empty( $execution_checkpoint_summary['health_status'] ) ) : ?>
 								<tr>
 									<th scope="row"><?php echo esc_html__( 'Stored Health Status', 'zignites-sentinel' ); ?></th>
-									<td><?php echo esc_html( (string) $execution_checkpoint_state['health_verification']['status'] ); ?></td>
+									<td><?php echo esc_html( (string) $execution_checkpoint_summary['health_status'] ); ?></td>
+								</tr>
+							<?php endif; ?>
+						</tbody>
+					</table>
+				<?php endif; ?>
+				<?php if ( ! empty( $rollback_checkpoint_summary ) ) : ?>
+					<h3><?php echo esc_html__( 'Rollback Checkpoint', 'zignites-sentinel' ); ?></h3>
+					<table class="widefat striped">
+						<tbody>
+							<tr>
+								<th scope="row"><?php echo esc_html__( 'Run ID', 'zignites-sentinel' ); ?></th>
+								<td><?php echo esc_html( isset( $rollback_checkpoint_summary['run_id'] ) ? (string) $rollback_checkpoint_summary['run_id'] : '' ); ?></td>
+							</tr>
+							<tr>
+								<th scope="row"><?php echo esc_html__( 'Generated', 'zignites-sentinel' ); ?></th>
+								<td><?php echo esc_html( isset( $rollback_checkpoint_summary['generated_at'] ) ? (string) $rollback_checkpoint_summary['generated_at'] : '' ); ?></td>
+							</tr>
+							<tr>
+								<th scope="row"><?php echo esc_html__( 'Backup Root', 'zignites-sentinel' ); ?></th>
+								<td><?php echo esc_html( isset( $rollback_checkpoint_summary['backup_root'] ) ? (string) $rollback_checkpoint_summary['backup_root'] : '' ); ?></td>
+							</tr>
+							<tr>
+								<th scope="row"><?php echo esc_html__( 'Tracked Items', 'zignites-sentinel' ); ?></th>
+								<td><?php echo esc_html( isset( $rollback_checkpoint_summary['item_count'] ) ? (string) $rollback_checkpoint_summary['item_count'] : '0' ); ?></td>
+							</tr>
+							<tr>
+								<th scope="row"><?php echo esc_html__( 'Completed Items', 'zignites-sentinel' ); ?></th>
+								<td><?php echo esc_html( isset( $rollback_checkpoint_summary['completed_count'] ) ? (string) $rollback_checkpoint_summary['completed_count'] : '0' ); ?></td>
+							</tr>
+							<tr>
+								<th scope="row"><?php echo esc_html__( 'Failed Items', 'zignites-sentinel' ); ?></th>
+								<td><?php echo esc_html( isset( $rollback_checkpoint_summary['failed_count'] ) ? (string) $rollback_checkpoint_summary['failed_count'] : '0' ); ?></td>
+							</tr>
+							<?php if ( ! empty( $rollback_checkpoint_summary['phase_counts'] ) ) : ?>
+								<tr>
+									<th scope="row"><?php echo esc_html__( 'Checkpoint Phases', 'zignites-sentinel' ); ?></th>
+									<td><?php echo esc_html( implode( ', ', array_map( static function ( $phase, $count ) { return sprintf( '%s (%d)', str_replace( '_', ' ', (string) $phase ), (int) $count ); }, array_keys( $rollback_checkpoint_summary['phase_counts'] ), $rollback_checkpoint_summary['phase_counts'] ) ) ); ?></td>
 								</tr>
 							<?php endif; ?>
 						</tbody>
@@ -1456,6 +1517,20 @@ $workspace_next_action     = ! empty( $operator_checklist['can_execute'] )
 							);
 							?>
 						</p>
+						<?php if ( ! empty( $restore_rollback_resume_context['checkpoint_item_count'] ) ) : ?>
+							<p class="description">
+								<?php
+								echo esc_html(
+									sprintf(
+										/* translators: 1: completed count, 2: tracked item count */
+										__( 'Rollback checkpoint state currently tracks %1$d completed items across %2$d item checkpoints.', 'zignites-sentinel' ),
+										isset( $restore_rollback_resume_context['checkpoint_completed_count'] ) ? (int) $restore_rollback_resume_context['checkpoint_completed_count'] : 0,
+										(int) $restore_rollback_resume_context['checkpoint_item_count']
+									)
+								);
+								?>
+							</p>
+						<?php endif; ?>
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 							<input type="hidden" name="action" value="znts_resume_restore_rollback" />
 							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />

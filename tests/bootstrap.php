@@ -8,6 +8,8 @@ define( 'DAY_IN_SECONDS', 86400 );
 define( 'HOUR_IN_SECONDS', 3600 );
 define( 'ZNTS_OPTION_SETTINGS', 'znts_settings' );
 define( 'ZNTS_OPTION_LAST_SNAPSHOT_HEALTH_BASELINE', 'znts_last_snapshot_health_baseline' );
+define( 'ZNTS_OPTION_RESTORE_EXECUTION_CHECKPOINT', 'znts_restore_execution_checkpoint' );
+define( 'ZNTS_OPTION_RESTORE_ROLLBACK_CHECKPOINT', 'znts_restore_rollback_checkpoint' );
 
 $GLOBALS['znts_test_options'] = array();
 
@@ -61,20 +63,57 @@ if ( ! function_exists( 'get_option' ) ) {
 	}
 }
 
-if ( ! class_exists( 'Zignites\\Sentinel\\Snapshots\\RestoreExecutor' ) ) {
+if ( ! function_exists( 'update_option' ) ) {
+	function update_option( $name, $value, $autoload = null ) {
+		$GLOBALS['znts_test_options'][ $name ] = $value;
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'delete_option' ) ) {
+	function delete_option( $name ) {
+		unset( $GLOBALS['znts_test_options'][ $name ] );
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'current_time' ) ) {
+	function current_time( $type, $gmt = 0 ) {
+		return gmdate( 'Y-m-d H:i:s' );
+	}
+}
+
+if ( ! function_exists( 'wp_normalize_path' ) ) {
+	function wp_normalize_path( $path ) {
+		return str_replace( '\\', '/', (string) $path );
+	}
+}
+
+if ( ! class_exists( 'Zignites\\Sentinel\\Logging\\Logger' ) ) {
 	eval(
-		'namespace Zignites\\Sentinel\\Snapshots; class RestoreExecutor { const JOURNAL_SOURCE = "restore-execution"; }'
+		'namespace Zignites\\Sentinel\\Logging; class Logger { public function log() { return true; } }'
 	);
 }
 
-if ( ! class_exists( 'Zignites\\Sentinel\\Snapshots\\RestoreRollbackManager' ) ) {
+if ( ! class_exists( 'Zignites\\Sentinel\\Snapshots\\RestoreStagingManager' ) ) {
 	eval(
-		'namespace Zignites\\Sentinel\\Snapshots; class RestoreRollbackManager { const JOURNAL_SOURCE = "restore-rollback"; }'
+		'namespace Zignites\\Sentinel\\Snapshots; class RestoreStagingManager {}'
 	);
 }
 
+if ( ! class_exists( 'Zignites\\Sentinel\\Snapshots\\RestoreExecutionPlanner' ) ) {
+	eval(
+		'namespace Zignites\\Sentinel\\Snapshots; class RestoreExecutionPlanner {}'
+	);
+}
+
+require_once __DIR__ . '/../includes/snapshots/class-restore-health-verifier.php';
 require_once __DIR__ . '/../includes/logging/class-log-repository.php';
 require_once __DIR__ . '/../includes/snapshots/class-restore-checkpoint-store.php';
 require_once __DIR__ . '/../includes/snapshots/class-restore-journal-recorder.php';
+require_once __DIR__ . '/../includes/snapshots/class-restore-executor.php';
+require_once __DIR__ . '/../includes/snapshots/class-restore-rollback-manager.php';
 require_once __DIR__ . '/../includes/snapshots/class-snapshot-artifact-repository.php';
 require_once __DIR__ . '/../includes/admin/class-snapshot-status-resolver.php';

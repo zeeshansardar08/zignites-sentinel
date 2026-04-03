@@ -508,6 +508,9 @@ class Admin {
 			'stage_checkpoint'       => $this->get_restore_stage_checkpoint( $snapshot_detail ),
 			'plan_checkpoint'        => $this->get_restore_plan_checkpoint( $snapshot_detail ),
 			'execution_checkpoint'   => $this->get_restore_execution_checkpoint( $snapshot_detail ),
+			'execution_checkpoint_summary' => $this->get_restore_execution_checkpoint_summary( $snapshot_detail ),
+			'rollback_checkpoint'    => $this->get_restore_rollback_checkpoint( $snapshot_detail ),
+			'rollback_checkpoint_summary' => $this->get_restore_rollback_checkpoint_summary( $snapshot_detail ),
 			'restore_resume_context' => $this->get_restore_resume_context( $snapshot_detail ),
 			'restore_rollback_resume_context' => $this->get_restore_rollback_resume_context( $snapshot_detail ),
 			'restore_run_cards'      => $this->get_restore_run_cards( $snapshot_detail ),
@@ -1897,6 +1900,91 @@ class Admin {
 	}
 
 	/**
+	 * Return the persisted rollback checkpoint when it matches the selected snapshot.
+	 *
+	 * @param array|null $snapshot Snapshot detail.
+	 * @return array|null
+	 */
+	protected function get_restore_rollback_checkpoint( $snapshot ) {
+		if ( ! is_array( $snapshot ) || empty( $snapshot['id'] ) ) {
+			return null;
+		}
+
+		$last_rollback = $this->get_last_restore_rollback( $snapshot );
+		$run_id        = is_array( $last_rollback ) && ! empty( $last_rollback['run_id'] ) ? (string) $last_rollback['run_id'] : '';
+
+		if ( '' === $run_id ) {
+			$run_id = $this->restore_journal_recorder->get_latest_run_id(
+				RestoreRollbackManager::JOURNAL_SOURCE,
+				(int) $snapshot['id']
+			);
+		}
+
+		$checkpoint = $this->restore_checkpoint_store->get_rollback_checkpoint( (int) $snapshot['id'], $run_id );
+
+		return ! empty( $checkpoint ) ? $checkpoint : null;
+	}
+
+	/**
+	 * Build a compact summary for the persisted execution checkpoint.
+	 *
+	 * @param array|null $snapshot Snapshot detail.
+	 * @return array
+	 */
+	protected function get_restore_execution_checkpoint_summary( $snapshot ) {
+		$checkpoint = $this->get_restore_execution_checkpoint( $snapshot );
+
+		if ( ! is_array( $checkpoint ) ) {
+			return array();
+		}
+
+		$checkpoint_state = isset( $checkpoint['checkpoint'] ) && is_array( $checkpoint['checkpoint'] ) ? $checkpoint['checkpoint'] : array();
+		$item_summary     = $this->summarize_execution_checkpoint_items(
+			isset( $checkpoint_state['items'] ) && is_array( $checkpoint_state['items'] ) ? $checkpoint_state['items'] : array()
+		);
+
+		return array_merge(
+			array(
+				'run_id'           => isset( $checkpoint['run_id'] ) ? (string) $checkpoint['run_id'] : '',
+				'generated_at'     => isset( $checkpoint['generated_at'] ) ? (string) $checkpoint['generated_at'] : '',
+				'stage_ready'      => ! empty( $checkpoint_state['stage_ready'] ),
+				'stage_path'       => isset( $checkpoint_state['stage_path'] ) ? (string) $checkpoint_state['stage_path'] : '',
+				'health_completed' => ! empty( $checkpoint_state['health_completed'] ),
+				'health_status'    => isset( $checkpoint_state['health_verification']['status'] ) ? (string) $checkpoint_state['health_verification']['status'] : '',
+			),
+			$item_summary
+		);
+	}
+
+	/**
+	 * Build a compact summary for the persisted rollback checkpoint.
+	 *
+	 * @param array|null $snapshot Snapshot detail.
+	 * @return array
+	 */
+	protected function get_restore_rollback_checkpoint_summary( $snapshot ) {
+		$checkpoint = $this->get_restore_rollback_checkpoint( $snapshot );
+
+		if ( ! is_array( $checkpoint ) ) {
+			return array();
+		}
+
+		$checkpoint_state = isset( $checkpoint['checkpoint'] ) && is_array( $checkpoint['checkpoint'] ) ? $checkpoint['checkpoint'] : array();
+		$item_summary     = $this->summarize_rollback_checkpoint_items(
+			isset( $checkpoint_state['items'] ) && is_array( $checkpoint_state['items'] ) ? $checkpoint_state['items'] : array()
+		);
+
+		return array_merge(
+			array(
+				'run_id'       => isset( $checkpoint['run_id'] ) ? (string) $checkpoint['run_id'] : '',
+				'generated_at' => isset( $checkpoint['generated_at'] ) ? (string) $checkpoint['generated_at'] : '',
+				'backup_root'  => isset( $checkpoint_state['backup_root'] ) ? (string) $checkpoint_state['backup_root'] : '',
+			),
+			$item_summary
+		);
+	}
+
+	/**
 	 * Return the last snapshot health baseline when it matches the selected snapshot.
 	 *
 	 * @param array|null $snapshot Snapshot detail.
@@ -2619,7 +2707,112 @@ class Admin {
 			return array();
 		}
 
+		$rollback_checkpoint = $this->restore_checkpoint_store->get_rollback_checkpoint(
+			(int) $snapshot['id'],
+			isset( $context['run_id'] ) ? (string) $context['run_id'] : ''
+		);
+		$checkpoint_state    = isset( $rollback_checkpoint['checkpoint'] ) && is_array( $rollback_checkpoint['checkpoint'] ) ? $rollback_checkpoint['checkpoint'] : array();
+		$checkpoint_items    = isset( $checkpoint_state['items'] ) && is_array( $checkpoint_state['items'] ) ? $checkpoint_state['items'] : array();
+
+		$context['checkpoint_generated_at'] = isset( $rollback_checkpoint['generated_at'] ) ? (string) $rollback_checkpoint['generated_at'] : '';
+		$context['checkpoint_item_count']   = count( $checkpoint_items );
+		$context['checkpoint_completed_count'] = count(
+			array_filter(
+				$checkpoint_items,
+				static function ( $item ) {
+					return ! empty( $item['completed'] );
+				}
+			)
+		);
+
 		return $context;
+	}
+
+	/**
+	 * Summarize execution checkpoint items for operator display.
+	 *
+	 * @param array $items Execution checkpoint items.
+	 * @return array
+	 */
+	protected function summarize_execution_checkpoint_items( array $items ) {
+		$summary = array(
+			'item_count'        => count( $items ),
+			'backup_count'      => 0,
+			'write_count'       => 0,
+			'failed_count'      => 0,
+			'phase_counts'      => array(),
+		);
+
+		foreach ( $items as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+
+			if ( ! empty( $item['backup_completed'] ) ) {
+				++$summary['backup_count'];
+			}
+
+			if ( ! empty( $item['write_completed'] ) ) {
+				++$summary['write_count'];
+			}
+
+			if ( ! empty( $item['status'] ) && 'fail' === sanitize_key( (string) $item['status'] ) ) {
+				++$summary['failed_count'];
+			}
+
+			$phase = ! empty( $item['phase'] ) ? sanitize_key( (string) $item['phase'] ) : 'unknown';
+
+			if ( ! isset( $summary['phase_counts'][ $phase ] ) ) {
+				$summary['phase_counts'][ $phase ] = 0;
+			}
+
+			++$summary['phase_counts'][ $phase ];
+		}
+
+		arsort( $summary['phase_counts'] );
+
+		return $summary;
+	}
+
+	/**
+	 * Summarize rollback checkpoint items for operator display.
+	 *
+	 * @param array $items Rollback checkpoint items.
+	 * @return array
+	 */
+	protected function summarize_rollback_checkpoint_items( array $items ) {
+		$summary = array(
+			'item_count'        => count( $items ),
+			'completed_count'   => 0,
+			'failed_count'      => 0,
+			'phase_counts'      => array(),
+		);
+
+		foreach ( $items as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+
+			if ( ! empty( $item['completed'] ) ) {
+				++$summary['completed_count'];
+			}
+
+			if ( ! empty( $item['status'] ) && 'fail' === sanitize_key( (string) $item['status'] ) ) {
+				++$summary['failed_count'];
+			}
+
+			$phase = ! empty( $item['phase'] ) ? sanitize_key( (string) $item['phase'] ) : 'unknown';
+
+			if ( ! isset( $summary['phase_counts'][ $phase ] ) ) {
+				$summary['phase_counts'][ $phase ] = 0;
+			}
+
+			++$summary['phase_counts'][ $phase ];
+		}
+
+		arsort( $summary['phase_counts'] );
+
+		return $summary;
 	}
 
 	/**

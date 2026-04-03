@@ -3,7 +3,7 @@
  * Plugin Name: Zignites Sentinel
  * Plugin URI:  https://zignites.com/
  * Description: Stability diagnostics, update safeguards, and rollback foundations for WordPress sites.
- * Version:     1.24.0
+ * Version:     1.27.0
  * Author:      Zignites
  * Text Domain: zignites-sentinel
  * Domain Path: /languages
@@ -14,7 +14,7 @@
 defined( 'ABSPATH' ) || exit;
 
 if ( ! defined( 'ZNTS_VERSION' ) ) {
-	define( 'ZNTS_VERSION', '1.24.0' );
+	define( 'ZNTS_VERSION', '1.27.0' );
 }
 
 if ( ! defined( 'ZNTS_DB_VERSION' ) ) {
@@ -85,6 +85,10 @@ if ( ! defined( 'ZNTS_OPTION_LAST_RESTORE_ROLLBACK' ) ) {
 	define( 'ZNTS_OPTION_LAST_RESTORE_ROLLBACK', 'znts_last_restore_rollback' );
 }
 
+if ( ! defined( 'ZNTS_OPTION_RESTORE_ROLLBACK_CHECKPOINT' ) ) {
+	define( 'ZNTS_OPTION_RESTORE_ROLLBACK_CHECKPOINT', 'znts_restore_rollback_checkpoint' );
+}
+
 if ( ! defined( 'ZNTS_OPTION_LAST_SNAPSHOT_HEALTH_BASELINE' ) ) {
 	define( 'ZNTS_OPTION_LAST_SNAPSHOT_HEALTH_BASELINE', 'znts_last_snapshot_health_baseline' );
 }
@@ -117,4 +121,5 @@ function znts_run_plugin() {
 }
 
 znts_run_plugin();
+
 

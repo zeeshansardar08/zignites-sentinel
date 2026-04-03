@@ -1,7 +1,7 @@
 # Zignites Sentinel Progress Audit
 
 ## Current State
-- Plugin version: `1.24.0`
+- Plugin version: `1.27.0`
 - Database version: `1.4.0`
 - Status: advanced MVP / controlled-restore product foundation
 - Current objective achieved: the plugin now covers snapshot capture, advisory readiness, staged validation, restore planning, guarded live restore, guarded rollback, health verification, audit reporting, checkpointing, resumability, and operator-facing admin workflows
@@ -115,6 +115,8 @@
 - Journal entries are persisted into event logs
 - Restore execution can resume from persisted journal state
 - Rollback can resume from persisted journal state
+- Rollback checkpoints can now preserve per-item completion state and backup-root context
+- Mixed resume state now merges persisted journal progress with per-item checkpoint state for both restore and rollback
 - Execution checkpoints can preserve:
   - stage directory
   - stage reuse state
@@ -191,6 +193,11 @@
   - stage/plan gate freshness
   - confirmation phrase
   - current execution blockers
+- Update Readiness now surfaces both execution and rollback checkpoint summaries:
+  - tracked item counts
+  - completion counts
+  - phase distribution
+  - backup-root context for rollback
 
 ## Important Safety Characteristics
 - Most destructive operations are guarded by nonce + capability + explicit operator confirmation
@@ -315,4 +322,6 @@
 ## Handoff Note
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
+
+
 
