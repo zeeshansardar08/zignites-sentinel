@@ -115,21 +115,55 @@ class RestoreCheckpointStore {
 	 */
 	public function store_execution_checkpoint( array $snapshot, array $artifacts, $run_id, array $checkpoint ) {
 		$snapshot_id = isset( $snapshot['id'] ) ? absint( $snapshot['id'] ) : 0;
+		$run_id      = sanitize_text_field( (string) $run_id );
 
-		if ( $snapshot_id < 1 || '' === (string) $run_id ) {
+		if ( $snapshot_id < 1 || '' === $run_id ) {
 			return;
 		}
+
+		$existing          = $this->get_execution_checkpoint( $snapshot_id, $run_id );
+		$existing_state    = isset( $existing['checkpoint'] ) && is_array( $existing['checkpoint'] ) ? $existing['checkpoint'] : array();
+		$merged_checkpoint = array_replace_recursive( $existing_state, $checkpoint );
 
 		update_option(
 			ZNTS_OPTION_RESTORE_EXECUTION_CHECKPOINT,
 			array(
 				'snapshot_id'         => $snapshot_id,
-				'run_id'              => sanitize_text_field( (string) $run_id ),
+				'run_id'              => $run_id,
 				'generated_at'        => current_time( 'mysql', true ),
 				'package_fingerprint' => $this->build_package_fingerprint( $artifacts ),
-				'checkpoint'          => $checkpoint,
+				'checkpoint'          => $merged_checkpoint,
 			),
 			false
+		);
+	}
+
+	/**
+	 * Store or update a per-item execution checkpoint.
+	 *
+	 * @param array  $snapshot        Snapshot row.
+	 * @param array  $artifacts       Artifact rows.
+	 * @param string $run_id          Run ID.
+	 * @param string $item_key        Stable item key.
+	 * @param array  $item_checkpoint Item checkpoint payload.
+	 * @return void
+	 */
+	public function store_execution_item_checkpoint( array $snapshot, array $artifacts, $run_id, $item_key, array $item_checkpoint ) {
+		$item_key = sanitize_text_field( (string) $item_key );
+
+		if ( '' === $item_key ) {
+			return;
+		}
+
+		$this->store_execution_checkpoint(
+			$snapshot,
+			$artifacts,
+			$run_id,
+			array(
+				'items' => array(
+					$item_key => $item_checkpoint,
+				),
+			)
 		);
 	}
 

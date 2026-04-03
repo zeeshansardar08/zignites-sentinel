@@ -140,6 +140,9 @@ $workspace_next_action     = ! empty( $operator_checklist['can_execute'] )
 				<?php endif; ?>
 				<?php if ( ! empty( $execution_checkpoint['checkpoint'] ) && is_array( $execution_checkpoint['checkpoint'] ) ) : ?>
 					<?php $execution_checkpoint_state = $execution_checkpoint['checkpoint']; ?>
+					<?php $execution_checkpoint_items = isset( $execution_checkpoint_state['items'] ) && is_array( $execution_checkpoint_state['items'] ) ? $execution_checkpoint_state['items'] : array(); ?>
+					<?php $execution_checkpoint_backups = count( array_filter( $execution_checkpoint_items, static function ( $item ) { return ! empty( $item['backup_completed'] ); } ) ); ?>
+					<?php $execution_checkpoint_writes  = count( array_filter( $execution_checkpoint_items, static function ( $item ) { return ! empty( $item['write_completed'] ); } ) ); ?>
 					<h3><?php echo esc_html__( 'Execution Checkpoint', 'zignites-sentinel' ); ?></h3>
 					<table class="widefat striped">
 						<tbody>
@@ -162,6 +165,14 @@ $workspace_next_action     = ! empty( $operator_checklist['can_execute'] )
 							<tr>
 								<th scope="row"><?php echo esc_html__( 'Health Reuse', 'zignites-sentinel' ); ?></th>
 								<td><?php echo esc_html( ! empty( $execution_checkpoint_state['health_completed'] ) ? __( 'Ready', 'zignites-sentinel' ) : __( 'Health will rerun', 'zignites-sentinel' ) ); ?></td>
+							</tr>
+							<tr>
+								<th scope="row"><?php echo esc_html__( 'Backed-Up Items', 'zignites-sentinel' ); ?></th>
+								<td><?php echo esc_html( (string) $execution_checkpoint_backups ); ?></td>
+							</tr>
+							<tr>
+								<th scope="row"><?php echo esc_html__( 'Written Items', 'zignites-sentinel' ); ?></th>
+								<td><?php echo esc_html( (string) $execution_checkpoint_writes ); ?></td>
 							</tr>
 							<?php if ( ! empty( $execution_checkpoint_state['health_verification']['status'] ) ) : ?>
 								<tr>

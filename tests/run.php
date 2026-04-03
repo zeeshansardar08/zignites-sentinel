@@ -3,9 +3,8 @@
  * Minimal test runner for local Sentinel checks.
  */
 
-$test_file = __DIR__ . '/test-snapshot-status-resolver.php';
-
-require_once $test_file;
+require_once __DIR__ . '/test-snapshot-status-resolver.php';
+require_once __DIR__ . '/test-restore-execution-checkpoint-store.php';
 
 $tests = array_filter(
 	get_defined_functions()['user'],

@@ -8,6 +8,7 @@ define( 'DAY_IN_SECONDS', 86400 );
 define( 'HOUR_IN_SECONDS', 3600 );
 define( 'ZNTS_OPTION_SETTINGS', 'znts_settings' );
 define( 'ZNTS_OPTION_LAST_SNAPSHOT_HEALTH_BASELINE', 'znts_last_snapshot_health_baseline' );
+define( 'ZNTS_OPTION_RESTORE_EXECUTION_CHECKPOINT', 'znts_restore_execution_checkpoint' );
 
 $GLOBALS['znts_test_options'] = array();
 
@@ -58,6 +59,34 @@ if ( ! function_exists( 'wp_json_encode' ) ) {
 if ( ! function_exists( 'get_option' ) ) {
 	function get_option( $name, $default = false ) {
 		return array_key_exists( $name, $GLOBALS['znts_test_options'] ) ? $GLOBALS['znts_test_options'][ $name ] : $default;
+	}
+}
+
+if ( ! function_exists( 'update_option' ) ) {
+	function update_option( $name, $value, $autoload = null ) {
+		$GLOBALS['znts_test_options'][ $name ] = $value;
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'delete_option' ) ) {
+	function delete_option( $name ) {
+		unset( $GLOBALS['znts_test_options'][ $name ] );
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'current_time' ) ) {
+	function current_time( $type, $gmt = 0 ) {
+		return gmdate( 'Y-m-d H:i:s' );
+	}
+}
+
+if ( ! function_exists( 'wp_normalize_path' ) ) {
+	function wp_normalize_path( $path ) {
+		return str_replace( '\\', '/', (string) $path );
 	}
 }
 
