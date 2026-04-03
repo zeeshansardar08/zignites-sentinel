@@ -277,7 +277,8 @@ class Admin {
 		$this->snapshot_status_resolver = new SnapshotStatusResolver(
 			$logs,
 			$restore_checkpoint_store,
-			$restore_journal_recorder
+			$restore_journal_recorder,
+			$artifacts
 		);
 	}
 
@@ -421,8 +422,7 @@ class Admin {
 		$snapshot_detail        = $this->get_snapshot_detail();
 		$snapshot_search        = $this->get_snapshot_search_term();
 		$snapshot_status_filter = $this->get_snapshot_status_filter();
-		$recent_snapshots       = $this->snapshots->get_recent( 50 );
-		$snapshot_status_index  = $this->snapshot_status_resolver->build_snapshot_status_index( $recent_snapshots );
+		$snapshot_list_state    = $this->get_snapshot_list_state( $snapshot_search, $snapshot_status_filter );
 
 		$view_data = array(
 			'last_preflight'         => get_option( ZNTS_OPTION_LAST_PREFLIGHT, array() ),
@@ -430,11 +430,12 @@ class Admin {
 			'last_restore_check'     => $this->get_last_restore_check( $snapshot_detail ),
 			'settings'               => $this->get_settings(),
 			'update_candidates'      => $this->update_planner->get_candidates(),
-			'recent_snapshots'       => $this->get_recent_snapshots_for_update_readiness( $snapshot_search, $snapshot_status_filter, $snapshot_status_index ),
+			'recent_snapshots'       => isset( $snapshot_list_state['items'] ) ? $snapshot_list_state['items'] : array(),
 			'snapshot_search'        => $snapshot_search,
 			'snapshot_status_filter' => $snapshot_status_filter,
 			'snapshot_status_filter_options' => $this->snapshot_status_resolver->get_snapshot_filter_options(),
-			'snapshot_status_index'  => $snapshot_status_index,
+			'snapshot_status_index'  => isset( $snapshot_list_state['status_index'] ) ? $snapshot_list_state['status_index'] : array(),
+			'snapshot_pagination'    => isset( $snapshot_list_state['pagination'] ) ? $snapshot_list_state['pagination'] : array(),
 			'snapshot_detail'        => $snapshot_detail,
 			'snapshot_comparison'    => $this->get_snapshot_comparison( $snapshot_detail ),
 			'snapshot_artifacts'     => $this->get_snapshot_artifacts( $snapshot_detail ),
@@ -1491,19 +1492,87 @@ class Admin {
 	}
 
 	/**
-	 * Return recent snapshots for Update Readiness with optional label filtering.
+	 * Get the current snapshot list page from the request.
 	 *
-	 * @param string $search Search term.
+	 * @return int
+	 */
+	protected function get_snapshot_list_page() {
+		return isset( $_GET['snapshot_paged'] ) ? max( 1, absint( wp_unslash( $_GET['snapshot_paged'] ) ) ) : 1;
+	}
+
+	/**
+	 * Build paginated snapshot list state for Update Readiness.
+	 *
+	 * @param string $search        Label search term.
+	 * @param string $status_filter Status filter key.
 	 * @return array
 	 */
-	protected function get_recent_snapshots_for_update_readiness( $search = '', $status_filter = '', array $status_index = array() ) {
-		$snapshots = $this->snapshots->get_recent( 50 );
+	protected function get_snapshot_list_state( $search = '', $status_filter = '' ) {
+		$search         = sanitize_text_field( (string) $search );
+		$status_filter  = sanitize_key( (string) $status_filter );
+		$per_page       = 12;
+		$current_page   = $this->get_snapshot_list_page();
+		$base_total     = $this->snapshots->count_filtered( $search );
+		$status_index   = array();
+		$items          = array();
+		$total_matches  = 0;
 
-		if ( empty( $status_index ) ) {
-			$status_index = $this->snapshot_status_resolver->build_snapshot_status_index( $snapshots );
+		if ( '' === $status_filter ) {
+			$offset       = ( $current_page - 1 ) * $per_page;
+			$items        = $this->snapshots->get_filtered(
+				array(
+					'search' => $search,
+					'limit'  => $per_page,
+					'offset' => $offset,
+				)
+			);
+			$status_index = $this->snapshot_status_resolver->build_snapshot_status_index( $items );
+			$total_matches = $base_total;
+		} else {
+			$batch_size     = 50;
+			$match_start    = ( $current_page - 1 ) * $per_page;
+			$match_end      = $match_start + $per_page;
+
+			for ( $offset = 0; $offset < $base_total; $offset += $batch_size ) {
+				$batch = $this->snapshots->get_filtered(
+					array(
+						'search' => $search,
+						'limit'  => $batch_size,
+						'offset' => $offset,
+					)
+				);
+
+				if ( empty( $batch ) ) {
+					break;
+				}
+
+				$batch_status_index = $this->snapshot_status_resolver->build_snapshot_status_index( $batch );
+				$matched_batch      = $this->snapshot_status_resolver->filter_snapshots( $batch, $batch_status_index, '', $status_filter, $batch_size );
+
+				foreach ( $matched_batch as $matched_snapshot ) {
+					if ( $total_matches >= $match_start && $total_matches < $match_end ) {
+						$items[] = $matched_snapshot;
+					}
+
+					++$total_matches;
+				}
+			}
+
+			$status_index = $this->snapshot_status_resolver->build_snapshot_status_index( $items );
 		}
 
-		return $this->snapshot_status_resolver->filter_snapshots( $snapshots, $status_index, $search, $status_filter, 12 );
+		$total_pages = max( 1, (int) ceil( $total_matches / $per_page ) );
+
+		return array(
+			'items'        => $items,
+			'status_index' => $status_index,
+			'pagination'   => array(
+				'current_page' => min( $current_page, $total_pages ),
+				'per_page'     => $per_page,
+				'total_items'  => $total_matches,
+				'total_pages'  => $total_pages,
+			),
+		);
 	}
 
 	/**
