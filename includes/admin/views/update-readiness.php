@@ -37,6 +37,8 @@ $snapshot_search         = isset( $view_data['snapshot_search'] ) ? (string) $vi
 $snapshot_status_filter  = isset( $view_data['snapshot_status_filter'] ) ? (string) $view_data['snapshot_status_filter'] : '';
 $snapshot_status_filter_options = isset( $view_data['snapshot_status_filter_options'] ) && is_array( $view_data['snapshot_status_filter_options'] ) ? $view_data['snapshot_status_filter_options'] : array();
 $snapshot_status_index   = isset( $view_data['snapshot_status_index'] ) && is_array( $view_data['snapshot_status_index'] ) ? $view_data['snapshot_status_index'] : array();
+$snapshot_pagination     = isset( $view_data['snapshot_pagination'] ) && is_array( $view_data['snapshot_pagination'] ) ? $view_data['snapshot_pagination'] : array();
+$selected_snapshot_status = ( $snapshot_detail && ! empty( $snapshot_detail['id'] ) && isset( $snapshot_status_index[ (int) $snapshot_detail['id'] ] ) && is_array( $snapshot_status_index[ (int) $snapshot_detail['id'] ] ) ) ? $snapshot_status_index[ (int) $snapshot_detail['id'] ] : array();
 $plan_validation           = isset( $last_plan['validation'] ) && is_array( $last_plan['validation'] ) ? $last_plan['validation'] : array();
 $restore_source_validation = isset( $last_restore_check['source_validation'] ) && is_array( $last_restore_check['source_validation'] ) ? $last_restore_check['source_validation'] : array();
 $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['metadata_decoded']['component_manifest'] ) && is_array( $snapshot_detail['metadata_decoded']['component_manifest'] ) ) ? $snapshot_detail['metadata_decoded']['component_manifest'] : array();
@@ -474,6 +476,16 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 
 		<section class="znts-card">
 			<h2><?php echo esc_html__( 'Recent Snapshot Metadata', 'zignites-sentinel' ); ?></h2>
+			<p class="description"><?php echo esc_html__( 'Use snapshot status filters to find snapshots with a baseline, a saved rollback package, fresh restore gates, or recent restore activity.', 'zignites-sentinel' ); ?></p>
+			<div class="znts-status-guide">
+				<p><strong><?php echo esc_html__( 'Status guide', 'zignites-sentinel' ); ?>:</strong></p>
+				<ul class="znts-list">
+					<li><?php echo esc_html__( 'Baseline present: a health baseline was captured for that snapshot.', 'zignites-sentinel' ); ?></li>
+					<li><?php echo esc_html__( 'Package saved: the snapshot includes a stored rollback package.', 'zignites-sentinel' ); ?></li>
+					<li><?php echo esc_html__( 'Stage fresh / Plan fresh: the latest validation and restore plan still match the current package and age window.', 'zignites-sentinel' ); ?></li>
+					<li><?php echo esc_html__( 'Restore ready: the baseline is present and both restore gates are currently fresh.', 'zignites-sentinel' ); ?></li>
+				</ul>
+			</div>
 			<form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" class="znts-filter-form">
 				<input type="hidden" name="page" value="zignites-sentinel-update-readiness" />
 				<?php if ( $snapshot_detail && ! empty( $snapshot_detail['id'] ) ) : ?>
@@ -503,6 +515,21 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 			<?php if ( empty( $view_data['recent_snapshots'] ) ) : ?>
 				<p><?php echo esc_html( '' !== $snapshot_search || '' !== $snapshot_status_filter ? __( 'No snapshots matched the current filters.', 'zignites-sentinel' ) : __( 'No snapshot metadata has been recorded yet.', 'zignites-sentinel' ) ); ?></p>
 			<?php else : ?>
+				<?php if ( ! empty( $snapshot_pagination['total_items'] ) ) : ?>
+					<p class="description">
+						<?php
+						echo esc_html(
+							sprintf(
+								/* translators: 1: current page, 2: total pages, 3: total items */
+								__( 'Page %1$d of %2$d, %3$d snapshots matched.', 'zignites-sentinel' ),
+								isset( $snapshot_pagination['current_page'] ) ? (int) $snapshot_pagination['current_page'] : 1,
+								isset( $snapshot_pagination['total_pages'] ) ? (int) $snapshot_pagination['total_pages'] : 1,
+								isset( $snapshot_pagination['total_items'] ) ? (int) $snapshot_pagination['total_items'] : 0
+							)
+						);
+						?>
+					</p>
+				<?php endif; ?>
 				<table class="widefat striped">
 					<thead>
 						<tr>
@@ -538,6 +565,44 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 						<?php endforeach; ?>
 					</tbody>
 				</table>
+				<?php if ( ! empty( $snapshot_pagination['total_pages'] ) && (int) $snapshot_pagination['total_pages'] > 1 ) : ?>
+					<?php
+					$pagination_base_args = array(
+						'page' => 'zignites-sentinel-update-readiness',
+					);
+
+					if ( $snapshot_detail && ! empty( $snapshot_detail['id'] ) ) {
+						$pagination_base_args['snapshot_id'] = (int) $snapshot_detail['id'];
+					}
+
+					if ( '' !== $snapshot_search ) {
+						$pagination_base_args['snapshot_search'] = $snapshot_search;
+					}
+
+					if ( '' !== $snapshot_status_filter ) {
+						$pagination_base_args['snapshot_status_filter'] = $snapshot_status_filter;
+					}
+					?>
+					<div class="tablenav">
+						<div class="tablenav-pages">
+							<?php
+							echo wp_kses_post(
+								paginate_links(
+									array(
+										'base'      => add_query_arg( $pagination_base_args + array( 'snapshot_paged' => '%#%' ), admin_url( 'admin.php' ) ),
+										'format'    => '',
+										'current'   => isset( $snapshot_pagination['current_page'] ) ? (int) $snapshot_pagination['current_page'] : 1,
+										'total'     => isset( $snapshot_pagination['total_pages'] ) ? (int) $snapshot_pagination['total_pages'] : 1,
+										'type'      => 'plain',
+										'prev_text' => __( '&laquo;', 'zignites-sentinel' ),
+										'next_text' => __( '&raquo;', 'zignites-sentinel' ),
+									)
+								)
+							);
+							?>
+						</div>
+					</div>
+				<?php endif; ?>
 			<?php endif; ?>
 		</section>
 
@@ -600,6 +665,15 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 		<?php if ( $snapshot_detail ) : ?>
 			<section class="znts-card znts-card-full">
 				<h2><?php echo esc_html__( 'Snapshot Detail', 'zignites-sentinel' ); ?></h2>
+				<?php if ( ! empty( $selected_snapshot_status['status_badges'] ) ) : ?>
+					<div class="znts-badge-row znts-card-note">
+						<?php foreach ( $selected_snapshot_status['status_badges'] as $badge ) : ?>
+							<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $badge['badge'] ) ? $badge['badge'] : 'info' ); ?>">
+								<?php echo esc_html( isset( $badge['label'] ) ? $badge['label'] : '' ); ?>
+							</span>
+						<?php endforeach; ?>
+					</div>
+				<?php endif; ?>
 				<div class="znts-actions">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="znts_check_restore_readiness" />

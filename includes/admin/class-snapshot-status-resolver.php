@@ -12,6 +12,7 @@ use Zignites\Sentinel\Snapshots\RestoreCheckpointStore;
 use Zignites\Sentinel\Snapshots\RestoreExecutor;
 use Zignites\Sentinel\Snapshots\RestoreJournalRecorder;
 use Zignites\Sentinel\Snapshots\RestoreRollbackManager;
+use Zignites\Sentinel\Snapshots\SnapshotArtifactRepository;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -39,16 +40,25 @@ class SnapshotStatusResolver {
 	protected $journal_recorder;
 
 	/**
+	 * Snapshot artifact repository.
+	 *
+	 * @var SnapshotArtifactRepository
+	 */
+	protected $artifacts;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param LogRepository         $logs             Log repository.
-	 * @param RestoreCheckpointStore $checkpoint_store Restore checkpoint store.
-	 * @param RestoreJournalRecorder $journal_recorder Restore journal recorder.
+	 * @param LogRepository             $logs             Log repository.
+	 * @param RestoreCheckpointStore    $checkpoint_store Restore checkpoint store.
+	 * @param RestoreJournalRecorder    $journal_recorder Restore journal recorder.
+	 * @param SnapshotArtifactRepository $artifacts       Snapshot artifact repository.
 	 */
-	public function __construct( LogRepository $logs, RestoreCheckpointStore $checkpoint_store, RestoreJournalRecorder $journal_recorder ) {
+	public function __construct( LogRepository $logs, RestoreCheckpointStore $checkpoint_store, RestoreJournalRecorder $journal_recorder, SnapshotArtifactRepository $artifacts ) {
 		$this->logs             = $logs;
 		$this->checkpoint_store = $checkpoint_store;
 		$this->journal_recorder = $journal_recorder;
+		$this->artifacts        = $artifacts;
 	}
 
 	/**
@@ -87,6 +97,7 @@ class SnapshotStatusResolver {
 			$snapshot_ids,
 			array( 'restore_plan_created' )
 		);
+		$artifact_index  = $this->index_artifacts_by_snapshot( $this->artifacts->get_by_snapshot_ids( $snapshot_ids ) );
 		$run_summaries   = $this->index_latest_runs_by_snapshot( $snapshot_ids );
 		$current_baseline = get_option( ZNTS_OPTION_LAST_SNAPSHOT_HEALTH_BASELINE, array() );
 
@@ -116,6 +127,9 @@ class SnapshotStatusResolver {
 				$this->checkpoint_store->get_plan_checkpoint( $snapshot_id ),
 				isset( $plan_events[ $snapshot_id ] ) ? $plan_events[ $snapshot_id ] : array()
 			);
+			$artifacts = $this->resolve_artifact_state(
+				isset( $artifact_index[ $snapshot_id ] ) ? $artifact_index[ $snapshot_id ] : array()
+			);
 			$activity = $this->resolve_activity_state(
 				isset( $run_summaries[ $snapshot_id ] ) ? $run_summaries[ $snapshot_id ] : array()
 			);
@@ -123,6 +137,7 @@ class SnapshotStatusResolver {
 			$restore_ready = $baseline['present'] && 'current' === $stage['key'] && 'current' === $plan['key'];
 			$badges        = array(
 				$this->build_badge( $baseline['badge'], $baseline['label'] ),
+				$this->build_badge( $artifacts['badge'], $artifacts['label'] ),
 				$this->build_badge( $stage['badge'], $stage['label'] ),
 				$this->build_badge( $plan['badge'], $plan['label'] ),
 			);
@@ -139,6 +154,7 @@ class SnapshotStatusResolver {
 			$index[ $snapshot_id ] = array(
 				'snapshot_id'            => $snapshot_id,
 				'baseline'               => $baseline,
+				'artifacts'              => $artifacts,
 				'stage'                  => $stage,
 				'plan'                   => $plan,
 				'activity'               => $activity,
@@ -199,11 +215,13 @@ class SnapshotStatusResolver {
 		return array(
 			'' => __( 'All snapshots', 'zignites-sentinel' ),
 			'baseline-present' => __( 'Baseline present', 'zignites-sentinel' ),
+			'rollback-package' => __( 'Rollback package saved', 'zignites-sentinel' ),
 			'stage-current' => __( 'Stage fresh', 'zignites-sentinel' ),
 			'plan-current' => __( 'Plan fresh', 'zignites-sentinel' ),
 			'recent-restore-activity' => __( 'Recent restore activity', 'zignites-sentinel' ),
 			'restore-ready' => __( 'Restore ready', 'zignites-sentinel' ),
 			'checkpoint-stale' => __( 'Stage or plan stale', 'zignites-sentinel' ),
+			'checkpoint-missing' => __( 'Stage or plan missing', 'zignites-sentinel' ),
 		);
 	}
 
@@ -230,7 +248,7 @@ class SnapshotStatusResolver {
 
 		if ( $critical_count > 0 || $recent_failure ) {
 			$status = 'at_risk';
-		} elseif ( ! $has_snapshot || $error_count > 0 || $warning_count > 0 || empty( $latest_status['baseline']['present'] ) || empty( $restore_ready ) || ! empty( $latest_status['has_stale_checkpoint'] ) ) {
+		} elseif ( ! $has_snapshot || $error_count > 0 || $warning_count > 0 || empty( $latest_status['baseline']['present'] ) || empty( $latest_status['artifacts']['package_present'] ) || empty( $restore_ready ) || ! empty( $latest_status['has_stale_checkpoint'] ) ) {
 			$status = 'needs_attention';
 		}
 
@@ -252,6 +270,9 @@ class SnapshotStatusResolver {
 			$signals[] = ! empty( $latest_status['baseline']['present'] )
 				? __( 'Baseline status: present.', 'zignites-sentinel' )
 				: __( 'Baseline status: missing.', 'zignites-sentinel' );
+			$signals[] = ! empty( $latest_status['artifacts']['package_present'] )
+				? __( 'Rollback package: saved.', 'zignites-sentinel' )
+				: __( 'Rollback package: missing.', 'zignites-sentinel' );
 			$signals[] = sprintf(
 				/* translators: 1: stage label, 2: plan label */
 				__( 'Restore gates: %1$s, %2$s.', 'zignites-sentinel' ),
@@ -340,6 +361,32 @@ class SnapshotStatusResolver {
 	}
 
 	/**
+	 * Group artifact rows by snapshot ID.
+	 *
+	 * @param array $artifacts Artifact rows.
+	 * @return array
+	 */
+	protected function index_artifacts_by_snapshot( array $artifacts ) {
+		$indexed = array();
+
+		foreach ( $artifacts as $artifact ) {
+			$snapshot_id = isset( $artifact['snapshot_id'] ) ? absint( $artifact['snapshot_id'] ) : 0;
+
+			if ( $snapshot_id < 1 ) {
+				continue;
+			}
+
+			if ( ! isset( $indexed[ $snapshot_id ] ) ) {
+				$indexed[ $snapshot_id ] = array();
+			}
+
+			$indexed[ $snapshot_id ][] = $artifact;
+		}
+
+		return $indexed;
+	}
+
+	/**
 	 * Resolve baseline state.
 	 *
 	 * @param int   $snapshot_id      Snapshot ID.
@@ -365,6 +412,36 @@ class SnapshotStatusResolver {
 			'generated_at' => $generated_at,
 			'badge'        => $present ? 'info' : 'warning',
 			'label'        => $present ? __( 'Baseline present', 'zignites-sentinel' ) : __( 'Baseline missing', 'zignites-sentinel' ),
+		);
+	}
+
+	/**
+	 * Resolve rollback artifact state.
+	 *
+	 * @param array $artifacts Artifact rows for a snapshot.
+	 * @return array
+	 */
+	protected function resolve_artifact_state( array $artifacts ) {
+		$package_present = false;
+		$export_present  = false;
+
+		foreach ( $artifacts as $artifact ) {
+			$type = isset( $artifact['artifact_type'] ) ? sanitize_key( (string) $artifact['artifact_type'] ) : '';
+
+			if ( 'package' === $type ) {
+				$package_present = true;
+			}
+
+			if ( 'export' === $type ) {
+				$export_present = true;
+			}
+		}
+
+		return array(
+			'package_present' => $package_present,
+			'export_present'  => $export_present,
+			'badge'           => $package_present ? 'info' : 'warning',
+			'label'           => $package_present ? __( 'Package saved', 'zignites-sentinel' ) : __( 'No package', 'zignites-sentinel' ),
 		);
 	}
 
@@ -468,6 +545,8 @@ class SnapshotStatusResolver {
 		switch ( $status_filter ) {
 			case 'baseline-present':
 				return ! empty( $status['baseline']['present'] );
+			case 'rollback-package':
+				return ! empty( $status['artifacts']['package_present'] );
 			case 'stage-current':
 				return ! empty( $status['stage']['key'] ) && 'current' === $status['stage']['key'];
 			case 'plan-current':
@@ -478,6 +557,9 @@ class SnapshotStatusResolver {
 				return ! empty( $status['restore_ready'] );
 			case 'checkpoint-stale':
 				return ! empty( $status['has_stale_checkpoint'] );
+			case 'checkpoint-missing':
+				return ( ! empty( $status['stage']['key'] ) && 'missing' === $status['stage']['key'] )
+					|| ( ! empty( $status['plan']['key'] ) && 'missing' === $status['plan']['key'] );
 		}
 
 		return true;
@@ -535,6 +617,10 @@ class SnapshotStatusResolver {
 
 		if ( empty( $latest_status['baseline']['present'] ) ) {
 			return __( 'Capture a baseline for the latest snapshot.', 'zignites-sentinel' );
+		}
+
+		if ( empty( $latest_status['artifacts']['package_present'] ) ) {
+			return __( 'Create a fresh snapshot so a rollback package is available.', 'zignites-sentinel' );
 		}
 
 		if ( empty( $latest_status['stage']['key'] ) || 'current' !== $latest_status['stage']['key'] ) {
