@@ -43,10 +43,25 @@ $selected_snapshot_status = ( $snapshot_detail && ! empty( $snapshot_detail['id'
 $plan_validation           = isset( $last_plan['validation'] ) && is_array( $last_plan['validation'] ) ? $last_plan['validation'] : array();
 $restore_source_validation = isset( $last_restore_check['source_validation'] ) && is_array( $last_restore_check['source_validation'] ) ? $last_restore_check['source_validation'] : array();
 $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['metadata_decoded']['component_manifest'] ) && is_array( $snapshot_detail['metadata_decoded']['component_manifest'] ) ) ? $snapshot_detail['metadata_decoded']['component_manifest'] : array();
+$selected_snapshot_label   = $snapshot_detail && ! empty( $snapshot_detail['label'] ) ? (string) $snapshot_detail['label'] : __( 'No snapshot selected', 'zignites-sentinel' );
+$selected_snapshot_note    = $snapshot_detail
+	? sprintf(
+		/* translators: 1: snapshot id, 2: created at */
+		__( 'Snapshot #%1$d captured on %2$s is the active restore workspace.', 'zignites-sentinel' ),
+		(int) $snapshot_detail['id'],
+		isset( $snapshot_detail['created_at'] ) ? (string) $snapshot_detail['created_at'] : ''
+	)
+	: __( 'Choose a snapshot from the list below to inspect readiness, planning, and restore controls.', 'zignites-sentinel' );
+$snapshot_match_count      = isset( $snapshot_pagination['total_items'] ) ? (int) $snapshot_pagination['total_items'] : count( isset( $view_data['recent_snapshots'] ) && is_array( $view_data['recent_snapshots'] ) ? $view_data['recent_snapshots'] : array() );
+$workspace_status_label    = ! empty( $operator_checklist['can_execute'] ) ? __( 'Restore ready', 'zignites-sentinel' ) : ( $snapshot_detail ? __( 'Needs attention', 'zignites-sentinel' ) : __( 'Awaiting snapshot', 'zignites-sentinel' ) );
+$workspace_status_badge    = ! empty( $operator_checklist['can_execute'] ) ? 'info' : ( $snapshot_detail ? 'warning' : 'critical' );
+$workspace_next_action     = ! empty( $operator_checklist['can_execute'] )
+	? __( 'Review the impact summary, then continue with guarded restore only if the plan still matches your intent.', 'zignites-sentinel' )
+	: ( $snapshot_detail ? __( 'Complete the missing checklist items or refresh restore gates before continuing.', 'zignites-sentinel' ) : __( 'Run a preflight scan or create a snapshot to begin update-readiness work.', 'zignites-sentinel' ) );
 ?>
 <div class="wrap znts-admin-page">
 	<h1><?php echo esc_html__( 'Update Readiness', 'zignites-sentinel' ); ?></h1>
-	<p><?php echo esc_html__( 'Run a preflight scan, capture snapshot metadata, and build a manual review plan before update work. This screen is advisory and does not perform isolated update execution.', 'zignites-sentinel' ); ?></p>
+	<p class="znts-page-intro"><?php echo esc_html__( 'Use this workspace to answer one question quickly: is the site prepared for safe update work, and what should happen next?', 'zignites-sentinel' ); ?></p>
 
 	<?php if ( ! empty( $notice ) ) : ?>
 		<div class="notice notice-<?php echo esc_attr( $notice['type'] ); ?> is-dismissible">
@@ -54,9 +69,51 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 		</div>
 	<?php endif; ?>
 
-	<div class="znts-admin-grid">
+	<section class="znts-summary-hero">
+		<span class="znts-eyebrow"><?php echo esc_html__( 'Operational Workspace', 'zignites-sentinel' ); ?></span>
+		<div class="znts-readiness-row">
+			<span class="znts-pill znts-pill-<?php echo esc_attr( $workspace_status_badge ); ?>">
+				<?php echo esc_html( $workspace_status_label ); ?>
+			</span>
+			<?php if ( $snapshot_detail && ! empty( $selected_snapshot_status['status_badges'] ) ) : ?>
+				<div class="znts-badge-row">
+					<?php foreach ( $selected_snapshot_status['status_badges'] as $badge ) : ?>
+						<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $badge['badge'] ) ? $badge['badge'] : 'info' ); ?>">
+							<?php echo esc_html( isset( $badge['label'] ) ? $badge['label'] : '' ); ?>
+						</span>
+					<?php endforeach; ?>
+				</div>
+			<?php endif; ?>
+		</div>
+		<h2 class="znts-hero-title"><?php echo esc_html( $selected_snapshot_label ); ?></h2>
+		<p class="znts-hero-subtitle"><?php echo esc_html( $selected_snapshot_note ); ?></p>
+		<div class="znts-summary-strip">
+			<div class="znts-summary-item">
+				<span><?php echo esc_html__( 'Current state', 'zignites-sentinel' ); ?></span>
+				<strong><?php echo esc_html( $workspace_status_label ); ?></strong>
+				<p><?php echo esc_html( $workspace_next_action ); ?></p>
+			</div>
+			<div class="znts-summary-item">
+				<span><?php echo esc_html__( 'Snapshot matches', 'zignites-sentinel' ); ?></span>
+				<strong><?php echo esc_html( (string) $snapshot_match_count ); ?></strong>
+				<p><?php echo esc_html__( 'Use filters to narrow the working snapshot set before reviewing details.', 'zignites-sentinel' ); ?></p>
+			</div>
+			<div class="znts-summary-item">
+				<span><?php echo esc_html__( 'Checklist gates', 'zignites-sentinel' ); ?></span>
+				<strong><?php echo esc_html( ! empty( $operator_checklist['checks'] ) ? sprintf( __( '%d checks', 'zignites-sentinel' ), count( $operator_checklist['checks'] ) ) : __( 'Not started', 'zignites-sentinel' ) ); ?></strong>
+				<p><?php echo esc_html__( 'Baseline, stage validation, and plan freshness determine whether guarded restore is offered.', 'zignites-sentinel' ); ?></p>
+			</div>
+			<div class="znts-summary-item">
+				<span><?php echo esc_html__( 'Primary path', 'zignites-sentinel' ); ?></span>
+				<strong><?php echo esc_html__( 'Scan, snapshot, review', 'zignites-sentinel' ); ?></strong>
+				<p><?php echo esc_html__( 'Keep live restore controls gated until readiness evidence is current.', 'zignites-sentinel' ); ?></p>
+			</div>
+		</div>
+	</section>
+
+	<div class="znts-admin-grid znts-readiness-grid">
 		<?php if ( $snapshot_detail && ! empty( $restore_run_cards ) ) : ?>
-			<section class="znts-card znts-card-full">
+			<section class="znts-card znts-card-full znts-card-hero">
 				<h2><?php echo esc_html__( 'Restore Control Summary', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-status-grid">
 					<?php foreach ( $restore_run_cards as $card ) : ?>
@@ -119,7 +176,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 		<?php endif; ?>
 
 		<?php if ( $snapshot_detail ) : ?>
-			<section class="znts-card znts-card-full">
+			<section class="znts-card znts-card-full znts-card-soft">
 				<div class="znts-section-header">
 					<div>
 						<h2><?php echo esc_html__( 'Snapshot Health Baseline', 'zignites-sentinel' ); ?></h2>
@@ -282,7 +339,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 			</section>
 		<?php endif; ?>
 
-		<section class="znts-card">
+		<section class="znts-card znts-card-soft">
 			<h2><?php echo esc_html__( 'Operator Actions', 'zignites-sentinel' ); ?></h2>
 			<p><?php echo esc_html__( 'Use these actions to assess readiness and capture current site state before updates.', 'zignites-sentinel' ); ?></p>
 			<div class="znts-actions">
@@ -299,7 +356,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 			</div>
 		</section>
 
-		<section class="znts-card">
+		<section class="znts-card znts-card-soft">
 			<h2><?php echo esc_html__( 'Sentinel Settings', 'zignites-sentinel' ); ?></h2>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="znts_save_settings" />
@@ -332,7 +389,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 			</form>
 		</section>
 
-		<section class="znts-card">
+		<section class="znts-card znts-card-soft">
 			<h2><?php echo esc_html__( 'Latest Preflight Result', 'zignites-sentinel' ); ?></h2>
 			<?php if ( empty( $preflight ) ) : ?>
 				<p><?php echo esc_html__( 'No preflight scan has been recorded yet.', 'zignites-sentinel' ); ?></p>
@@ -369,7 +426,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 			<?php endif; ?>
 		</section>
 
-		<section class="znts-card">
+		<section class="znts-card znts-card-soft">
 			<h2><?php echo esc_html__( 'Pending Update Candidates', 'zignites-sentinel' ); ?></h2>
 			<?php if ( empty( $view_data['update_candidates'] ) ) : ?>
 				<p><?php echo esc_html__( 'No pending plugin, theme, or core updates were found.', 'zignites-sentinel' ); ?></p>
@@ -405,7 +462,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 			<?php endif; ?>
 		</section>
 
-		<section class="znts-card">
+		<section class="znts-card znts-card-soft">
 			<h2><?php echo esc_html__( 'Last Update Plan', 'zignites-sentinel' ); ?></h2>
 			<?php if ( empty( $last_plan ) ) : ?>
 				<p><?php echo esc_html__( 'No update plan has been created yet.', 'zignites-sentinel' ); ?></p>
@@ -475,7 +532,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 			<?php endif; ?>
 		</section>
 
-		<section class="znts-card">
+		<section class="znts-card znts-card-soft">
 			<h2><?php echo esc_html__( 'Recent Snapshot Metadata', 'zignites-sentinel' ); ?></h2>
 			<p class="description"><?php echo esc_html__( 'Use snapshot status filters to find snapshots with a baseline, a saved rollback package, fresh restore gates, or recent restore activity.', 'zignites-sentinel' ); ?></p>
 			<div class="znts-status-guide">
@@ -608,7 +665,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 		</section>
 
 		<?php if ( $snapshot_detail ) : ?>
-			<section class="znts-card znts-card-full">
+			<section class="znts-card znts-card-full znts-card-soft">
 				<div class="znts-section-header">
 					<div>
 						<h2><?php echo esc_html__( 'Snapshot Activity Timeline', 'zignites-sentinel' ); ?></h2>
@@ -664,7 +721,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 		<?php endif; ?>
 
 		<?php if ( $snapshot_detail ) : ?>
-			<section class="znts-card znts-card-full">
+			<section class="znts-card znts-card-full znts-card-soft">
 				<h2><?php echo esc_html__( 'Snapshot Detail', 'zignites-sentinel' ); ?></h2>
 				<?php if ( ! empty( $selected_snapshot_status['status_badges'] ) ) : ?>
 					<div class="znts-badge-row znts-card-note">
@@ -839,7 +896,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 		<?php endif; ?>
 
 		<?php if ( $snapshot_detail && ! empty( $snapshot_comparison ) ) : ?>
-			<section class="znts-card znts-card-full">
+			<section class="znts-card znts-card-full znts-card-soft">
 				<h2><?php echo esc_html__( 'Snapshot Comparison', 'zignites-sentinel' ); ?></h2>
 				<table class="widefat striped">
 					<tbody>
@@ -870,7 +927,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 					</tbody>
 				</table>
 				<div class="znts-admin-grid znts-subgrid">
-					<section class="znts-card">
+					<section class="znts-card znts-card-soft">
 						<h3><?php echo esc_html__( 'Missing Snapshot Plugins', 'zignites-sentinel' ); ?></h3>
 						<?php if ( empty( $snapshot_comparison['missing_plugins'] ) ) : ?>
 							<p><?php echo esc_html__( 'None.', 'zignites-sentinel' ); ?></p>
@@ -882,7 +939,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 							</ul>
 						<?php endif; ?>
 					</section>
-					<section class="znts-card">
+					<section class="znts-card znts-card-soft">
 						<h3><?php echo esc_html__( 'New Current Plugins', 'zignites-sentinel' ); ?></h3>
 						<?php if ( empty( $snapshot_comparison['new_plugins'] ) ) : ?>
 							<p><?php echo esc_html__( 'None.', 'zignites-sentinel' ); ?></p>
@@ -894,7 +951,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 							</ul>
 						<?php endif; ?>
 					</section>
-					<section class="znts-card">
+					<section class="znts-card znts-card-soft">
 						<h3><?php echo esc_html__( 'Changed Plugin Versions', 'zignites-sentinel' ); ?></h3>
 						<?php if ( empty( $snapshot_comparison['version_changes'] ) ) : ?>
 							<p><?php echo esc_html__( 'None.', 'zignites-sentinel' ); ?></p>
@@ -924,7 +981,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 		<?php endif; ?>
 
 		<?php if ( $snapshot_detail && ! empty( $last_restore_check ) ) : ?>
-			<section class="znts-card znts-card-full">
+			<section class="znts-card znts-card-full znts-card-soft">
 				<h2><?php echo esc_html__( 'Restore Readiness Assessment', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
 					<span class="znts-pill znts-pill-<?php echo esc_attr( 'blocked' === $last_restore_check['status'] ? 'critical' : ( 'caution' === $last_restore_check['status'] ? 'warning' : 'info' ) ); ?>">
@@ -1005,7 +1062,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 		<?php endif; ?>
 
 		<?php if ( $snapshot_detail && ! empty( $last_restore_dry_run ) ) : ?>
-			<section class="znts-card znts-card-full">
+			<section class="znts-card znts-card-full znts-card-soft">
 				<h2><?php echo esc_html__( 'Restore Dry-Run', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
 					<span class="znts-pill znts-pill-<?php echo esc_attr( 'blocked' === $last_restore_dry_run['status'] ? 'critical' : ( 'caution' === $last_restore_dry_run['status'] ? 'warning' : 'info' ) ); ?>">
@@ -1040,7 +1097,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 		<?php endif; ?>
 
 		<?php if ( $snapshot_detail && ! empty( $last_restore_stage ) ) : ?>
-			<section class="znts-card znts-card-full">
+			<section class="znts-card znts-card-full znts-card-soft">
 				<h2><?php echo esc_html__( 'Staged Restore Validation', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
 					<span class="znts-pill znts-pill-<?php echo esc_attr( 'blocked' === $last_restore_stage['status'] ? 'critical' : ( 'caution' === $last_restore_stage['status'] ? 'warning' : 'info' ) ); ?>">
@@ -1075,7 +1132,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 		<?php endif; ?>
 
 		<?php if ( $snapshot_detail && ! empty( $last_restore_plan ) ) : ?>
-			<section class="znts-card znts-card-full">
+			<section class="znts-card znts-card-full znts-card-soft">
 				<h2><?php echo esc_html__( 'Restore Execution Plan', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
 					<span class="znts-pill znts-pill-<?php echo esc_attr( 'blocked' === $last_restore_plan['status'] ? 'critical' : ( 'caution' === $last_restore_plan['status'] ? 'warning' : 'info' ) ); ?>">
@@ -1235,7 +1292,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 		<?php endif; ?>
 
 		<?php if ( $snapshot_detail && ! empty( $last_restore_execution ) ) : ?>
-			<section class="znts-card znts-card-full">
+			<section class="znts-card znts-card-full znts-card-soft">
 				<h2><?php echo esc_html__( 'Restore Execution Result', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
 					<span class="znts-pill znts-pill-<?php echo esc_attr( 'blocked' === $last_restore_execution['status'] || 'partial' === $last_restore_execution['status'] ? ( 'blocked' === $last_restore_execution['status'] ? 'critical' : 'warning' ) : 'info' ); ?>">
@@ -1416,7 +1473,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 		<?php endif; ?>
 
 		<?php if ( $snapshot_detail && ! empty( $last_restore_rollback ) ) : ?>
-			<section class="znts-card znts-card-full">
+			<section class="znts-card znts-card-full znts-card-soft">
 				<h2><?php echo esc_html__( 'Restore Rollback Result', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
 					<span class="znts-pill znts-pill-<?php echo esc_attr( 'blocked' === $last_restore_rollback['status'] ? 'critical' : ( 'partial' === $last_restore_rollback['status'] ? 'warning' : 'info' ) ); ?>">
@@ -1527,7 +1584,7 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 			</section>
 		<?php endif; ?>
 
-		<section class="znts-card">
+		<section class="znts-card znts-card-muted">
 			<h2><?php echo esc_html__( 'Readiness Scope', 'zignites-sentinel' ); ?></h2>
 			<ul class="znts-list">
 				<li><?php echo esc_html__( 'This scan checks for common operational blockers and warnings before manual update activity.', 'zignites-sentinel' ); ?></li>
@@ -1537,3 +1594,5 @@ $component_manifest        = ( $snapshot_detail && ! empty( $snapshot_detail['me
 		</section>
 	</div>
 </div>
+
+
