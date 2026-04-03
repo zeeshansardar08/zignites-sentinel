@@ -98,6 +98,22 @@ if ( ! function_exists( 'wp_normalize_path' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_upload_dir' ) ) {
+	function wp_upload_dir() {
+		return array(
+			'basedir' => 'D:/uploads',
+			'baseurl' => 'http://example.test/uploads',
+			'error'   => false,
+		);
+	}
+}
+
+if ( ! function_exists( 'trailingslashit' ) ) {
+	function trailingslashit( $value ) {
+		return rtrim( (string) $value, "/\\" ) . '/';
+	}
+}
+
 if ( ! class_exists( 'Zignites\\Sentinel\\Logging\\Logger' ) ) {
 	eval(
 		'namespace Zignites\\Sentinel\\Logging; class Logger { public function log() { return true; } }'
