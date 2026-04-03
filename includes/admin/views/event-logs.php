@@ -61,6 +61,19 @@ $base_args    = array(
 				<?php submit_button( __( 'Filter Logs', 'zignites-sentinel' ), 'secondary', '', false ); ?>
 				<a class="button button-link" href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs' ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html__( 'Reset', 'zignites-sentinel' ); ?></a>
 			</form>
+			<div class="znts-actions">
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<input type="hidden" name="action" value="znts_export_event_logs" />
+					<input type="hidden" name="severity" value="<?php echo esc_attr( isset( $log_filters['severity'] ) ? $log_filters['severity'] : '' ); ?>" />
+					<input type="hidden" name="source" value="<?php echo esc_attr( isset( $log_filters['source'] ) ? $log_filters['source'] : '' ); ?>" />
+					<input type="hidden" name="run_id" value="<?php echo esc_attr( isset( $log_filters['run_id'] ) ? $log_filters['run_id'] : '' ); ?>" />
+					<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( ! empty( $log_filters['snapshot_id'] ) ? (string) $log_filters['snapshot_id'] : '' ); ?>" />
+					<input type="hidden" name="log_search" value="<?php echo esc_attr( isset( $log_filters['search'] ) ? $log_filters['search'] : '' ); ?>" />
+					<?php wp_nonce_field( 'znts_export_event_logs_action' ); ?>
+					<?php submit_button( __( 'Export Filtered CSV', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
+				</form>
+			</div>
+			<p class="description"><?php echo esc_html__( 'CSV export includes the current filters and up to 5,000 matching rows, including run and snapshot context when available.', 'zignites-sentinel' ); ?></p>
 			<p class="description">
 				<?php
 				echo esc_html(

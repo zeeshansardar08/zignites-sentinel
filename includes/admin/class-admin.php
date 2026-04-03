@@ -292,6 +292,7 @@ class Admin {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_action( 'wp_dashboard_setup', array( $this, 'register_dashboard_widget' ) );
 		add_action( 'admin_post_znts_run_preflight', array( $this, 'handle_run_preflight' ) );
+		add_action( 'admin_post_znts_export_event_logs', array( $this, 'handle_export_event_logs' ) );
 		add_action( 'admin_post_znts_create_snapshot', array( $this, 'handle_create_snapshot' ) );
 		add_action( 'admin_post_znts_save_settings', array( $this, 'handle_save_settings' ) );
 		add_action( 'admin_post_znts_build_update_plan', array( $this, 'handle_build_update_plan' ) );
@@ -572,6 +573,52 @@ class Admin {
 
 		update_option( ZNTS_OPTION_LAST_PREFLIGHT, $this->preflight_checker->run(), false );
 		$this->redirect_with_notice( 'preflight-complete' );
+	}
+
+	/**
+	 * Export filtered event logs as CSV.
+	 *
+	 * @return void
+	 */
+	public function handle_export_event_logs() {
+		$this->assert_admin_action_permissions( 'znts_export_event_logs_action' );
+
+		$filters = $this->get_log_filters_from_request( 'post' );
+		$rows    = $this->logs->get_filtered_for_export( $filters, 5000 );
+		$handle  = fopen( 'php://output', 'w' );
+
+		if ( false === $handle ) {
+			wp_die( esc_html__( 'The event log export could not be created.', 'zignites-sentinel' ) );
+		}
+
+		nocache_headers();
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="' . $this->build_event_log_export_filename( $filters ) . '"' );
+
+		fputcsv(
+			$handle,
+			array(
+				'id',
+				'created_at',
+				'severity',
+				'source',
+				'event_type',
+				'message',
+				'snapshot_id',
+				'run_id',
+				'journal_scope',
+				'journal_phase',
+				'journal_status',
+				'context_json',
+			)
+		);
+
+		foreach ( $rows as $row ) {
+			fputcsv( $handle, $this->build_event_log_export_row( $row ) );
+		}
+
+		fclose( $handle );
+		exit;
 	}
 
 	/**
@@ -3091,12 +3138,23 @@ class Admin {
 	 * @return array
 	 */
 	protected function get_log_filters() {
-		$severity    = isset( $_GET['severity'] ) ? sanitize_key( wp_unslash( $_GET['severity'] ) ) : '';
-		$source      = isset( $_GET['source'] ) ? sanitize_text_field( wp_unslash( $_GET['source'] ) ) : '';
-		$run_id      = isset( $_GET['run_id'] ) ? sanitize_text_field( wp_unslash( $_GET['run_id'] ) ) : '';
-		$snapshot_id = isset( $_GET['snapshot_id'] ) ? absint( wp_unslash( $_GET['snapshot_id'] ) ) : 0;
-		$search      = isset( $_GET['log_search'] ) ? sanitize_text_field( wp_unslash( $_GET['log_search'] ) ) : '';
-		$paged       = isset( $_GET['paged'] ) ? absint( wp_unslash( $_GET['paged'] ) ) : 1;
+		return $this->get_log_filters_from_request( 'get' );
+	}
+
+	/**
+	 * Collect filters for the event log screen from GET or POST.
+	 *
+	 * @param string $source Request source: get or post.
+	 * @return array
+	 */
+	protected function get_log_filters_from_request( $source = 'get' ) {
+		$request = 'post' === strtolower( (string) $source ) ? $_POST : $_GET;
+		$severity    = isset( $request['severity'] ) ? sanitize_key( wp_unslash( $request['severity'] ) ) : '';
+		$source_name = isset( $request['source'] ) ? sanitize_text_field( wp_unslash( $request['source'] ) ) : '';
+		$run_id      = isset( $request['run_id'] ) ? sanitize_text_field( wp_unslash( $request['run_id'] ) ) : '';
+		$snapshot_id = isset( $request['snapshot_id'] ) ? absint( wp_unslash( $request['snapshot_id'] ) ) : 0;
+		$search      = isset( $request['log_search'] ) ? sanitize_text_field( wp_unslash( $request['log_search'] ) ) : '';
+		$paged       = isset( $request['paged'] ) ? absint( wp_unslash( $request['paged'] ) ) : 1;
 
 		if ( ! in_array( $severity, array( '', 'info', 'warning', 'error', 'critical' ), true ) ) {
 			$severity = '';
@@ -3104,11 +3162,63 @@ class Admin {
 
 		return array(
 			'severity'    => $severity,
-			'source'      => $source,
+			'source'      => $source_name,
 			'run_id'      => $run_id,
 			'snapshot_id' => $snapshot_id,
 			'search'      => $search,
 			'paged'       => max( 1, $paged ),
+		);
+	}
+
+	/**
+	 * Build a CSV export filename for the current event log filters.
+	 *
+	 * @param array $filters Current log filters.
+	 * @return string
+	 */
+	protected function build_event_log_export_filename( array $filters ) {
+		$parts = array( 'znts-event-logs' );
+
+		if ( ! empty( $filters['source'] ) ) {
+			$parts[] = sanitize_title( (string) $filters['source'] );
+		}
+
+		if ( ! empty( $filters['run_id'] ) ) {
+			$parts[] = sanitize_title( (string) $filters['run_id'] );
+		}
+
+		if ( ! empty( $filters['snapshot_id'] ) ) {
+			$parts[] = 'snapshot-' . absint( $filters['snapshot_id'] );
+		}
+
+		$parts[] = gmdate( 'Ymd-His' );
+
+		return implode( '-', array_filter( $parts ) ) . '.csv';
+	}
+
+	/**
+	 * Build a CSV row for an event log export.
+	 *
+	 * @param array $row Log row.
+	 * @return array
+	 */
+	protected function build_event_log_export_row( array $row ) {
+		$context       = $this->decode_json_field( isset( $row['context'] ) ? $row['context'] : '' );
+		$journal_entry = isset( $context['entry'] ) && is_array( $context['entry'] ) ? $context['entry'] : array();
+
+		return array(
+			isset( $row['id'] ) ? (int) $row['id'] : 0,
+			isset( $row['created_at'] ) ? (string) $row['created_at'] : '',
+			isset( $row['severity'] ) ? (string) $row['severity'] : '',
+			isset( $row['source'] ) ? (string) $row['source'] : '',
+			isset( $row['event_type'] ) ? (string) $row['event_type'] : '',
+			isset( $row['message'] ) ? (string) $row['message'] : '',
+			isset( $context['snapshot_id'] ) ? absint( $context['snapshot_id'] ) : 0,
+			isset( $context['run_id'] ) ? (string) $context['run_id'] : '',
+			isset( $journal_entry['scope'] ) ? (string) $journal_entry['scope'] : '',
+			isset( $journal_entry['phase'] ) ? (string) $journal_entry['phase'] : '',
+			isset( $journal_entry['status'] ) ? (string) $journal_entry['status'] : '',
+			! empty( $context ) ? wp_json_encode( $context ) : '',
 		);
 	}
 

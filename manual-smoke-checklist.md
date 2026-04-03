@@ -133,6 +133,19 @@ For each filter:
 2. Confirm the log screen still respects snapshot scoping.
 3. Confirm the logs page loads without malformed query behavior.
 
+## Event Log Export
+
+1. Apply one or more Event Log filters.
+2. Click `Export Filtered CSV`.
+3. Confirm the downloaded filename reflects the filtered scope.
+4. Confirm the CSV contains:
+   - log metadata columns
+   - snapshot ID when present
+   - run ID when present
+   - journal scope/phase/status for journal rows
+   - JSON context
+5. Confirm the export still works when a run journal filter is active.
+
 ## Safety Regression Checks
 
 1. Confirm no destructive action is auto-triggered by loading admin screens.
