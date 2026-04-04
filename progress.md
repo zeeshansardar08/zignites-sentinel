@@ -236,13 +236,12 @@
   - health comparison rows and dashboard health-strip behavior
   - live admin smoke runner helper behavior
   - resume-path admin presentation payloads
+  - event log presentation payloads
   - shared cross-screen status presentation
-- The current working branch is focused on expanding browser-level/manual smoke verification for the redesigned admin surfaces:
-  - Dashboard
-  - core dashboard widget
-  - Update Readiness
-  - Event Logs
-  - optional live authenticated smoke automation scaffolding
+- Main is now current through the merged read-only presentation cleanup for:
+  - Event Logs presenter extraction
+  - cross-screen status presenter extraction
+  - presenter-focused regression coverage
 - Test bootstrap now includes minimal WordPress stubs required by read-only admin/reporting logic:
   - `wp_salt()`
   - `wp_upload_dir()`
@@ -295,8 +294,10 @@
 - `includes/class-plugin.php`
 - `includes/admin/class-admin.php`
 - `includes/admin/class-audit-report-verifier.php`
+- `includes/admin/class-event-log-presenter.php`
 - `includes/admin/class-restore-operator-checklist-evaluator.php`
 - `includes/admin/class-settings-portability.php`
+- `includes/admin/class-status-presenter.php`
 - `includes/admin/views/dashboard.php`
 - `includes/admin/views/update-readiness.php`
 - `includes/admin/views/event-logs.php`
@@ -317,6 +318,8 @@
 - `includes/snapshots/class-restore-checkpoint-store.php`
 - `tests/bootstrap.php`
 - `tests/run.php`
+- `tests/test-event-log-presenter.php`
+- `tests/test-status-presenter.php`
 
 ## What I Would Do Next
 
@@ -337,28 +340,19 @@
   - `php tests/smoke-admin-live.php --base-url=... --cookie=...`
 - Reason: this is the lightest viable bridge from unit-style coverage into real authenticated admin-page validation without adding a browser dependency stack
 
-3. Add focused health-comparison presentation edge coverage only if new formatting logic is introduced
-- Likely seams:
-  - dashboard health strip messaging changes
-  - health comparison table wording changes
-- Reason: the current comparison/data seam is now covered at the unit-style level
-
-### Safety-Focused Next Steps
-4. Expand resume-path verification around real admin state presentation
-- Focus on:
-  - execution checkpoint summaries
-  - rollback checkpoint summaries
-  - run-card secondary messaging
-- Reason: restore safety is now as much about operator interpretation as raw checkpoint persistence
-- Current branch target: `feature/resume-admin-presentation-coverage`
+3. Only add more read-only presentation/reporting code after real admin validation
+- Likely candidates:
+  - further dashboard formatter helpers
+  - future snapshot summary presentation cleanup
+- Reason: the most meaningful remaining gap is real admin validation, not another obvious code seam
 
 ### Product Maturity Next Steps
-5. Add broader reporting/test coverage for any newly extracted presentation helper
+4. Add broader reporting/test coverage for any newly extracted presentation helper
 - Likely seams:
   - future dashboard formatter helpers
   - future snapshot summary presenter helpers
 
-6. Consider a compact printable operator handoff report later
+5. Consider a compact printable operator handoff report later
 - Only after the current reporting surfaces are better covered by tests
 - Reason: operator/client handoff is already improving, but another export surface should not outpace regression coverage
 
@@ -378,17 +372,20 @@
 - For current test work, also start from:
   - `tests/run.php`
   - `tests/bootstrap.php`
+  - `includes/admin/class-event-log-presenter.php`
+  - `includes/admin/class-status-presenter.php`
   - `tests/test-health-comparison.php`
   - `tests/class-admin-smoke-runner.php`
   - `tests/smoke-admin-live.php`
-  - `tests/test-resume-admin-presentation.php`
+  - `tests/test-event-log-presenter.php`
+  - `tests/test-status-presenter.php`
   - the latest focused test file for the seam being covered
 
 ## Handoff Note
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
 - Current local continuation branch after the latest merge:
-  - `feature/resume-admin-presentation-coverage`
+  - `main`
 
 
 
