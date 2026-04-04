@@ -13,39 +13,14 @@ $log_filters         = isset( $view_data['log_filters'] ) && is_array( $view_dat
 $operational_events  = isset( $view_data['operational_events'] ) && is_array( $view_data['operational_events'] ) ? $view_data['operational_events'] : array();
 $run_summaries       = isset( $view_data['run_summaries'] ) && is_array( $view_data['run_summaries'] ) ? $view_data['run_summaries'] : array();
 $run_journal         = isset( $view_data['run_journal'] ) && is_array( $view_data['run_journal'] ) ? $view_data['run_journal'] : array();
+$event_log_ui        = isset( $view_data['event_log_ui'] ) && is_array( $view_data['event_log_ui'] ) ? $view_data['event_log_ui'] : array();
 $pagination          = isset( $view_data['pagination'] ) && is_array( $view_data['pagination'] ) ? $view_data['pagination'] : array();
 $current_page        = isset( $pagination['current_page'] ) ? (int) $pagination['current_page'] : 1;
 $total_pages         = isset( $pagination['total_pages'] ) ? (int) $pagination['total_pages'] : 1;
-$base_args           = array(
-	'page'        => 'zignites-sentinel-event-logs',
-	'severity'    => isset( $log_filters['severity'] ) ? $log_filters['severity'] : '',
-	'source'      => isset( $log_filters['source'] ) ? $log_filters['source'] : '',
-	'run_id'      => isset( $log_filters['run_id'] ) ? $log_filters['run_id'] : '',
-	'snapshot_id' => isset( $log_filters['snapshot_id'] ) ? $log_filters['snapshot_id'] : 0,
-	'log_search'  => isset( $log_filters['search'] ) ? $log_filters['search'] : '',
-);
-$active_filter_count = 0;
-
-foreach ( array( 'severity', 'source', 'run_id', 'snapshot_id', 'search' ) as $filter_key ) {
-	if ( ! empty( $log_filters[ $filter_key ] ) ) {
-		++$active_filter_count;
-	}
-}
-
-$severity_counts = array(
-	'info'     => 0,
-	'warning'  => 0,
-	'error'    => 0,
-	'critical' => 0,
-);
-
-foreach ( $recent_logs as $log_row ) {
-	$severity = isset( $log_row['severity'] ) ? (string) $log_row['severity'] : 'info';
-
-	if ( isset( $severity_counts[ $severity ] ) ) {
-		++$severity_counts[ $severity ];
-	}
-}
+$base_args           = isset( $event_log_ui['base_args'] ) && is_array( $event_log_ui['base_args'] ) ? $event_log_ui['base_args'] : array();
+$active_filter_count = isset( $event_log_ui['active_filter_count'] ) ? (int) $event_log_ui['active_filter_count'] : 0;
+$severity_counts     = isset( $event_log_ui['severity_counts'] ) && is_array( $event_log_ui['severity_counts'] ) ? $event_log_ui['severity_counts'] : array();
+$summary_tiles       = isset( $event_log_ui['summary_tiles'] ) && is_array( $event_log_ui['summary_tiles'] ) ? $event_log_ui['summary_tiles'] : array();
 ?>
 <div class="wrap znts-admin-page">
 	<h1><?php echo esc_html__( 'Event Logs', 'zignites-sentinel' ); ?></h1>
@@ -57,22 +32,12 @@ foreach ( $recent_logs as $log_row ) {
 			<h2 class="znts-hero-title"><?php echo esc_html__( 'Filter, inspect, and export operational evidence.', 'zignites-sentinel' ); ?></h2>
 			<p class="znts-hero-subtitle"><?php echo esc_html__( 'Use severity, source, run, snapshot, and text filters to narrow the event stream, then jump into run journals or single-event detail.', 'zignites-sentinel' ); ?></p>
 			<div class="znts-investigation-grid">
-				<div class="znts-investigation-tile">
-					<span class="znts-stat-label"><?php echo esc_html__( 'Matching Events', 'zignites-sentinel' ); ?></span>
-					<strong><?php echo esc_html( isset( $pagination['total_logs'] ) ? (string) $pagination['total_logs'] : '0' ); ?></strong>
-				</div>
-				<div class="znts-investigation-tile">
-					<span class="znts-stat-label"><?php echo esc_html__( 'Active Filters', 'zignites-sentinel' ); ?></span>
-					<strong><?php echo esc_html( (string) $active_filter_count ); ?></strong>
-				</div>
-				<div class="znts-investigation-tile">
-					<span class="znts-stat-label"><?php echo esc_html__( 'Run Summaries', 'zignites-sentinel' ); ?></span>
-					<strong><?php echo esc_html( (string) count( $run_summaries ) ); ?></strong>
-				</div>
-				<div class="znts-investigation-tile">
-					<span class="znts-stat-label"><?php echo esc_html__( 'Operational Events', 'zignites-sentinel' ); ?></span>
-					<strong><?php echo esc_html( (string) count( $operational_events ) ); ?></strong>
-				</div>
+				<?php foreach ( $summary_tiles as $tile ) : ?>
+					<div class="znts-investigation-tile">
+						<span class="znts-stat-label"><?php echo esc_html( isset( $tile['label'] ) ? $tile['label'] : '' ); ?></span>
+						<strong><?php echo esc_html( isset( $tile['value'] ) ? $tile['value'] : '0' ); ?></strong>
+					</div>
+				<?php endforeach; ?>
 			</div>
 			<div class="znts-badge-row">
 				<?php foreach ( $severity_counts as $severity => $count ) : ?>
@@ -276,7 +241,7 @@ foreach ( $recent_logs as $log_row ) {
 										<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-update-readiness', 'snapshot_id' => (int) $summary['snapshot_id'] ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( (string) $summary['snapshot_id'] ); ?></a>
 									<?php endif; ?>
 								</td>
-								<td><span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === ( isset( $summary['status_badge'] ) ? $summary['status_badge'] : '' ) || 'blocked' === ( isset( $summary['status_badge'] ) ? $summary['status_badge'] : '' ) ? 'critical' : ( 'partial' === ( isset( $summary['status_badge'] ) ? $summary['status_badge'] : '' ) || 'warning' === ( isset( $summary['status_badge'] ) ? $summary['status_badge'] : '' ) ? 'warning' : 'info' ) ); ?>"><?php echo esc_html( ucfirst( isset( $summary['status_badge'] ) ? $summary['status_badge'] : '' ) ); ?></span></td>
+								<td><span class="znts-pill znts-pill-<?php echo esc_attr( isset( $summary['status_pill'] ) ? $summary['status_pill'] : 'info' ); ?>"><?php echo esc_html( isset( $summary['status_label'] ) ? $summary['status_label'] : '' ); ?></span></td>
 								<td><?php echo esc_html( isset( $summary['completed_item_count'] ) ? (string) $summary['completed_item_count'] : '0' ); ?></td>
 								<td><?php echo esc_html( isset( $summary['entry_count'] ) ? (string) $summary['entry_count'] : '0' ); ?></td>
 								<td><?php echo esc_html( isset( $summary['latest_timestamp'] ) ? $summary['latest_timestamp'] : '' ); ?></td>
@@ -313,7 +278,7 @@ foreach ( $recent_logs as $log_row ) {
 								<td><?php echo esc_html( isset( $entry['scope'] ) ? $entry['scope'] : '' ); ?></td>
 								<td><?php echo esc_html( isset( $entry['label'] ) ? $entry['label'] : '' ); ?></td>
 								<td><?php echo esc_html( isset( $entry['phase'] ) ? $entry['phase'] : '' ); ?></td>
-								<td><span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === ( isset( $entry['status'] ) ? $entry['status'] : '' ) ? 'critical' : ( isset( $entry['status'] ) ? $entry['status'] : 'info' ) ); ?>"><?php echo esc_html( ucfirst( isset( $entry['status'] ) ? $entry['status'] : '' ) ); ?></span></td>
+								<td><span class="znts-pill znts-pill-<?php echo esc_attr( isset( $entry['status_pill'] ) ? $entry['status_pill'] : 'info' ); ?>"><?php echo esc_html( isset( $entry['status_label'] ) ? $entry['status_label'] : '' ); ?></span></td>
 								<td><?php echo esc_html( isset( $entry['message'] ) ? $entry['message'] : '' ); ?></td>
 							</tr>
 						<?php endforeach; ?>

@@ -209,6 +209,13 @@ class Admin {
 	protected $snapshot_status_resolver;
 
 	/**
+	 * Event Logs presenter.
+	 *
+	 * @var EventLogPresenter
+	 */
+	protected $event_log_presenter;
+
+	/**
 	 * Settings portability helper.
 	 *
 	 * @var SettingsPortability
@@ -298,6 +305,7 @@ class Admin {
 		$this->settings_portability     = new SettingsPortability();
 		$this->audit_report_verifier    = new AuditReportVerifier();
 		$this->restore_operator_checklist_evaluator = new RestoreOperatorChecklistEvaluator();
+		$this->event_log_presenter      = new EventLogPresenter();
 		$this->snapshot_status_resolver = new SnapshotStatusResolver(
 			$logs,
 			$restore_checkpoint_store,
@@ -574,15 +582,33 @@ class Admin {
 		$log_filters['paged']    = $current_page;
 		$log_filters['per_page'] = $per_page;
 
-		$log_detail = $this->get_log_detail();
+		$log_detail         = $this->get_log_detail();
+		$recent_logs        = $this->logs->get_paginated( $log_filters );
+		$operational_events = $this->get_operational_events( $log_filters );
+		$run_summaries      = $this->get_run_summaries( $log_filters );
+		$run_journal        = $this->get_run_journal( $log_filters );
+		$event_log_ui       = $this->event_log_presenter->build_view_payload(
+			$recent_logs,
+			$log_filters,
+			$run_summaries,
+			$operational_events,
+			$run_journal,
+			array(
+				'current_page' => $current_page,
+				'per_page'     => $per_page,
+				'total_logs'   => $total_logs,
+				'total_pages'  => $total_pages,
+			)
+		);
 
 		$view_data = array(
-			'recent_logs' => $this->logs->get_paginated( $log_filters ),
+			'recent_logs' => $recent_logs,
 			'log_detail'  => $log_detail,
 			'log_filters' => $log_filters,
-			'operational_events' => $this->get_operational_events( $log_filters ),
-			'run_summaries' => $this->get_run_summaries( $log_filters ),
-			'run_journal' => $this->get_run_journal( $log_filters ),
+			'operational_events' => $operational_events,
+			'run_summaries' => $event_log_ui['run_summaries'],
+			'run_journal' => $event_log_ui['run_journal'],
+			'event_log_ui' => $event_log_ui,
 			'pagination'  => array(
 				'current_page' => $current_page,
 				'per_page'     => $per_page,
