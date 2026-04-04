@@ -154,6 +154,8 @@
   - payload hash
   - site signature
 - Audit report verification exists on-screen by pasting JSON back in
+- Audit integrity and verification logic is now extracted into a dedicated helper:
+  - `includes/admin/class-audit-report-verifier.php`
 
 ### 12. Event Logs and Activity Views
 - Event Logs screen supports:
@@ -168,6 +170,10 @@
 - Run summaries exist
 - Snapshot activity timeline exists on Update Readiness
 - Dashboard now deep-links into snapshot-scoped Event Logs
+- Event Logs export/filter path now has focused local regression coverage for:
+  - filter normalization
+  - shared WHERE-clause generation
+  - CSV row formatting
 
 ### 13. Dashboard Operator UX
 - Restore Readiness summary for latest snapshot
@@ -208,6 +214,27 @@
   - completion counts
   - phase distribution
   - backup-root context for rollback
+
+### 15. Local Regression Harness
+- Local PHP test runner exists at:
+  - `tests/run.php`
+- Current focused coverage now includes:
+  - snapshot status resolution
+  - snapshot filters and site-status derivation
+  - restore execution checkpoint storage
+  - rollback checkpoint storage
+  - mixed journal-plus-checkpoint resume state
+  - settings export/import sanitization
+  - audit report integrity and verification
+  - restore operator checklist evaluation
+  - Event Logs export filter/query behavior
+  - Event Logs CSV row formatting
+  - snapshot summary composition and Markdown export
+  - restore impact summary composition
+- Test bootstrap now includes minimal WordPress stubs required by read-only admin/reporting logic:
+  - `wp_salt()`
+  - `wp_upload_dir()`
+  - `trailingslashit()`
 
 ## Important Safety Characteristics
 - Most destructive operations are guarded by nonce + capability + explicit operator confirmation
@@ -255,6 +282,9 @@
 - `zignites-sentinel.php`
 - `includes/class-plugin.php`
 - `includes/admin/class-admin.php`
+- `includes/admin/class-audit-report-verifier.php`
+- `includes/admin/class-restore-operator-checklist-evaluator.php`
+- `includes/admin/class-settings-portability.php`
 - `includes/admin/views/dashboard.php`
 - `includes/admin/views/update-readiness.php`
 - `includes/admin/views/event-logs.php`
@@ -273,48 +303,45 @@
 - `includes/snapshots/class-restore-health-verifier.php`
 - `includes/snapshots/class-restore-journal-recorder.php`
 - `includes/snapshots/class-restore-checkpoint-store.php`
+- `tests/bootstrap.php`
+- `tests/run.php`
 
 ## What I Would Do Next
 
 ### Immediate Next Steps
-1. Add snapshot status filters in Update Readiness
-- Filter snapshots by operational state, not just label
-- Examples:
-  - has fresh stage checkpoint
-  - has fresh plan checkpoint
-  - has baseline
-  - has recent restore activity
-- Reason: once the snapshot list grows, label-only filtering is not enough
+1. Add dashboard site-status coverage
+- Current branch target: `feature/dashboard-status-test-coverage`
+- Cover:
+  - site-status card derivation
+  - recommended action selection
+  - latest-snapshot summary payload composition
+- Reason: dashboard is now the main operator control surface and should be protected by tests too
 
-2. Add per-snapshot readiness badges in the snapshot list
-- Show at-a-glance markers for:
-  - baseline exists
-  - stage fresh
-  - plan fresh
-  - live restore offerable
-- Reason: reduce clicks and operator ambiguity
+2. Extend browser-level manual smoke checks
+- Validate current admin screens in wp-admin after the recent redesign and reporting work:
+  - Dashboard
+  - Update Readiness
+  - Event Logs
+- Reason: local PHP tests now cover logic well, but visual/admin interaction coverage is still manual only
 
 ### Safety-Focused Next Steps
-3. Add restore execution item checkpoints beyond current phase reuse
-- Persist finer-grained file/item completion state
-- Reason: improve resume reliability for large restores
+3. Expand resume-path verification around real admin state presentation
+- Focus on:
+  - execution checkpoint summaries
+  - rollback checkpoint summaries
+  - run-card secondary messaging
+- Reason: restore safety is now as much about operator interpretation as raw checkpoint persistence
 
 ### Product Maturity Next Steps
-4. Add export/import of configuration and non-destructive preferences
-- Keep restore execution state out of config export
-- Reason: operational portability
+4. Add broader reporting/test coverage for dashboard and health-summary presentation
+- Likely seams:
+  - dashboard summary payload
+  - health strip composition
+  - site-status recommendation edge cases
 
-5. Add snapshot summary print/export view
-- Reason: agency/client handoff use case
-
-6. Add automated tests
-- Highest-value targets:
-  - checkpoint freshness logic
-  - audit report verification
-  - snapshot filtering
-  - restore gate computation
-  - journal resume logic
-- Reason: the feature surface is now large enough that regression risk is real
+5. Consider a compact printable operator handoff report later
+- Only after the current reporting surfaces are better covered by tests
+- Reason: operator/client handoff is already improving, but another export surface should not outpace regression coverage
 
 ## What I Would Not Do Next
 - I would not expand core restore next without stronger transactional guarantees
@@ -329,10 +356,16 @@
   - health baseline/audit flow
   - dashboard summary data
   - Update Readiness view state
+- For current test work, also start from:
+  - `tests/run.php`
+  - `tests/bootstrap.php`
+  - the latest focused test file for the seam being covered
 
 ## Handoff Note
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
+- Current local continuation branch after the latest merge:
+  - `feature/dashboard-status-test-coverage`
 
 
 

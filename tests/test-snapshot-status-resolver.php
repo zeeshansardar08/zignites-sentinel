@@ -369,3 +369,63 @@ function znts_test_stale_checkpoint_state_respects_age_limit() {
 
 	znts_assert_same( 1, count( $filtered ), 'Expired checkpoints should match the checkpoint-stale filter.' );
 }
+
+function znts_test_site_status_is_stable_when_latest_snapshot_is_ready() {
+	$GLOBALS['znts_test_options'] = array(
+		ZNTS_OPTION_SETTINGS => array(
+			'restore_checkpoint_max_age_hours' => 24,
+		),
+		ZNTS_OPTION_LAST_SNAPSHOT_HEALTH_BASELINE => array(
+			'snapshot_id'  => 61,
+			'generated_at' => gmdate( 'Y-m-d H:i:s', time() - 300 ),
+			'status'       => 'healthy',
+		),
+	);
+
+	$fixture = znts_build_resolver_fixture();
+
+	$fixture['checkpoints']->stage[61] = array(
+		'snapshot_id'  => 61,
+		'generated_at' => gmdate( 'Y-m-d H:i:s', time() - 300 ),
+		'status'       => 'ready',
+	);
+	$fixture['checkpoints']->plan[61] = array(
+		'snapshot_id'  => 61,
+		'generated_at' => gmdate( 'Y-m-d H:i:s', time() - 300 ),
+		'status'       => 'ready',
+	);
+	$fixture['artifacts']->artifacts_by_snapshot[61] = array(
+		array(
+			'snapshot_id'   => 61,
+			'artifact_type' => 'package',
+		),
+	);
+
+	$snapshots = array(
+		array(
+			'id'    => 61,
+			'label' => 'Stable snapshot',
+		),
+	);
+	$index     = $fixture['resolver']->build_snapshot_status_index( $snapshots );
+	$site_card = $fixture['resolver']->build_site_status_card(
+		array(
+			'details' => array(
+				'open_conflicts' => array(
+					'warning'  => 0,
+					'error'    => 0,
+					'critical' => 0,
+				),
+			),
+		),
+		$snapshots,
+		$index
+	);
+
+	znts_assert_same( 'stable', $site_card['status'], 'A fully ready latest snapshot with no conflicts should be stable.' );
+	znts_assert_same( 'Stable', $site_card['label'], 'Stable site status should expose the Stable label.' );
+	znts_assert_true(
+		false !== strpos( $site_card['recommended_action'], 'No immediate action needed' ),
+		'Stable site status should recommend no immediate action.'
+	);
+}

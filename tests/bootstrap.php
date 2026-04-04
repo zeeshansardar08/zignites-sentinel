@@ -114,6 +114,40 @@ if ( ! function_exists( 'trailingslashit' ) ) {
 	}
 }
 
+if ( ! function_exists( 'admin_url' ) ) {
+	function admin_url( $path = '' ) {
+		$path = ltrim( (string) $path, '/' );
+
+		return 'http://example.test/wp-admin/' . $path;
+	}
+}
+
+if ( ! function_exists( 'add_query_arg' ) ) {
+	function add_query_arg( $args, $url = '' ) {
+		$url   = (string) $url;
+		$args  = is_array( $args ) ? $args : array();
+		$parts = parse_url( $url );
+		$query = array();
+
+		if ( ! empty( $parts['query'] ) ) {
+			parse_str( $parts['query'], $query );
+		}
+
+		foreach ( $args as $key => $value ) {
+			$query[ $key ] = $value;
+		}
+
+		$scheme   = isset( $parts['scheme'] ) ? $parts['scheme'] . '://' : '';
+		$host     = isset( $parts['host'] ) ? $parts['host'] : '';
+		$port     = isset( $parts['port'] ) ? ':' . $parts['port'] : '';
+		$path     = isset( $parts['path'] ) ? $parts['path'] : '';
+		$fragment = isset( $parts['fragment'] ) ? '#' . $parts['fragment'] : '';
+		$query    = http_build_query( $query );
+
+		return $scheme . $host . $port . $path . ( '' !== $query ? '?' . $query : '' ) . $fragment;
+	}
+}
+
 if ( ! class_exists( 'Zignites\\Sentinel\\Logging\\Logger' ) ) {
 	eval(
 		'namespace Zignites\\Sentinel\\Logging; class Logger { public function log() { return true; } }'
