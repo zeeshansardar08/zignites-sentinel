@@ -231,6 +231,8 @@
   - Event Logs CSV row formatting
   - snapshot summary composition and Markdown export
   - restore impact summary composition
+  - dashboard site-status and summary payload behavior
+  - health comparison rows and dashboard health-strip behavior
 - Test bootstrap now includes minimal WordPress stubs required by read-only admin/reporting logic:
   - `wp_salt()`
   - `wp_upload_dir()`
@@ -309,20 +311,18 @@
 ## What I Would Do Next
 
 ### Immediate Next Steps
-1. Add dashboard site-status coverage
-- Current branch target: `feature/dashboard-status-test-coverage`
-- Cover:
-  - site-status card derivation
-  - recommended action selection
-  - latest-snapshot summary payload composition
-- Reason: dashboard is now the main operator control surface and should be protected by tests too
-
-2. Extend browser-level manual smoke checks
+1. Extend browser-level manual smoke checks
 - Validate current admin screens in wp-admin after the recent redesign and reporting work:
   - Dashboard
   - Update Readiness
   - Event Logs
-- Reason: local PHP tests now cover logic well, but visual/admin interaction coverage is still manual only
+- Reason: local PHP tests now cover the read-only operator seams well, but visual/admin interaction coverage is still manual only
+
+2. Add focused health-comparison presentation edge coverage only if new formatting logic is introduced
+- Likely seams:
+  - dashboard health strip messaging changes
+  - health comparison table wording changes
+- Reason: the current comparison/data seam is now covered at the unit-style level
 
 ### Safety-Focused Next Steps
 3. Expand resume-path verification around real admin state presentation
@@ -333,11 +333,11 @@
 - Reason: restore safety is now as much about operator interpretation as raw checkpoint persistence
 
 ### Product Maturity Next Steps
-4. Add broader reporting/test coverage for dashboard and health-summary presentation
+4. Add broader reporting/test coverage for any newly extracted presentation helper
 - Likely seams:
-  - dashboard summary payload
-  - health strip composition
-  - site-status recommendation edge cases
+  - future dashboard formatter helpers
+  - future event-log presentation helpers
+  - future snapshot summary presenter helpers
 
 5. Consider a compact printable operator handoff report later
 - Only after the current reporting surfaces are better covered by tests
@@ -359,13 +359,14 @@
 - For current test work, also start from:
   - `tests/run.php`
   - `tests/bootstrap.php`
+  - `tests/test-health-comparison.php`
   - the latest focused test file for the seam being covered
 
 ## Handoff Note
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
 - Current local continuation branch after the latest merge:
-  - `feature/dashboard-status-test-coverage`
+  - `feature/health-comparison-test-coverage`
 
 
 
