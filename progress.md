@@ -233,11 +233,13 @@
   - restore impact summary composition
   - dashboard site-status and summary payload behavior
   - health comparison rows and dashboard health-strip behavior
+  - live admin smoke runner helper behavior
 - The current working branch is focused on expanding browser-level/manual smoke verification for the redesigned admin surfaces:
   - Dashboard
   - core dashboard widget
   - Update Readiness
   - Event Logs
+  - optional live authenticated smoke automation scaffolding
 - Test bootstrap now includes minimal WordPress stubs required by read-only admin/reporting logic:
   - `wp_salt()`
   - `wp_upload_dir()`
@@ -327,14 +329,19 @@
   - health comparison blocks
 - Reason: local PHP tests now cover the read-only operator seams well, but visual/admin interaction coverage is still manual only
 
-2. Add focused health-comparison presentation edge coverage only if new formatting logic is introduced
+2. Try the new live admin smoke helper against a real local wp-admin session
+- Script:
+  - `php tests/smoke-admin-live.php --base-url=... --cookie=...`
+- Reason: this is the lightest viable bridge from unit-style coverage into real authenticated admin-page validation without adding a browser dependency stack
+
+3. Add focused health-comparison presentation edge coverage only if new formatting logic is introduced
 - Likely seams:
   - dashboard health strip messaging changes
   - health comparison table wording changes
 - Reason: the current comparison/data seam is now covered at the unit-style level
 
 ### Safety-Focused Next Steps
-3. Expand resume-path verification around real admin state presentation
+4. Expand resume-path verification around real admin state presentation
 - Focus on:
   - execution checkpoint summaries
   - rollback checkpoint summaries
@@ -342,13 +349,13 @@
 - Reason: restore safety is now as much about operator interpretation as raw checkpoint persistence
 
 ### Product Maturity Next Steps
-4. Add broader reporting/test coverage for any newly extracted presentation helper
+5. Add broader reporting/test coverage for any newly extracted presentation helper
 - Likely seams:
   - future dashboard formatter helpers
   - future event-log presentation helpers
   - future snapshot summary presenter helpers
 
-5. Consider a compact printable operator handoff report later
+6. Consider a compact printable operator handoff report later
 - Only after the current reporting surfaces are better covered by tests
 - Reason: operator/client handoff is already improving, but another export surface should not outpace regression coverage
 
@@ -369,6 +376,8 @@
   - `tests/run.php`
   - `tests/bootstrap.php`
   - `tests/test-health-comparison.php`
+  - `tests/class-admin-smoke-runner.php`
+  - `tests/smoke-admin-live.php`
   - the latest focused test file for the seam being covered
 
 ## Handoff Note

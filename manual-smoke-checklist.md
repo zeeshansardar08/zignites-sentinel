@@ -254,6 +254,18 @@ php -l includes/admin/views/update-readiness.php
 php -l includes/admin/views/event-logs.php
 ```
 
+Optional live wp-admin smoke helper:
+
+```powershell
+php tests/smoke-admin-live.php --base-url=http://example.test/wp-admin/ --cookie="wordpress_logged_in_example=...; wordpress_sec_example=..."
+```
+
+Notes:
+
+- Use a real authenticated admin browser cookie header.
+- The script is read-only and only performs GET requests.
+- A sample config is available at `tests/admin-smoke-config.sample.php`.
+
 Known local issue:
 
 - PHP CLI may still emit the unrelated `pdo_snowflake` startup warning.
