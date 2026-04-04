@@ -216,6 +216,13 @@ class Admin {
 	protected $event_log_presenter;
 
 	/**
+	 * Shared status presenter.
+	 *
+	 * @var StatusPresenter
+	 */
+	protected $status_presenter;
+
+	/**
 	 * Settings portability helper.
 	 *
 	 * @var SettingsPortability
@@ -305,6 +312,7 @@ class Admin {
 		$this->settings_portability     = new SettingsPortability();
 		$this->audit_report_verifier    = new AuditReportVerifier();
 		$this->restore_operator_checklist_evaluator = new RestoreOperatorChecklistEvaluator();
+		$this->status_presenter         = new StatusPresenter();
 		$this->event_log_presenter      = new EventLogPresenter();
 		$this->snapshot_status_resolver = new SnapshotStatusResolver(
 			$logs,
@@ -2469,6 +2477,10 @@ class Admin {
 			return null;
 		}
 
+		$status_payload         = $this->status_presenter->present_health( isset( $check['status'] ) ? $check['status'] : '' );
+		$check['status_pill']  = isset( $status_payload['pill'] ) ? (string) $status_payload['pill'] : 'info';
+		$check['status_label'] = isset( $status_payload['label'] ) ? (string) $status_payload['label'] : '';
+
 		return $check;
 	}
 
@@ -3354,6 +3366,7 @@ class Admin {
 		$source_path = isset( $fingerprint['source_path'] ) ? (string) $fingerprint['source_path'] : '';
 		$timing      = $this->get_checkpoint_timing_summary( $checkpoint );
 		$secondary   = array();
+		$status      = $this->status_presenter->present_readiness( isset( $checkpoint['status'] ) ? $checkpoint['status'] : '' );
 
 		if ( '' !== $source_path ) {
 			$secondary[] = sprintf( __( 'Package: %s', 'zignites-sentinel' ), $source_path );
@@ -3366,7 +3379,8 @@ class Admin {
 		return array(
 			'title'      => $title,
 			'status'     => isset( $checkpoint['status'] ) ? (string) $checkpoint['status'] : '',
-			'badge'      => $this->map_readiness_badge( isset( $checkpoint['status'] ) ? $checkpoint['status'] : '' ),
+			'badge'      => isset( $status['pill'] ) ? (string) $status['pill'] : 'info',
+			'status_label' => isset( $status['label'] ) ? (string) $status['label'] : '',
 			'timestamp'  => isset( $checkpoint['generated_at'] ) ? (string) $checkpoint['generated_at'] : '',
 			'primary'    => (string) $summary_line,
 			'secondary'  => implode( ' ', $secondary ),
@@ -3438,7 +3452,7 @@ class Admin {
 		return sprintf(
 			/* translators: 1: checkpoint status, 2: timing label */
 			__( '%1$s. %2$s', 'zignites-sentinel' ),
-			isset( $checkpoint['status'] ) ? ucfirst( (string) $checkpoint['status'] ) : __( 'Stored', 'zignites-sentinel' ),
+			isset( $checkpoint['status'] ) ? $this->status_presenter->format_status_label( (string) $checkpoint['status'] ) : __( 'Stored', 'zignites-sentinel' ),
 			isset( $timing['label'] ) ? (string) $timing['label'] : ''
 		);
 	}
@@ -3515,6 +3529,7 @@ class Admin {
 	protected function build_run_card( $title, array $result, $journal_source, array $resume_context, array $execution_checkpoint = array(), $snapshot_id = 0 ) {
 		$run_id      = isset( $result['run_id'] ) ? (string) $result['run_id'] : '';
 		$summary     = isset( $result['summary'] ) && is_array( $result['summary'] ) ? $result['summary'] : array();
+		$status      = $this->status_presenter->present_run( isset( $result['status'] ) ? $result['status'] : '' );
 		$primary     = sprintf(
 			/* translators: 1: pass count, 2: warning count, 3: fail count */
 			__( '%1$d pass, %2$d warning, %3$d fail.', 'zignites-sentinel' ),
@@ -3548,7 +3563,8 @@ class Admin {
 		return array(
 			'title'      => $title,
 			'status'     => isset( $result['status'] ) ? (string) $result['status'] : '',
-			'badge'      => $this->map_run_badge( isset( $result['status'] ) ? $result['status'] : '' ),
+			'badge'      => isset( $status['pill'] ) ? (string) $status['pill'] : 'info',
+			'status_label' => isset( $status['label'] ) ? (string) $status['label'] : '',
 			'timestamp'  => isset( $result['generated_at'] ) ? (string) $result['generated_at'] : '',
 			'primary'    => $primary,
 			'secondary'  => $secondary,
@@ -3564,17 +3580,9 @@ class Admin {
 	 * @return string
 	 */
 	protected function map_readiness_badge( $status ) {
-		$status = sanitize_key( (string) $status );
+		$presented = $this->status_presenter->present_readiness( $status );
 
-		if ( 'blocked' === $status ) {
-			return 'critical';
-		}
-
-		if ( 'caution' === $status ) {
-			return 'warning';
-		}
-
-		return 'info';
+		return isset( $presented['pill'] ) ? (string) $presented['pill'] : 'info';
 	}
 
 	/**
@@ -3584,17 +3592,9 @@ class Admin {
 	 * @return string
 	 */
 	protected function map_run_badge( $status ) {
-		$status = sanitize_key( (string) $status );
+		$presented = $this->status_presenter->present_run( $status );
 
-		if ( 'blocked' === $status ) {
-			return 'critical';
-		}
-
-		if ( 'partial' === $status ) {
-			return 'warning';
-		}
-
-		return 'info';
+		return isset( $presented['pill'] ) ? (string) $presented['pill'] : 'info';
 	}
 
 	/**
@@ -3956,10 +3956,13 @@ class Admin {
 	protected function build_health_snapshot_row( $label, array $health, array $baseline = array() ) {
 		$summary          = isset( $health['summary'] ) && is_array( $health['summary'] ) ? $health['summary'] : array();
 		$baseline_summary = isset( $baseline['summary'] ) && is_array( $baseline['summary'] ) ? $baseline['summary'] : array();
+		$status_payload   = $this->status_presenter->present_health( isset( $health['status'] ) ? $health['status'] : '' );
 
 		return array(
 			'label'        => $label,
 			'status'       => isset( $health['status'] ) ? (string) $health['status'] : '',
+			'status_pill'  => isset( $status_payload['pill'] ) ? (string) $status_payload['pill'] : 'info',
+			'status_label' => isset( $status_payload['label'] ) ? (string) $status_payload['label'] : '',
 			'generated_at' => isset( $health['generated_at'] ) ? (string) $health['generated_at'] : '',
 			'summary'      => array(
 				'pass'    => isset( $summary['pass'] ) ? (int) $summary['pass'] : 0,

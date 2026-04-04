@@ -52,6 +52,7 @@ class ZNTS_Testable_Resume_Admin_Presentation extends Admin {
 	public function __construct() {
 		$this->restore_journal_recorder = new ZNTS_Fake_Resume_Admin_Journal_Recorder();
 		$this->restore_checkpoint_store = new ZNTS_Fake_Resume_Admin_Checkpoint_Store();
+		$this->status_presenter         = new \Zignites\Sentinel\Admin\StatusPresenter();
 	}
 
 	public function set_resume_context( $source, $snapshot_id, array $context ) {
@@ -281,6 +282,7 @@ function znts_test_restore_run_card_secondary_prefers_execution_checkpoint_reuse
 
 	znts_assert_same( 'Latest Restore Run', $card['title'], 'Run cards should include the latest restore run after the stage and plan checkpoint cards.' );
 	znts_assert_same( 'warning', $card['badge'], 'Partial restore runs should map to the warning badge.' );
+	znts_assert_same( 'Partial', $card['status_label'], 'Run cards should expose a formatted status label.' );
 	znts_assert_same( '3 pass, 1 warning, 1 fail.', $card['primary'], 'Restore run cards should summarize pass, warning, and fail counts.' );
 	znts_assert_same( 'Stage reuse ready. Health will rerun.', $card['secondary'], 'Execution checkpoint reuse messaging should override generic resume and health secondary text.' );
 	znts_assert_true( false !== strpos( $card['link_url'], 'run_id=run-exec-9' ), 'Restore run cards should link to the run journal.' );

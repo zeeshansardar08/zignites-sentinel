@@ -20,6 +20,7 @@ class ZNTS_Testable_Health_Comparison_Admin extends Admin {
 
 	public function __construct() {
 		$this->snapshots = new ZNTS_Fake_Health_Comparison_Snapshot_Repository();
+		$this->status_presenter = new \Zignites\Sentinel\Admin\StatusPresenter();
 	}
 
 	public function build_health_delta( array $summary, array $baseline_summary ) {
@@ -133,6 +134,8 @@ function znts_test_health_snapshot_row_normalizes_summary_and_includes_delta_onl
 	);
 
 	znts_assert_same( 'degraded', $row_with_baseline['status'], 'Health row should preserve the provided health status.' );
+	znts_assert_same( 'warning', $row_with_baseline['status_pill'], 'Health row should expose a warning pill for degraded health results.' );
+	znts_assert_same( 'Degraded', $row_with_baseline['status_label'], 'Health row should expose a formatted status label.' );
 	znts_assert_same( 6, $row_with_baseline['summary']['pass'], 'Health row should normalize pass counts to integers.' );
 	znts_assert_same( 2, $row_with_baseline['summary']['warning'], 'Health row should normalize warning counts to integers.' );
 	znts_assert_same( 1, $row_with_baseline['summary']['fail'], 'Health row should normalize fail counts to integers.' );

@@ -12,6 +12,22 @@ defined( 'ABSPATH' ) || exit;
 class EventLogPresenter {
 
 	/**
+	 * Shared status presenter.
+	 *
+	 * @var StatusPresenter
+	 */
+	protected $status_presenter;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param StatusPresenter|null $status_presenter Optional status presenter.
+	 */
+	public function __construct( StatusPresenter $status_presenter = null ) {
+		$this->status_presenter = $status_presenter ? $status_presenter : new StatusPresenter();
+	}
+
+	/**
 	 * Build prepared UI payload for the Event Logs screen.
 	 *
 	 * @param array $recent_logs        Current paginated log rows.
@@ -27,6 +43,8 @@ class EventLogPresenter {
 			'base_args'           => $this->build_base_args( $log_filters ),
 			'active_filter_count' => $this->count_active_filters( $log_filters ),
 			'severity_counts'     => $this->count_severity_rows( $recent_logs ),
+			'recent_logs'         => $this->decorate_log_rows( $recent_logs ),
+			'operational_events'  => $this->decorate_log_rows( $operational_events ),
 			'run_summaries'       => $this->decorate_run_summaries( $run_summaries ),
 			'run_journal'         => $this->decorate_run_journal( $run_journal ),
 			'summary_tiles'       => array(
@@ -121,9 +139,9 @@ class EventLogPresenter {
 
 		foreach ( $run_summaries as $summary ) {
 			$status = isset( $summary['status_badge'] ) ? (string) $summary['status_badge'] : ( isset( $summary['status'] ) ? (string) $summary['status'] : '' );
-
-			$summary['status_pill']  = $this->map_status_pill( $status );
-			$summary['status_label'] = $this->format_status_label( $status );
+			$presented              = $this->status_presenter->present_run( $status );
+			$summary['status_pill']  = isset( $presented['pill'] ) ? (string) $presented['pill'] : 'info';
+			$summary['status_label'] = isset( $presented['label'] ) ? (string) $presented['label'] : '';
 			$rows[]                  = $summary;
 		}
 
@@ -145,9 +163,9 @@ class EventLogPresenter {
 
 		foreach ( $run_journal['entries'] as $entry ) {
 			$status = isset( $entry['status'] ) ? (string) $entry['status'] : '';
-
-			$entry['status_pill']  = $this->map_status_pill( $status );
-			$entry['status_label'] = $this->format_status_label( $status );
+			$presented             = $this->status_presenter->present_run( $status );
+			$entry['status_pill']  = isset( $presented['pill'] ) ? (string) $presented['pill'] : 'info';
+			$entry['status_label'] = isset( $presented['label'] ) ? (string) $presented['label'] : '';
 			$entries[]             = $entry;
 		}
 
@@ -162,33 +180,16 @@ class EventLogPresenter {
 	 * @param string $status Status value.
 	 * @return string
 	 */
-	public function map_status_pill( $status ) {
-		$status = sanitize_key( (string) $status );
+	public function decorate_log_rows( array $rows ) {
+		$decorated = array();
 
-		if ( in_array( $status, array( 'fail', 'blocked', 'critical', 'error' ), true ) ) {
-			return 'critical';
+		foreach ( $rows as $row ) {
+			$presented             = $this->status_presenter->present_severity( isset( $row['severity'] ) ? $row['severity'] : '' );
+			$row['severity_pill']  = isset( $presented['pill'] ) ? (string) $presented['pill'] : 'info';
+			$row['severity_label'] = isset( $presented['label'] ) ? (string) $presented['label'] : '';
+			$decorated[]           = $row;
 		}
 
-		if ( in_array( $status, array( 'partial', 'warning', 'caution' ), true ) ) {
-			return 'warning';
-		}
-
-		return 'info';
-	}
-
-	/**
-	 * Format a readable status label.
-	 *
-	 * @param string $status Status value.
-	 * @return string
-	 */
-	public function format_status_label( $status ) {
-		$status = (string) $status;
-
-		if ( '' === $status ) {
-			return '';
-		}
-
-		return ucfirst( str_replace( '_', ' ', $status ) );
+		return $decorated;
 	}
 }

@@ -42,6 +42,8 @@ function znts_test_event_log_presenter_builds_summary_tiles_and_filter_state() {
 	znts_assert_same( 'zignites-sentinel-event-logs', $payload['base_args']['page'], 'Event log presenter should build stable base args for filtered links.' );
 	znts_assert_same( '27', $payload['summary_tiles'][0]['value'], 'Event log presenter should expose the total matching event count in the summary tiles.' );
 	znts_assert_same( '2', $payload['summary_tiles'][3]['value'], 'Event log presenter should expose the operational event count in the summary tiles.' );
+	znts_assert_same( 'Warning', $payload['recent_logs'][0]['severity_label'], 'Event log presenter should decorate recent log rows with readable severity labels.' );
+	znts_assert_same( 'warning', $payload['recent_logs'][0]['severity_pill'], 'Event log presenter should preserve warning severity pill variants for recent logs.' );
 }
 
 function znts_test_event_log_presenter_decorates_run_summary_and_journal_status_pills() {
