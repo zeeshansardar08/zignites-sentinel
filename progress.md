@@ -229,6 +229,7 @@
   - restore operator checklist evaluation
   - Event Logs export filter/query behavior
   - Event Logs CSV row formatting
+  - Event Logs presentation payloads
   - snapshot summary composition and Markdown export
   - restore impact summary composition
   - dashboard site-status and summary payload behavior
@@ -354,8 +355,8 @@
 5. Add broader reporting/test coverage for any newly extracted presentation helper
 - Likely seams:
   - future dashboard formatter helpers
-  - future event-log presentation helpers
   - future snapshot summary presenter helpers
+  - future cross-screen badge/summary presenters
 
 6. Consider a compact printable operator handoff report later
 - Only after the current reporting surfaces are better covered by tests

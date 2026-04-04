@@ -174,6 +174,7 @@ require_once __DIR__ . '/../includes/snapshots/class-restore-executor.php';
 require_once __DIR__ . '/../includes/snapshots/class-restore-rollback-manager.php';
 require_once __DIR__ . '/../includes/snapshots/class-snapshot-artifact-repository.php';
 require_once __DIR__ . '/../includes/admin/class-audit-report-verifier.php';
+require_once __DIR__ . '/../includes/admin/class-event-log-presenter.php';
 require_once __DIR__ . '/../includes/admin/class-restore-operator-checklist-evaluator.php';
 require_once __DIR__ . '/../includes/admin/class-settings-portability.php';
 require_once __DIR__ . '/../includes/admin/class-snapshot-status-resolver.php';
