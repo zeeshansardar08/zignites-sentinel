@@ -234,6 +234,7 @@
   - dashboard site-status and summary payload behavior
   - health comparison rows and dashboard health-strip behavior
   - live admin smoke runner helper behavior
+  - resume-path admin presentation payloads
 - The current working branch is focused on expanding browser-level/manual smoke verification for the redesigned admin surfaces:
   - Dashboard
   - core dashboard widget
@@ -347,6 +348,7 @@
   - rollback checkpoint summaries
   - run-card secondary messaging
 - Reason: restore safety is now as much about operator interpretation as raw checkpoint persistence
+- Current branch target: `feature/resume-admin-presentation-coverage`
 
 ### Product Maturity Next Steps
 5. Add broader reporting/test coverage for any newly extracted presentation helper
@@ -378,13 +380,14 @@
   - `tests/test-health-comparison.php`
   - `tests/class-admin-smoke-runner.php`
   - `tests/smoke-admin-live.php`
+  - `tests/test-resume-admin-presentation.php`
   - the latest focused test file for the seam being covered
 
 ## Handoff Note
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
 - Current local continuation branch after the latest merge:
-  - `feature/admin-smoke-checklist-expansion`
+  - `feature/resume-admin-presentation-coverage`
 
 
 
