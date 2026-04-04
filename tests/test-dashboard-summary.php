@@ -49,6 +49,7 @@ class ZNTS_Testable_Dashboard_Admin extends Admin {
 		$this->snapshots                = new ZNTS_Fake_Dashboard_Snapshot_Repository();
 		$this->health_score             = new ZNTS_Fake_Dashboard_Health_Score();
 		$this->snapshot_status_resolver = new ZNTS_Fake_Dashboard_Status_Resolver();
+		$this->status_presenter         = new \Zignites\Sentinel\Admin\StatusPresenter();
 	}
 
 	public function build_dashboard_summary_payload( $limit = 5 ) {

@@ -10,7 +10,9 @@ use Zignites\Sentinel\Admin\Admin;
 class ZNTS_Testable_Restore_Impact_Admin extends Admin {
 	public $fixture = array();
 
-	public function __construct() {}
+	public function __construct() {
+		$this->status_presenter = new \Zignites\Sentinel\Admin\StatusPresenter();
+	}
 
 	public function build_impact_summary( array $snapshot ) {
 		return $this->get_restore_impact_summary( $snapshot );

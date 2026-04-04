@@ -236,6 +236,7 @@
   - health comparison rows and dashboard health-strip behavior
   - live admin smoke runner helper behavior
   - resume-path admin presentation payloads
+  - shared cross-screen status presentation
 - The current working branch is focused on expanding browser-level/manual smoke verification for the redesigned admin surfaces:
   - Dashboard
   - core dashboard widget
@@ -356,7 +357,6 @@
 - Likely seams:
   - future dashboard formatter helpers
   - future snapshot summary presenter helpers
-  - future cross-screen badge/summary presenters
 
 6. Consider a compact printable operator handoff report later
 - Only after the current reporting surfaces are better covered by tests

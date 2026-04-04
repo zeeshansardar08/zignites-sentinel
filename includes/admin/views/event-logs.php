@@ -14,6 +14,8 @@ $operational_events  = isset( $view_data['operational_events'] ) && is_array( $v
 $run_summaries       = isset( $view_data['run_summaries'] ) && is_array( $view_data['run_summaries'] ) ? $view_data['run_summaries'] : array();
 $run_journal         = isset( $view_data['run_journal'] ) && is_array( $view_data['run_journal'] ) ? $view_data['run_journal'] : array();
 $event_log_ui        = isset( $view_data['event_log_ui'] ) && is_array( $view_data['event_log_ui'] ) ? $view_data['event_log_ui'] : array();
+$recent_logs         = isset( $event_log_ui['recent_logs'] ) && is_array( $event_log_ui['recent_logs'] ) ? $event_log_ui['recent_logs'] : $recent_logs;
+$operational_events  = isset( $event_log_ui['operational_events'] ) && is_array( $event_log_ui['operational_events'] ) ? $event_log_ui['operational_events'] : $operational_events;
 $pagination          = isset( $view_data['pagination'] ) && is_array( $view_data['pagination'] ) ? $view_data['pagination'] : array();
 $current_page        = isset( $pagination['current_page'] ) ? (int) $pagination['current_page'] : 1;
 $total_pages         = isset( $pagination['total_pages'] ) ? (int) $pagination['total_pages'] : 1;
@@ -147,7 +149,7 @@ $summary_tiles       = isset( $event_log_ui['summary_tiles'] ) && is_array( $eve
 						<?php foreach ( $recent_logs as $log ) : ?>
 							<tr>
 								<td><a href="<?php echo esc_url( add_query_arg( array_merge( $base_args, array( 'paged' => $current_page, 'log_id' => (int) $log['id'] ) ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( $log['created_at'] ); ?></a></td>
-								<td><span class="znts-pill znts-pill-<?php echo esc_attr( $log['severity'] ); ?>"><?php echo esc_html( ucfirst( $log['severity'] ) ); ?></span></td>
+								<td><span class="znts-pill znts-pill-<?php echo esc_attr( isset( $log['severity_pill'] ) ? $log['severity_pill'] : 'info' ); ?>"><?php echo esc_html( isset( $log['severity_label'] ) ? $log['severity_label'] : '' ); ?></span></td>
 								<td><?php echo esc_html( $log['event_type'] ); ?></td>
 								<td><?php echo esc_html( $log['source'] ); ?></td>
 								<td><?php echo esc_html( $log['message'] ); ?></td>
@@ -200,7 +202,7 @@ $summary_tiles       = isset( $event_log_ui['summary_tiles'] ) && is_array( $eve
 						<?php foreach ( $operational_events as $event ) : ?>
 							<tr>
 								<td><a href="<?php echo esc_url( add_query_arg( array_merge( $base_args, array( 'log_id' => (int) $event['id'] ) ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( $event['created_at'] ); ?></a></td>
-								<td><span class="znts-pill znts-pill-<?php echo esc_attr( $event['severity'] ); ?>"><?php echo esc_html( ucfirst( $event['severity'] ) ); ?></span></td>
+								<td><span class="znts-pill znts-pill-<?php echo esc_attr( isset( $event['severity_pill'] ) ? $event['severity_pill'] : 'info' ); ?>"><?php echo esc_html( isset( $event['severity_label'] ) ? $event['severity_label'] : '' ); ?></span></td>
 								<td><?php echo esc_html( $event['source'] ); ?></td>
 								<td><?php echo esc_html( $event['event_type'] ); ?></td>
 								<td><?php echo esc_html( $event['message'] ); ?></td>

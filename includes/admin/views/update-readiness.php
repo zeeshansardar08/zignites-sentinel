@@ -124,7 +124,7 @@ $workspace_next_action     = ! empty( $operator_checklist['can_execute'] )
 						<section class="znts-status-card">
 							<div class="znts-readiness-row">
 								<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $card['badge'] ) ? $card['badge'] : 'info' ); ?>">
-									<?php echo esc_html( ucfirst( isset( $card['status'] ) ? (string) $card['status'] : '' ) ); ?>
+									<?php echo esc_html( isset( $card['status_label'] ) ? (string) $card['status_label'] : '' ); ?>
 								</span>
 								<span><?php echo esc_html( isset( $card['timestamp'] ) ? (string) $card['timestamp'] : '' ); ?></span>
 							</div>
@@ -341,8 +341,8 @@ $workspace_next_action     = ! empty( $operator_checklist['can_execute'] )
 					<p><?php echo esc_html__( 'No health baseline has been captured for this snapshot yet.', 'zignites-sentinel' ); ?></p>
 				<?php else : ?>
 					<div class="znts-readiness-row">
-						<span class="znts-pill znts-pill-<?php echo esc_attr( 'unhealthy' === $snapshot_health_baseline['status'] ? 'critical' : ( 'degraded' === $snapshot_health_baseline['status'] ? 'warning' : 'info' ) ); ?>">
-							<?php echo esc_html( ucfirst( $snapshot_health_baseline['status'] ) ); ?>
+						<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $snapshot_health_baseline['status_pill'] ) ? $snapshot_health_baseline['status_pill'] : ( 'unhealthy' === $snapshot_health_baseline['status'] ? 'critical' : ( 'degraded' === $snapshot_health_baseline['status'] ? 'warning' : 'info' ) ) ); ?>">
+							<?php echo esc_html( isset( $snapshot_health_baseline['status_label'] ) ? $snapshot_health_baseline['status_label'] : ucfirst( $snapshot_health_baseline['status'] ) ); ?>
 						</span>
 						<span><?php echo esc_html( $snapshot_health_baseline['generated_at'] ); ?></span>
 					</div>
@@ -366,8 +366,8 @@ $workspace_next_action     = ! empty( $operator_checklist['can_execute'] )
 								<tr>
 									<td><?php echo esc_html( isset( $health_row['label'] ) ? $health_row['label'] : '' ); ?></td>
 									<td>
-										<span class="znts-pill znts-pill-<?php echo esc_attr( 'unhealthy' === ( isset( $health_row['status'] ) ? $health_row['status'] : '' ) ? 'critical' : ( 'degraded' === ( isset( $health_row['status'] ) ? $health_row['status'] : '' ) ? 'warning' : 'info' ) ); ?>">
-											<?php echo esc_html( ucfirst( isset( $health_row['status'] ) ? $health_row['status'] : '' ) ); ?>
+										<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $health_row['status_pill'] ) ? $health_row['status_pill'] : 'info' ); ?>">
+											<?php echo esc_html( isset( $health_row['status_label'] ) ? $health_row['status_label'] : '' ); ?>
 										</span>
 									</td>
 									<td><?php echo esc_html( isset( $health_row['generated_at'] ) ? $health_row['generated_at'] : '' ); ?></td>

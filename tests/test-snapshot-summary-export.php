@@ -30,6 +30,7 @@ class ZNTS_Testable_Snapshot_Summary_Admin extends Admin {
 
 	public function __construct() {
 		$this->snapshot_status_resolver = new ZNTS_Fake_Snapshot_Summary_Resolver();
+		$this->status_presenter         = new \Zignites\Sentinel\Admin\StatusPresenter();
 	}
 
 	public function set_status_index( array $status_index ) {

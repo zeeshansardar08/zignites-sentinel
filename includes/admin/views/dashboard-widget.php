@@ -62,14 +62,14 @@ $health_rows          = ! empty( $restore_health_strip['rows'] ) && is_array( $r
 				<div class="znts-badge-row">
 					<?php foreach ( $health_rows as $row ) : ?>
 						<?php $status = isset( $row['status'] ) ? (string) $row['status'] : ''; ?>
-						<span class="znts-pill znts-pill-<?php echo esc_attr( 'unhealthy' === $status ? 'critical' : ( 'degraded' === $status ? 'warning' : 'info' ) ); ?>">
+						<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $row['status_pill'] ) ? $row['status_pill'] : ( 'unhealthy' === $status ? 'critical' : ( 'degraded' === $status ? 'warning' : 'info' ) ) ); ?>">
 							<?php
 							echo esc_html(
 								sprintf(
 									/* translators: 1: row label, 2: health status */
 									__( '%1$s: %2$s', 'zignites-sentinel' ),
 									isset( $row['label'] ) ? (string) $row['label'] : __( 'Health', 'zignites-sentinel' ),
-									ucfirst( $status )
+									isset( $row['status_label'] ) ? (string) $row['status_label'] : ucfirst( $status )
 								)
 							);
 							?>

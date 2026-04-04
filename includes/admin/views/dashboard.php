@@ -185,8 +185,8 @@ $latest_snapshot_state = ( ! empty( $latest_snapshot['id'] ) && isset( $snapshot
 						<?php foreach ( $restore_health_strip['rows'] as $row ) : ?>
 							<div class="znts-status-card">
 								<div class="znts-readiness-row">
-									<span class="znts-pill znts-pill-<?php echo esc_attr( 'unhealthy' === ( isset( $row['status'] ) ? $row['status'] : '' ) ? 'critical' : ( 'degraded' === ( isset( $row['status'] ) ? $row['status'] : '' ) ? 'warning' : 'info' ) ); ?>">
-										<?php echo esc_html( ucfirst( isset( $row['status'] ) ? $row['status'] : '' ) ); ?>
+									<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $row['status_pill'] ) ? $row['status_pill'] : 'info' ); ?>">
+										<?php echo esc_html( isset( $row['status_label'] ) ? $row['status_label'] : '' ); ?>
 									</span>
 								</div>
 								<h3><?php echo esc_html( isset( $row['label'] ) ? $row['label'] : '' ); ?></h3>

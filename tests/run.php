@@ -18,6 +18,7 @@ require_once __DIR__ . '/test-dashboard-summary.php';
 require_once __DIR__ . '/test-health-comparison.php';
 require_once __DIR__ . '/test-admin-smoke-runner.php';
 require_once __DIR__ . '/test-resume-admin-presentation.php';
+require_once __DIR__ . '/test-status-presenter.php';
 
 $tests = array_filter(
 	get_defined_functions()['user'],
