@@ -233,6 +233,11 @@
   - restore impact summary composition
   - dashboard site-status and summary payload behavior
   - health comparison rows and dashboard health-strip behavior
+- The current working branch is focused on expanding browser-level/manual smoke verification for the redesigned admin surfaces:
+  - Dashboard
+  - core dashboard widget
+  - Update Readiness
+  - Event Logs
 - Test bootstrap now includes minimal WordPress stubs required by read-only admin/reporting logic:
   - `wp_salt()`
   - `wp_upload_dir()`
@@ -316,6 +321,10 @@
   - Dashboard
   - Update Readiness
   - Event Logs
+- Also validate the core WordPress dashboard widget and newer read-only summary surfaces:
+  - snapshot summary
+  - restore impact summary
+  - health comparison blocks
 - Reason: local PHP tests now cover the read-only operator seams well, but visual/admin interaction coverage is still manual only
 
 2. Add focused health-comparison presentation edge coverage only if new formatting logic is introduced
@@ -366,7 +375,7 @@
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
 - Current local continuation branch after the latest merge:
-  - `feature/health-comparison-test-coverage`
+  - `feature/admin-smoke-checklist-expansion`
 
 
 
