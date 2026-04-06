@@ -28,7 +28,7 @@ return array(
 		array(
 			'label'   => 'WordPress Dashboard Widget',
 			'path'    => 'index.php',
-			'markers' => array( 'Zignites Sentinel', 'Recommended action' ),
+			'markers' => array( 'Sentinel', 'Recommended action' ),
 		),
 	),
 );

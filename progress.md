@@ -242,6 +242,11 @@
   - Event Logs presenter extraction
   - cross-screen status presenter extraction
   - presenter-focused regression coverage
+- Live authenticated admin smoke validation has now been run successfully against a real wp-admin session for:
+  - Sentinel Dashboard
+  - Update Readiness
+  - Event Logs
+  - WordPress Dashboard widget
 - Test bootstrap now includes minimal WordPress stubs required by read-only admin/reporting logic:
   - `wp_salt()`
   - `wp_upload_dir()`
@@ -262,7 +267,7 @@
 - A failed live restore can still leave the system in a partial state, though backup + rollback + journaling reduce the blast radius
 - Core restore is not implemented
 - The package system is plugin/theme focused
-- No browser-level validation was run during recent development
+- Full browser automation still does not exist, but the live authenticated admin smoke helper has passed against a real local wp-admin session
 - Local CLI linting is clean, but PHP CLI emits an unrelated machine-level `pdo_snowflake` startup warning
 
 ## Storage and Persistence
@@ -333,26 +338,21 @@
   - snapshot summary
   - restore impact summary
   - health comparison blocks
-- Reason: local PHP tests now cover the read-only operator seams well, but visual/admin interaction coverage is still manual only
+- Reason: the smoke helper now passes against a real authenticated session, but broader page-by-page visual/manual validation is still useful
 
-2. Try the new live admin smoke helper against a real local wp-admin session
-- Script:
-  - `php tests/smoke-admin-live.php --base-url=... --cookie=...`
-- Reason: this is the lightest viable bridge from unit-style coverage into real authenticated admin-page validation without adding a browser dependency stack
-
-3. Only add more read-only presentation/reporting code after real admin validation
+2. Only add more read-only presentation/reporting code after manual admin validation is current
 - Likely candidates:
   - further dashboard formatter helpers
   - future snapshot summary presentation cleanup
-- Reason: the most meaningful remaining gap is real admin validation, not another obvious code seam
+- Reason: the biggest remaining validation gap is broader manual/admin verification depth, not another obvious code seam
 
 ### Product Maturity Next Steps
-4. Add broader reporting/test coverage for any newly extracted presentation helper
+3. Add broader reporting/test coverage for any newly extracted presentation helper
 - Likely seams:
   - future dashboard formatter helpers
   - future snapshot summary presenter helpers
 
-5. Consider a compact printable operator handoff report later
+4. Consider a compact printable operator handoff report later
 - Only after the current reporting surfaces are better covered by tests
 - Reason: operator/client handoff is already improving, but another export surface should not outpace regression coverage
 

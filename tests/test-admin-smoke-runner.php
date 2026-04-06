@@ -19,6 +19,15 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 		$runner->build_url( 'http://example.test/wp-admin/', 'admin.php?page=zignites-sentinel' ),
 		'Admin smoke runner should build request URLs relative to the normalized wp-admin base URL.'
 	);
+
+	$checks              = $runner->get_default_checks();
+	$widget_check        = $checks[3];
+	$widget_markers      = isset( $widget_check['markers'] ) && is_array( $widget_check['markers'] ) ? $widget_check['markers'] : array();
+	$contains_sentinel   = in_array( 'Sentinel', $widget_markers, true );
+	$contains_old_marker = in_array( 'Zignites Sentinel', $widget_markers, true );
+
+	znts_assert_true( $contains_sentinel, 'Admin smoke runner should expect the current dashboard widget heading marker.' );
+	znts_assert_true( ! $contains_old_marker, 'Admin smoke runner should not require the stale dashboard widget heading marker.' );
 }
 
 function znts_test_admin_smoke_runner_detects_login_fallback_and_missing_markers() {

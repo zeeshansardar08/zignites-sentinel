@@ -43,7 +43,7 @@ class ZNTS_Admin_Smoke_Runner {
 				'label'   => 'WordPress Dashboard Widget',
 				'path'    => 'index.php',
 				'markers' => array(
-					'Zignites Sentinel',
+					'Sentinel',
 					'Recommended action',
 				),
 			),
