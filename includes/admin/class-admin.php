@@ -1956,16 +1956,27 @@ class Admin {
 		}
 
 		$artifacts          = $this->get_snapshot_artifacts( $snapshot );
-		$activity           = array_slice( $this->get_snapshot_activity( $snapshot ), 0, 5 );
+		$artifacts          = is_array( $artifacts ) ? $artifacts : array();
+		$activity           = $this->get_snapshot_activity( $snapshot );
+		$activity           = is_array( $activity ) ? array_slice( $activity, 0, 5 ) : array();
 		$operator_checklist = $this->get_restore_operator_checklist( $snapshot );
+		$operator_checklist = is_array( $operator_checklist ) ? $operator_checklist : array();
 		$restore_check      = $this->get_last_restore_check( $snapshot );
+		$restore_check      = is_array( $restore_check ) ? $restore_check : array();
 		$restore_stage      = $this->get_last_restore_stage( $snapshot );
+		$restore_stage      = is_array( $restore_stage ) ? $restore_stage : array();
 		$restore_plan       = $this->get_last_restore_plan( $snapshot );
+		$restore_plan       = is_array( $restore_plan ) ? $restore_plan : array();
 		$last_execution     = $this->get_last_restore_execution( $snapshot );
+		$last_execution     = is_array( $last_execution ) ? $last_execution : array();
 		$last_rollback      = $this->get_last_restore_rollback( $snapshot );
+		$last_rollback      = is_array( $last_rollback ) ? $last_rollback : array();
 		$baseline           = $this->get_snapshot_health_baseline( $snapshot );
+		$baseline           = is_array( $baseline ) ? $baseline : array();
 		$stage_checkpoint   = $this->get_restore_stage_checkpoint( $snapshot );
+		$stage_checkpoint   = is_array( $stage_checkpoint ) ? $stage_checkpoint : array();
 		$plan_checkpoint    = $this->get_restore_plan_checkpoint( $snapshot );
+		$plan_checkpoint    = is_array( $plan_checkpoint ) ? $plan_checkpoint : array();
 		$status_index       = $this->snapshot_status_resolver->build_snapshot_status_index( array( $snapshot ) );
 		$snapshot_status    = isset( $status_index[ (int) $snapshot['id'] ] ) ? $status_index[ (int) $snapshot['id'] ] : array();
 		$plugin_count       = ! empty( $snapshot['active_plugins_decoded'] ) && is_array( $snapshot['active_plugins_decoded'] ) ? count( $snapshot['active_plugins_decoded'] ) : 0;
@@ -2590,14 +2601,22 @@ class Admin {
 			return array();
 		}
 
-		$artifacts       = $this->get_snapshot_artifacts( $snapshot );
-		$plan            = $this->get_last_restore_plan( $snapshot );
-		$baseline        = $this->get_snapshot_health_baseline( $snapshot );
-		$checklist       = $this->get_restore_operator_checklist( $snapshot, $artifacts );
-		$resume_context  = $this->get_restore_resume_context( $snapshot );
-		$execution       = $this->get_last_restore_execution( $snapshot );
+		$artifacts        = $this->get_snapshot_artifacts( $snapshot );
+		$artifacts        = is_array( $artifacts ) ? $artifacts : array();
+		$plan             = $this->get_last_restore_plan( $snapshot );
+		$plan             = is_array( $plan ) ? $plan : array();
+		$baseline         = $this->get_snapshot_health_baseline( $snapshot );
+		$baseline         = is_array( $baseline ) ? $baseline : array();
+		$checklist        = $this->get_restore_operator_checklist( $snapshot, $artifacts );
+		$checklist        = is_array( $checklist ) ? $checklist : array();
+		$resume_context   = $this->get_restore_resume_context( $snapshot );
+		$resume_context   = is_array( $resume_context ) ? $resume_context : array();
+		$execution        = $this->get_last_restore_execution( $snapshot );
+		$execution        = is_array( $execution ) ? $execution : array();
 		$stage_checkpoint = $this->get_restore_stage_checkpoint( $snapshot );
+		$stage_checkpoint = is_array( $stage_checkpoint ) ? $stage_checkpoint : array();
 		$plan_checkpoint  = $this->get_restore_plan_checkpoint( $snapshot );
+		$plan_checkpoint  = is_array( $plan_checkpoint ) ? $plan_checkpoint : array();
 		$summary         = isset( $plan['summary'] ) && is_array( $plan['summary'] ) ? $plan['summary'] : array();
 		$create_count    = isset( $summary['create'] ) ? (int) $summary['create'] : 0;
 		$replace_count   = isset( $summary['replace'] ) ? (int) $summary['replace'] : 0;
@@ -2618,7 +2637,7 @@ class Admin {
 			$message = __( 'This restore will overwrite live payloads. Review the replacement scope, backup behavior, and baseline before executing.', 'zignites-sentinel' );
 		}
 
-		$baseline_status = is_array( $baseline )
+		$baseline_status = ! empty( $baseline )
 			? sprintf(
 				/* translators: 1: health status, 2: timestamp */
 				__( '%1$s captured at %2$s', 'zignites-sentinel' ),

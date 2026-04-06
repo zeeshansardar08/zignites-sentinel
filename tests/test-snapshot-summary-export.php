@@ -54,31 +54,31 @@ class ZNTS_Testable_Snapshot_Summary_Admin extends Admin {
 	}
 
 	protected function get_restore_operator_checklist( $snapshot, $artifacts = null ) {
-		return isset( $this->fixture['operator_checklist'] ) ? $this->fixture['operator_checklist'] : array();
+		return array_key_exists( 'operator_checklist', $this->fixture ) ? $this->fixture['operator_checklist'] : array();
 	}
 
 	protected function get_last_restore_check( $snapshot ) {
-		return isset( $this->fixture['restore_check'] ) ? $this->fixture['restore_check'] : array();
+		return array_key_exists( 'restore_check', $this->fixture ) ? $this->fixture['restore_check'] : array();
 	}
 
 	protected function get_last_restore_stage( $snapshot ) {
-		return isset( $this->fixture['restore_stage'] ) ? $this->fixture['restore_stage'] : array();
+		return array_key_exists( 'restore_stage', $this->fixture ) ? $this->fixture['restore_stage'] : array();
 	}
 
 	protected function get_last_restore_plan( $snapshot ) {
-		return isset( $this->fixture['restore_plan'] ) ? $this->fixture['restore_plan'] : array();
+		return array_key_exists( 'restore_plan', $this->fixture ) ? $this->fixture['restore_plan'] : array();
 	}
 
 	protected function get_last_restore_execution( $snapshot ) {
-		return isset( $this->fixture['last_execution'] ) ? $this->fixture['last_execution'] : array();
+		return array_key_exists( 'last_execution', $this->fixture ) ? $this->fixture['last_execution'] : array();
 	}
 
 	protected function get_last_restore_rollback( $snapshot ) {
-		return isset( $this->fixture['last_rollback'] ) ? $this->fixture['last_rollback'] : array();
+		return array_key_exists( 'last_rollback', $this->fixture ) ? $this->fixture['last_rollback'] : array();
 	}
 
 	protected function get_snapshot_health_baseline( $snapshot ) {
-		return isset( $this->fixture['baseline'] ) ? $this->fixture['baseline'] : array();
+		return array_key_exists( 'baseline', $this->fixture ) ? $this->fixture['baseline'] : array();
 	}
 
 	protected function get_restore_stage_checkpoint( $snapshot ) {
@@ -233,4 +233,66 @@ function znts_test_snapshot_summary_markdown_renders_sections_and_empty_fallback
 	znts_assert_true( false !== strpos( $markdown, '## Recent Activity' ), 'Snapshot summary markdown should render the recent activity section.' );
 	znts_assert_true( false !== strpos( $markdown, 'No material risks are highlighted by the current snapshot summary.' ), 'Snapshot summary markdown should emit the empty-risk fallback when no risks are present.' );
 	znts_assert_true( false !== strpos( $markdown, 'No recent snapshot-scoped events were recorded.' ), 'Snapshot summary markdown should emit the empty-activity fallback when no activity is present.' );
+}
+
+function znts_test_snapshot_summary_handles_null_baseline_without_fatal_error() {
+	$admin = new ZNTS_Testable_Snapshot_Summary_Admin();
+	$admin->fixture = array(
+		'artifacts' => array(
+			array( 'artifact_type' => 'package' ),
+			array( 'artifact_type' => 'component' ),
+		),
+		'activity' => array(),
+		'operator_checklist' => array(
+			'can_execute' => false,
+		),
+		'restore_check' => null,
+		'restore_stage' => null,
+		'restore_plan' => null,
+		'last_execution' => null,
+		'last_rollback' => null,
+		'baseline' => null,
+		'stage_checkpoint' => array(),
+		'plan_checkpoint' => array(),
+	);
+	$admin->set_status_index(
+		array(
+			91 => array(
+				'restore_ready' => false,
+				'status_badges' => array(
+					array( 'badge' => 'warning', 'label' => 'Baseline missing' ),
+				),
+				'artifacts' => array(
+					'package_present' => true,
+				),
+				'stage' => array(
+					'key'   => 'missing',
+					'label' => 'Stage missing',
+				),
+				'plan' => array(
+					'key'   => 'missing',
+					'label' => 'Plan missing',
+				),
+			),
+		)
+	);
+
+	$snapshot = array(
+		'id'                     => 91,
+		'label'                  => 'Snapshot 91',
+		'created_at'             => '2025-01-04 08:00:00',
+		'theme_stylesheet'       => 'sentinel-theme',
+		'core_version'           => '6.7.1',
+		'php_version'            => '8.2.0',
+		'active_plugins_decoded' => array(),
+	);
+
+	$summary = $admin->build_summary( $snapshot );
+
+	znts_assert_same( 'Not captured', $summary['evidence'][0]['value'], 'Snapshot summary should show an uncaptured baseline when baseline data is null.' );
+	znts_assert_same( 'No baseline is currently stored for this snapshot.', $summary['evidence'][0]['note'], 'Snapshot summary should explain that no baseline is stored when the baseline payload is null.' );
+	znts_assert_same( 'Not evaluated', $summary['evidence'][1]['value'], 'Snapshot summary should show restore readiness as not evaluated when restore check data is null.' );
+	znts_assert_same( 'Run restore readiness when you need a current advisory check.', $summary['evidence'][1]['note'], 'Snapshot summary should show the default restore readiness note when restore check data is null.' );
+	znts_assert_true( in_array( 'No health baseline has been captured for this snapshot yet.', $summary['risks'], true ), 'Snapshot summary should flag a missing baseline when baseline data is null.' );
+	znts_assert_true( in_array( 'Capture a health baseline before any guarded restore work.', $summary['next_steps'], true ), 'Snapshot summary should recommend capturing a baseline when baseline data is null.' );
 }

@@ -19,11 +19,11 @@ class ZNTS_Testable_Restore_Impact_Admin extends Admin {
 	}
 
 	protected function get_snapshot_artifacts( $snapshot ) {
-		return isset( $this->fixture['artifacts'] ) ? $this->fixture['artifacts'] : array();
+		return array_key_exists( 'artifacts', $this->fixture ) ? $this->fixture['artifacts'] : array();
 	}
 
 	protected function get_last_restore_plan( $snapshot ) {
-		return isset( $this->fixture['restore_plan'] ) ? $this->fixture['restore_plan'] : array();
+		return array_key_exists( 'restore_plan', $this->fixture ) ? $this->fixture['restore_plan'] : array();
 	}
 
 	protected function get_snapshot_health_baseline( $snapshot ) {
@@ -31,23 +31,23 @@ class ZNTS_Testable_Restore_Impact_Admin extends Admin {
 	}
 
 	protected function get_restore_operator_checklist( $snapshot, $artifacts = null ) {
-		return isset( $this->fixture['operator_checklist'] ) ? $this->fixture['operator_checklist'] : array();
+		return array_key_exists( 'operator_checklist', $this->fixture ) ? $this->fixture['operator_checklist'] : array();
 	}
 
 	protected function get_restore_resume_context( $snapshot ) {
-		return isset( $this->fixture['resume_context'] ) ? $this->fixture['resume_context'] : array();
+		return array_key_exists( 'resume_context', $this->fixture ) ? $this->fixture['resume_context'] : array();
 	}
 
 	protected function get_last_restore_execution( $snapshot ) {
-		return isset( $this->fixture['last_execution'] ) ? $this->fixture['last_execution'] : array();
+		return array_key_exists( 'last_execution', $this->fixture ) ? $this->fixture['last_execution'] : array();
 	}
 
 	protected function get_restore_stage_checkpoint( $snapshot ) {
-		return isset( $this->fixture['stage_checkpoint'] ) ? $this->fixture['stage_checkpoint'] : array();
+		return array_key_exists( 'stage_checkpoint', $this->fixture ) ? $this->fixture['stage_checkpoint'] : array();
 	}
 
 	protected function get_restore_plan_checkpoint( $snapshot ) {
-		return isset( $this->fixture['plan_checkpoint'] ) ? $this->fixture['plan_checkpoint'] : array();
+		return array_key_exists( 'plan_checkpoint', $this->fixture ) ? $this->fixture['plan_checkpoint'] : array();
 	}
 
 	protected function get_checkpoint_timing_summary( array $checkpoint ) {
@@ -182,4 +182,29 @@ function znts_test_restore_impact_summary_reports_resume_backup_reuse() {
 	znts_assert_same( 'Resume state', $summary['rows'][7]['label'], 'Impact summary should append resume-state details when resume is available.' );
 	znts_assert_true( false !== strpos( $summary['rows'][7]['value'], '4 completed items already recorded across 9 journal entries' ), 'Impact summary should summarize resume progress.' );
 	znts_assert_same( array(), $summary['blockers'], 'Impact summary should omit blockers when checklist gates pass.' );
+}
+
+function znts_test_restore_impact_summary_handles_null_optional_state_without_fatal_error() {
+	$admin = new ZNTS_Testable_Restore_Impact_Admin();
+	$admin->fixture = array(
+		'artifacts' => null,
+		'restore_plan' => null,
+		'baseline' => null,
+		'operator_checklist' => null,
+		'resume_context' => null,
+		'last_execution' => null,
+		'stage_checkpoint' => null,
+		'plan_checkpoint' => null,
+	);
+
+	$summary = $admin->build_impact_summary( array( 'id' => 101 ) );
+
+	znts_assert_same( 'critical', $summary['status'], 'Impact summary should remain renderable and blocked when optional state is missing.' );
+	znts_assert_same( 'Restore blocked', $summary['title'], 'Impact summary should use the blocked title when checklist and plan state are absent.' );
+	znts_assert_same( '0 create, 0 replace, 0 unchanged', $summary['rows'][0]['value'], 'Impact summary should fall back to zero plan counts when restore plan data is null.' );
+	znts_assert_same( 'No baseline captured yet', $summary['rows'][3]['value'], 'Impact summary should show the missing-baseline fallback when baseline data is null.' );
+	znts_assert_true( false !== strpos( $summary['rows'][2]['value'], 'A new run-specific backup directory will be created' ), 'Impact summary should fall back to the new backup-directory message when execution data is null.' );
+	znts_assert_same( 'No staged validation checkpoint is available.', $summary['rows'][4]['value'], 'Impact summary should show the default stage-gate fallback when checkpoint data is null.' );
+	znts_assert_same( 'No restore plan checkpoint is available.', $summary['rows'][5]['value'], 'Impact summary should show the default plan-gate fallback when checkpoint data is null.' );
+	znts_assert_same( 'RESTORE SNAPSHOT 101', $summary['rows'][6]['value'], 'Impact summary should fall back to the default confirmation phrase when plan data is null.' );
 }
