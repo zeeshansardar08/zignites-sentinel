@@ -1,7 +1,7 @@
 # Zignites Sentinel Progress Audit
 
 ## Current State
-- Plugin version: `1.29.0`
+- Plugin version: `1.32.0`
 - Database version: `1.4.0`
 - Status: advanced MVP / controlled-restore product foundation
 - Current objective achieved: the plugin now covers snapshot capture, advisory readiness, staged validation, restore planning, guarded live restore, guarded rollback, health verification, audit reporting, checkpointing, resumability, and operator-facing admin workflows
@@ -187,6 +187,21 @@
   - recommended action
   - latest snapshot readiness badges
   - latest health summary
+- Premium admin UI refinement now applied across:
+  - Dashboard
+  - Update Readiness
+  - Event Logs
+  - with softer card hierarchy, calmer spacing, unified badge treatment, and denser technical sections grouped more cleanly
+- Progressive-disclosure pass now further reduces operator scan load by:
+  - making snapshot next-step and risk callouts dominant
+  - collapsing secondary health, audit, activity, and technical-detail sections behind native disclosure panels
+  - collapsing long activity and log messages into previews with opt-in expansion
+  - reducing dashboard pill and activity noise so status and next action stay visually dominant
+- Final UI polish now further strengthens operator confidence by:
+  - increasing contrast between dominant next-step/risk blocks and secondary evidence
+  - making risk and danger states feel more urgent through accent borders and stronger row emphasis
+  - renaming dense snapshot-detail sections to more human-readable labels
+  - slightly increasing breathing room and line-height in dense areas without changing behavior
 
 ### 14. Update Readiness Operator UX
 - Snapshot detail view
@@ -214,6 +229,7 @@
   - completion counts
   - phase distribution
   - backup-root context for rollback
+- Dense snapshot detail sections now use grouped disclosure panels to reduce scan fatigue without hiding technical data
 
 ### 15. Local Regression Harness
 - Local PHP test runner exists at:
@@ -330,7 +346,7 @@
 
 ### Immediate Next Steps
 1. Extend browser-level manual smoke checks
-- Validate current admin screens in wp-admin after the recent redesign and reporting work:
+- Validate current admin screens in wp-admin after the latest UI refinement work:
   - Dashboard
   - Update Readiness
   - Event Logs
@@ -338,7 +354,7 @@
   - snapshot summary
   - restore impact summary
   - health comparison blocks
-- Reason: the smoke helper now passes against a real authenticated session, but broader page-by-page visual/manual validation is still useful
+- Reason: the smoke helper now passes against a real authenticated session, but the latest premium UI refinement still needs a fresh page-by-page manual pass
 
 2. Only add more read-only presentation/reporting code after manual admin validation is current
 - Likely candidates:

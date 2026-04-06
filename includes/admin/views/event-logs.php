@@ -23,21 +23,31 @@ $base_args           = isset( $event_log_ui['base_args'] ) && is_array( $event_l
 $active_filter_count = isset( $event_log_ui['active_filter_count'] ) ? (int) $event_log_ui['active_filter_count'] : 0;
 $severity_counts     = isset( $event_log_ui['severity_counts'] ) && is_array( $event_log_ui['severity_counts'] ) ? $event_log_ui['severity_counts'] : array();
 $summary_tiles       = isset( $event_log_ui['summary_tiles'] ) && is_array( $event_log_ui['summary_tiles'] ) ? $event_log_ui['summary_tiles'] : array();
+$log_summary_tiles   = array_slice( $summary_tiles, 0, 4 );
+$log_flow_note       = $active_filter_count > 0
+	? __( 'Current filters are active. Scan the highlighted rows first, then expand individual messages only when you need more detail.', 'zignites-sentinel' )
+	: __( 'Start by narrowing the stream with filters, then scan highlighted rows and expand only the events you need to inspect.', 'zignites-sentinel' );
 ?>
 <div class="wrap znts-admin-page">
-	<h1><?php echo esc_html__( 'Event Logs', 'zignites-sentinel' ); ?></h1>
-	<p class="znts-page-intro"><?php echo esc_html__( 'Investigate Sentinel activity with filters, run history, and structured event context in one place.', 'zignites-sentinel' ); ?></p>
+	<div class="znts-page-header">
+		<h1><?php echo esc_html__( 'Event Logs', 'zignites-sentinel' ); ?></h1>
+		<p class="znts-page-intro"><?php echo esc_html__( 'Investigate Sentinel activity with filters, run history, and structured event context in one place.', 'zignites-sentinel' ); ?></p>
+	</div>
 
 	<div class="znts-log-stack">
 		<section class="znts-summary-hero">
 			<span class="znts-eyebrow"><?php echo esc_html__( 'Investigation Console', 'zignites-sentinel' ); ?></span>
 			<h2 class="znts-hero-title"><?php echo esc_html__( 'Filter, inspect, and export operational evidence.', 'zignites-sentinel' ); ?></h2>
 			<p class="znts-hero-subtitle"><?php echo esc_html__( 'Use severity, source, run, snapshot, and text filters to narrow the event stream, then jump into run journals or single-event detail.', 'zignites-sentinel' ); ?></p>
-			<div class="znts-investigation-grid">
-				<?php foreach ( $summary_tiles as $tile ) : ?>
-					<div class="znts-investigation-tile">
-						<span class="znts-stat-label"><?php echo esc_html( isset( $tile['label'] ) ? $tile['label'] : '' ); ?></span>
-						<strong><?php echo esc_html( isset( $tile['value'] ) ? $tile['value'] : '0' ); ?></strong>
+			<div class="znts-flow-note">
+				<strong><?php echo esc_html__( 'Workflow', 'zignites-sentinel' ); ?></strong>
+				<span><?php echo esc_html( $log_flow_note ); ?></span>
+			</div>
+				<div class="znts-investigation-grid">
+					<?php foreach ( $log_summary_tiles as $tile ) : ?>
+						<div class="znts-investigation-tile">
+							<span class="znts-stat-label"><?php echo esc_html( isset( $tile['label'] ) ? $tile['label'] : '' ); ?></span>
+							<strong><?php echo esc_html( isset( $tile['value'] ) ? $tile['value'] : '0' ); ?></strong>
 					</div>
 				<?php endforeach; ?>
 			</div>
@@ -53,7 +63,7 @@ $summary_tiles       = isset( $event_log_ui['summary_tiles'] ) && is_array( $eve
 			</div>
 		</section>
 
-		<section class="znts-card znts-card-full znts-card-soft">
+		<section class="znts-card znts-card-full znts-card-primary">
 			<div class="znts-toolbar">
 				<div class="znts-toolbar-head">
 					<div>
@@ -135,7 +145,7 @@ $summary_tiles       = isset( $event_log_ui['summary_tiles'] ) && is_array( $eve
 					<p><?php echo esc_html__( 'Clear the active filters or broaden the search to bring events back into view.', 'zignites-sentinel' ); ?></p>
 				</div>
 			<?php else : ?>
-				<table class="widefat striped">
+				<table class="widefat striped znts-log-table">
 					<thead>
 						<tr>
 							<th><?php echo esc_html__( 'Time', 'zignites-sentinel' ); ?></th>
@@ -147,12 +157,19 @@ $summary_tiles       = isset( $event_log_ui['summary_tiles'] ) && is_array( $eve
 					</thead>
 					<tbody>
 						<?php foreach ( $recent_logs as $log ) : ?>
-							<tr>
+							<tr class="znts-log-row znts-log-row-<?php echo esc_attr( isset( $log['severity_pill'] ) ? $log['severity_pill'] : 'info' ); ?>">
 								<td><a href="<?php echo esc_url( add_query_arg( array_merge( $base_args, array( 'paged' => $current_page, 'log_id' => (int) $log['id'] ) ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( $log['created_at'] ); ?></a></td>
 								<td><span class="znts-pill znts-pill-<?php echo esc_attr( isset( $log['severity_pill'] ) ? $log['severity_pill'] : 'info' ); ?>"><?php echo esc_html( isset( $log['severity_label'] ) ? $log['severity_label'] : '' ); ?></span></td>
 								<td><?php echo esc_html( $log['event_type'] ); ?></td>
 								<td><?php echo esc_html( $log['source'] ); ?></td>
-								<td><?php echo esc_html( $log['message'] ); ?></td>
+								<td>
+									<details class="znts-disclosure znts-disclosure-inline znts-log-message">
+										<summary><span class="znts-message-preview"><?php echo esc_html( $log['message'] ); ?></span></summary>
+										<div class="znts-disclosure-body">
+											<p class="znts-message-full"><?php echo esc_html( $log['message'] ); ?></p>
+										</div>
+									</details>
+								</td>
 							</tr>
 						<?php endforeach; ?>
 					</tbody>
@@ -181,14 +198,12 @@ $summary_tiles       = isset( $event_log_ui['summary_tiles'] ) && is_array( $eve
 		</section>
 
 		<?php if ( ! empty( $operational_events ) ) : ?>
-			<section class="znts-card znts-card-full znts-card-soft">
-				<div class="znts-table-header">
-					<div>
-						<h2><?php echo esc_html__( 'Operational Events', 'zignites-sentinel' ); ?></h2>
+			<section class="znts-card znts-card-full znts-card-flat">
+				<details class="znts-disclosure">
+					<summary><?php echo esc_html__( 'Operational Events', 'zignites-sentinel' ); ?></summary>
+					<div class="znts-disclosure-body">
 						<p><?php echo esc_html__( 'Checkpoint invalidations, baseline captures, stage cleanup, and other supporting restore-control activity.', 'zignites-sentinel' ); ?></p>
-					</div>
-				</div>
-				<table class="widefat striped">
+						<table class="widefat striped znts-log-table">
 					<thead>
 						<tr>
 							<th><?php echo esc_html__( 'Time', 'zignites-sentinel' ); ?></th>
@@ -200,28 +215,35 @@ $summary_tiles       = isset( $event_log_ui['summary_tiles'] ) && is_array( $eve
 					</thead>
 					<tbody>
 						<?php foreach ( $operational_events as $event ) : ?>
-							<tr>
+							<tr class="znts-log-row znts-log-row-<?php echo esc_attr( isset( $event['severity_pill'] ) ? $event['severity_pill'] : 'info' ); ?>">
 								<td><a href="<?php echo esc_url( add_query_arg( array_merge( $base_args, array( 'log_id' => (int) $event['id'] ) ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( $event['created_at'] ); ?></a></td>
 								<td><span class="znts-pill znts-pill-<?php echo esc_attr( isset( $event['severity_pill'] ) ? $event['severity_pill'] : 'info' ); ?>"><?php echo esc_html( isset( $event['severity_label'] ) ? $event['severity_label'] : '' ); ?></span></td>
 								<td><?php echo esc_html( $event['source'] ); ?></td>
 								<td><?php echo esc_html( $event['event_type'] ); ?></td>
-								<td><?php echo esc_html( $event['message'] ); ?></td>
+								<td>
+									<details class="znts-disclosure znts-disclosure-inline znts-log-message">
+										<summary><span class="znts-message-preview"><?php echo esc_html( $event['message'] ); ?></span></summary>
+										<div class="znts-disclosure-body">
+											<p class="znts-message-full"><?php echo esc_html( $event['message'] ); ?></p>
+										</div>
+									</details>
+								</td>
 							</tr>
 						<?php endforeach; ?>
 					</tbody>
-				</table>
+						</table>
+					</div>
+				</details>
 			</section>
 		<?php endif; ?>
 
 		<?php if ( ! empty( $run_summaries ) ) : ?>
-			<section class="znts-card znts-card-full znts-card-soft">
-				<div class="znts-table-header">
-					<div>
-						<h2><?php echo esc_html__( 'Run Summaries', 'zignites-sentinel' ); ?></h2>
+			<section class="znts-card znts-card-full znts-card-flat">
+				<details class="znts-disclosure">
+					<summary><?php echo esc_html__( 'Run Summaries', 'zignites-sentinel' ); ?></summary>
+					<div class="znts-disclosure-body">
 						<p><?php echo esc_html__( 'Use run summaries to jump from a restore or rollback run into its persisted journal trail.', 'zignites-sentinel' ); ?></p>
-					</div>
-				</div>
-				<table class="widefat striped">
+						<table class="widefat striped znts-log-table">
 					<thead>
 						<tr>
 							<th><?php echo esc_html__( 'Run ID', 'zignites-sentinel' ); ?></th>
@@ -250,19 +272,21 @@ $summary_tiles       = isset( $event_log_ui['summary_tiles'] ) && is_array( $eve
 							</tr>
 						<?php endforeach; ?>
 					</tbody>
-				</table>
+						</table>
+					</div>
+				</details>
 			</section>
 		<?php endif; ?>
 
 		<?php if ( ! empty( $run_journal['entries'] ) ) : ?>
-			<section class="znts-card znts-card-full znts-card-soft">
+			<section class="znts-card znts-card-full znts-card-flat">
 				<div class="znts-table-header">
 					<div>
 						<h2><?php echo esc_html__( 'Run Journal', 'zignites-sentinel' ); ?></h2>
 						<p><?php echo esc_html( sprintf( __( 'Viewing persisted journal entries for %1$s, run %2$s.', 'zignites-sentinel' ), isset( $run_journal['source'] ) ? $run_journal['source'] : '', isset( $run_journal['run_id'] ) ? $run_journal['run_id'] : '' ) ); ?></p>
 					</div>
 				</div>
-				<table class="widefat striped">
+				<table class="widefat striped znts-log-table">
 					<thead>
 						<tr>
 							<th><?php echo esc_html__( 'Time', 'zignites-sentinel' ); ?></th>
@@ -281,7 +305,14 @@ $summary_tiles       = isset( $event_log_ui['summary_tiles'] ) && is_array( $eve
 								<td><?php echo esc_html( isset( $entry['label'] ) ? $entry['label'] : '' ); ?></td>
 								<td><?php echo esc_html( isset( $entry['phase'] ) ? $entry['phase'] : '' ); ?></td>
 								<td><span class="znts-pill znts-pill-<?php echo esc_attr( isset( $entry['status_pill'] ) ? $entry['status_pill'] : 'info' ); ?>"><?php echo esc_html( isset( $entry['status_label'] ) ? $entry['status_label'] : '' ); ?></span></td>
-								<td><?php echo esc_html( isset( $entry['message'] ) ? $entry['message'] : '' ); ?></td>
+								<td>
+									<details class="znts-disclosure znts-disclosure-inline znts-log-message">
+										<summary><span class="znts-message-preview"><?php echo esc_html( isset( $entry['message'] ) ? $entry['message'] : '' ); ?></span></summary>
+										<div class="znts-disclosure-body">
+											<p class="znts-message-full"><?php echo esc_html( isset( $entry['message'] ) ? $entry['message'] : '' ); ?></p>
+										</div>
+									</details>
+								</td>
 							</tr>
 						<?php endforeach; ?>
 					</tbody>
@@ -290,7 +321,7 @@ $summary_tiles       = isset( $event_log_ui['summary_tiles'] ) && is_array( $eve
 		<?php endif; ?>
 
 		<?php if ( $log_detail ) : ?>
-			<section class="znts-card znts-card-full znts-card-muted">
+			<section class="znts-card znts-card-full znts-card-flat znts-card-muted">
 				<div class="znts-table-header">
 					<div>
 						<h2><?php echo esc_html__( 'Event Detail', 'zignites-sentinel' ); ?></h2>
