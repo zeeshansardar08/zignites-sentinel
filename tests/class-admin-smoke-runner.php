@@ -125,6 +125,26 @@ class ZNTS_Admin_Smoke_Runner {
 				),
 			),
 			array(
+				'label'            => 'Operational Event Detail',
+				'resolve'          => array(
+					'path'       => 'admin.php?page=zignites-sentinel-event-logs',
+					'query_args' => array(
+						'page'   => 'zignites-sentinel-event-logs',
+						'log_id' => true,
+					),
+					'source_markers' => array(
+						'Operational Events',
+					),
+					'source_scope_marker' => 'Operational Events',
+				),
+				'resolve_optional' => true,
+				'markers'          => array(
+					'Event Logs',
+					'Event Detail',
+					'Context',
+				),
+			),
+			array(
 				'label'            => 'Event Log Run Summary Journal',
 				'resolve'          => array(
 					'path'       => 'admin.php?page=zignites-sentinel-event-logs',
@@ -281,13 +301,20 @@ class ZNTS_Admin_Smoke_Runner {
 		$source_auth = $this->detect_login_fallback( $body );
 		$query_args            = isset( $resolve['query_args'] ) && is_array( $resolve['query_args'] ) ? $resolve['query_args'] : array();
 		$source_markers        = isset( $resolve['source_markers'] ) && is_array( $resolve['source_markers'] ) ? $resolve['source_markers'] : array();
-		$target_path           = $this->find_link_by_query_args( $body, $query_args );
+		$source_scope_marker   = isset( $resolve['source_scope_marker'] ) ? (string) $resolve['source_scope_marker'] : '';
+		$scope_body            = '' !== $source_scope_marker ? $this->extract_scope_body_by_marker( $body, $source_scope_marker ) : $body;
 		$source_missing_markers = array();
 		$error                 = '';
 
+		if ( '' !== $source_scope_marker && '' === $scope_body ) {
+			$source_missing_markers[] = $source_scope_marker;
+		}
+
+		$target_path = empty( $source_missing_markers ) ? $this->find_link_by_query_args( $scope_body, $query_args ) : '';
+
 		if ( '' !== $target_path ) {
 			foreach ( $source_markers as $marker ) {
-				if ( false === stripos( $body, (string) $marker ) ) {
+				if ( false === stripos( $body, (string) $marker ) && ! in_array( (string) $marker, $source_missing_markers, true ) ) {
 					$source_missing_markers[] = (string) $marker;
 				}
 			}
@@ -545,6 +572,61 @@ class ZNTS_Admin_Smoke_Runner {
 		}
 
 		return '';
+	}
+
+	/**
+	 * Extract the nearest details or section block around a marker for scoped link discovery.
+	 *
+	 * @param string $body   Response body.
+	 * @param string $marker Marker that identifies the desired section.
+	 * @return string
+	 */
+	protected function extract_scope_body_by_marker( $body, $marker ) {
+		$body   = (string) $body;
+		$marker = (string) $marker;
+
+		if ( '' === $body || '' === $marker ) {
+			return '';
+		}
+
+		$marker_position = stripos( $body, $marker );
+
+		if ( false === $marker_position ) {
+			return '';
+		}
+
+		foreach ( array( 'details', 'section' ) as $tag_name ) {
+			$start = $this->find_last_tag_start_before_offset( $body, $tag_name, $marker_position );
+			$end   = stripos( $body, '</' . $tag_name . '>', $marker_position );
+
+			if ( false !== $start && false !== $end && $start < $marker_position ) {
+				return substr( $body, $start, $end + strlen( '</' . $tag_name . '>' ) - $start );
+			}
+		}
+
+		return substr( $body, $marker_position );
+	}
+
+	/**
+	 * Find the last opening tag for a block before a given marker offset.
+	 *
+	 * @param string $body   Response body.
+	 * @param string $tag    Tag name without angle brackets.
+	 * @param int    $offset Marker offset.
+	 * @return int|false
+	 */
+	protected function find_last_tag_start_before_offset( $body, $tag, $offset ) {
+		$body   = (string) $body;
+		$tag    = strtolower( (string) $tag );
+		$offset = (int) $offset;
+
+		if ( '' === $body || '' === $tag || $offset < 0 ) {
+			return false;
+		}
+
+		$prefix = substr( $body, 0, $offset + 1 );
+
+		return strripos( $prefix, '<' . $tag );
 	}
 
 	/**

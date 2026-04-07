@@ -80,6 +80,20 @@ return array(
 			'markers'          => array( 'Event Logs', 'Event Detail', 'Context' ),
 		),
 		array(
+			'label'            => 'Operational Event Detail',
+			'resolve'          => array(
+				'path'       => 'admin.php?page=zignites-sentinel-event-logs',
+				'query_args' => array(
+					'page'   => 'zignites-sentinel-event-logs',
+					'log_id' => true,
+				),
+				'source_markers' => array( 'Operational Events' ),
+				'source_scope_marker' => 'Operational Events',
+			),
+			'resolve_optional' => true,
+			'markers'          => array( 'Event Logs', 'Event Detail', 'Context' ),
+		),
+		array(
 			'label'            => 'Event Log Run Summary Journal',
 			'resolve'          => array(
 				'path'       => 'admin.php?page=zignites-sentinel-event-logs',
