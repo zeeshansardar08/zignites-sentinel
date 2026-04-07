@@ -54,13 +54,41 @@ echo 'Base URL: ' . $base_url . PHP_EOL;
 echo 'Checks: ' . count( $checks ) . PHP_EOL . PHP_EOL;
 
 foreach ( $checks as $check ) {
-	$label = isset( $check['label'] ) ? (string) $check['label'] : 'Smoke check';
-	$url   = $runner->build_url( $base_url, isset( $check['path'] ) ? (string) $check['path'] : '' );
-	$http  = $runner->fetch( $url, $cookie, $timeout );
-	$eval  = $runner->evaluate_response( $check, isset( $http['status_code'] ) ? (int) $http['status_code'] : 0, isset( $http['body'] ) ? (string) $http['body'] : '' );
+	$label     = isset( $check['label'] ) ? (string) $check['label'] : 'Smoke check';
+	$resolved  = $runner->resolve_check( $check, $base_url, $cookie, $timeout );
+	$url       = isset( $resolved['url'] ) ? (string) $resolved['url'] : $runner->build_url( $base_url, isset( $check['path'] ) ? (string) $check['path'] : '' );
+
+	if ( ! empty( $resolved['resolve_error'] ) ) {
+		$failures++;
+		echo '[FAIL] ' . $label . ' [resolve]' . PHP_EOL;
+		echo '  Source URL: ' . ( isset( $resolved['source_url'] ) ? (string) $resolved['source_url'] : '' ) . PHP_EOL;
+		echo '  Resolve error: ' . (string) $resolved['resolve_error'] . PHP_EOL;
+
+		if ( ! empty( $resolved['source_auth_fallback'] ) ) {
+			echo '  Source auth fallback: response looks like wp-login.' . PHP_EOL;
+		}
+
+		if ( ! empty( $resolved['source_error'] ) ) {
+			echo '  Source transport error: ' . (string) $resolved['source_error'] . PHP_EOL;
+		}
+
+		continue;
+	}
+
+	$http = $runner->fetch( $url, $cookie, $timeout );
+	$eval = $runner->evaluate_response( $check, isset( $http['status_code'] ) ? (int) $http['status_code'] : 0, isset( $http['body'] ) ? (string) $http['body'] : '' );
 
 	if ( $eval['passed'] ) {
 		echo '[PASS] ' . $label . ' [' . $eval['status_code'] . ']' . PHP_EOL;
+
+		if ( ! empty( $eval['observed_optional_markers'] ) ) {
+			echo '  Optional markers found: ' . implode( ', ', $eval['observed_optional_markers'] ) . PHP_EOL;
+		}
+
+		if ( ! empty( $eval['missing_optional_markers'] ) ) {
+			echo '  Optional markers missing: ' . implode( ', ', $eval['missing_optional_markers'] ) . PHP_EOL;
+		}
+
 		continue;
 	}
 
@@ -74,6 +102,14 @@ foreach ( $checks as $check ) {
 
 	if ( ! empty( $eval['missing_markers'] ) ) {
 		echo '  Missing markers: ' . implode( ', ', $eval['missing_markers'] ) . PHP_EOL;
+	}
+
+	if ( ! empty( $eval['observed_optional_markers'] ) ) {
+		echo '  Optional markers found: ' . implode( ', ', $eval['observed_optional_markers'] ) . PHP_EOL;
+	}
+
+	if ( ! empty( $eval['missing_optional_markers'] ) ) {
+		echo '  Optional markers missing: ' . implode( ', ', $eval['missing_optional_markers'] ) . PHP_EOL;
 	}
 
 	if ( ! empty( $http['error'] ) ) {
