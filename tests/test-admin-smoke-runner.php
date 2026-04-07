@@ -128,6 +128,23 @@ function znts_test_admin_smoke_runner_tracks_optional_markers_without_failing_re
 	znts_assert_same( array( 'Restore Impact Summary' ), $result['missing_optional_markers'], 'Admin smoke runner should separately report optional markers that were not found.' );
 }
 
+function znts_test_admin_smoke_runner_requires_filtered_state_markers_for_snapshot_logs() {
+	$runner = new ZNTS_Admin_Smoke_Runner();
+	$check  = array(
+		'label'   => 'Selected Snapshot Event Logs',
+		'path'    => 'admin.php?page=zignites-sentinel-event-logs&snapshot_id=205',
+		'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter', 'Current filters are active.' ),
+	);
+
+	$result = $runner->evaluate_response(
+		$check,
+		200,
+		'<html><body><h1>Event Logs</h1><button>Export Filtered CSV</button><button>Filter</button><p>Current filters are active. Scan the highlighted rows first.</p></body></html>'
+	);
+
+	znts_assert_true( $result['passed'], 'Admin smoke runner should treat the filtered-state guidance as required on snapshot-scoped Event Logs pages.' );
+}
+
 function znts_test_admin_smoke_runner_resolves_selected_snapshot_links_from_update_readiness() {
 	$runner = new ZNTS_Test_Admin_Smoke_Runner();
 	$runner->responses['http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness'] = array(
@@ -246,6 +263,23 @@ function znts_test_admin_smoke_runner_resolves_run_journal_from_update_readiness
 	znts_assert_true( empty( $resolved['skipped'] ), 'Admin smoke runner should execute optional run-journal checks when a matching link is present.' );
 	znts_assert_same( '', $resolved['resolve_error'], 'Admin smoke runner should resolve the run-journal link when it is present.' );
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&source=restore-execution-journal&run_id=run-42&snapshot_id=205', $resolved['url'], 'Admin smoke runner should preserve the resolved run-journal URL from Update Readiness.' );
+}
+
+function znts_test_admin_smoke_runner_requires_run_journal_markers_when_link_is_present() {
+	$runner = new ZNTS_Admin_Smoke_Runner();
+	$check  = array(
+		'label'   => 'Selected Snapshot Run Journal',
+		'path'    => 'admin.php?page=zignites-sentinel-event-logs&source=restore-execution-journal&run_id=run-42&snapshot_id=205',
+		'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter', 'Current filters are active.', 'Run Journal' ),
+	);
+
+	$result = $runner->evaluate_response(
+		$check,
+		200,
+		'<html><body><h1>Event Logs</h1><button>Export Filtered CSV</button><button>Filter</button><p>Current filters are active. Scan the highlighted rows first.</p><h2>Run Journal</h2></body></html>'
+	);
+
+	znts_assert_true( $result['passed'], 'Admin smoke runner should require the Run Journal section when a run-journal link resolves successfully.' );
 }
 
 function znts_test_admin_smoke_runner_resolves_snapshot_scoped_event_logs_from_dashboard() {

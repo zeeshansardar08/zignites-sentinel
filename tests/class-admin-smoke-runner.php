@@ -62,6 +62,7 @@ class ZNTS_Admin_Smoke_Runner {
 					'Event Logs',
 					'Export Filtered CSV',
 					'Filter',
+					'Current filters are active.',
 				),
 			),
 			array(
@@ -79,6 +80,8 @@ class ZNTS_Admin_Smoke_Runner {
 					'Event Logs',
 					'Export Filtered CSV',
 					'Filter',
+					'Current filters are active.',
+					'Run Journal',
 				),
 			),
 			array(
@@ -88,6 +91,7 @@ class ZNTS_Admin_Smoke_Runner {
 					'Event Logs',
 					'Export Filtered CSV',
 					'Filter',
+					'Current filters are active.',
 				),
 			),
 			array(
@@ -119,6 +123,7 @@ class ZNTS_Admin_Smoke_Runner {
 					'Event Logs',
 					'Export Filtered CSV',
 					'Filter',
+					'Current filters are active.',
 				),
 			),
 			array(

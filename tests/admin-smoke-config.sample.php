@@ -41,7 +41,7 @@ return array(
 					'snapshot_id' => true,
 				),
 			),
-			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter' ),
+			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter', 'Current filters are active.' ),
 		),
 		array(
 			'label'            => 'Selected Snapshot Run Journal',
@@ -54,12 +54,12 @@ return array(
 				),
 			),
 			'resolve_optional' => true,
-			'markers'          => array( 'Event Logs', 'Export Filtered CSV', 'Filter' ),
+			'markers'          => array( 'Event Logs', 'Export Filtered CSV', 'Filter', 'Current filters are active.', 'Run Journal' ),
 		),
 		array(
 			'label'   => 'Event Logs',
 			'path'    => 'admin.php?page=zignites-sentinel-event-logs',
-			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter' ),
+			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter', 'Current filters are active.' ),
 		),
 		array(
 			'label'   => 'Dashboard Snapshot Event Logs',
@@ -82,7 +82,7 @@ return array(
 				),
 			),
 			'resolve_optional' => true,
-			'markers'          => array( 'Event Logs', 'Export Filtered CSV', 'Filter' ),
+			'markers'          => array( 'Event Logs', 'Export Filtered CSV', 'Filter', 'Current filters are active.' ),
 		),
 		array(
 			'label'   => 'WordPress Dashboard Widget',
