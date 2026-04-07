@@ -33,11 +33,13 @@ Purpose: quick admin verification for the current read-only operator/reporting p
    - status hero wraps cleanly
    - quick actions stay clickable
    - no cards collapse into unreadable vertical stacks
+8. Confirm the hero shows a clear workflow hint and the next action remains visually dominant over supporting signals.
+9. If `More status signals` is present, open it and confirm the disclosure expands cleanly without shifting the hero awkwardly.
 
 ## WordPress Dashboard Widget
 
 1. Open the core WordPress dashboard (`/wp-admin/index.php`).
-2. Confirm the `Zignites Sentinel` widget renders without layout breakage.
+2. Confirm the `Sentinel` widget renders without layout breakage.
 3. Confirm it shows:
    - site status
    - recommended action
@@ -69,11 +71,16 @@ Purpose: quick admin verification for the current read-only operator/reporting p
    - status filter
    - filter submit
    - clear action when filters are active
-4. Confirm the `Status guide` is visible and readable.
-5. Confirm the top summary strip clearly shows:
+4. Confirm the top hero clearly shows:
+   - selected snapshot
+   - current workspace state
+   - workflow note
+   - confidence note
+5. Confirm the summary strip clearly shows:
    - selected snapshot state
    - restore readiness state
    - key next action or blocker context
+6. Confirm the `Status guide` remains available behind disclosure and expands cleanly when opened.
 
 ## Snapshot Filters
 
@@ -113,6 +120,13 @@ For each filter:
    - checklist refresh
    - non-destructive validation actions
 5. Confirm the execution and rollback checkpoint panels show counts without overflowing or collapsing.
+6. Confirm only the top-level snapshot detail panel is open by default.
+7. Open and close the secondary snapshot detail disclosures and confirm the labels are readable:
+   - `Stored Snapshot Data`
+   - `Component Sources At Snapshot Time`
+   - `Rollback Package Contents`
+   - `Artifact Mismatch Review`
+   - `Plugins Active At Snapshot Time`
 
 ## Settings Portability
 
@@ -137,10 +151,10 @@ For each filter:
 1. Open a selected snapshot in `Update Readiness`.
 2. Confirm the `Snapshot Summary` card renders before the health baseline section.
 3. Confirm it shows:
-   - overview blocks
-   - evidence list
-   - current risks
-   - recommended next steps
+   - a dominant recommended next step
+   - a high-priority current risk
+   - summary details
+   - supporting evidence/context
 4. Click `Download Summary`.
 5. Confirm a Markdown file downloads and includes:
    - snapshot metadata
@@ -150,6 +164,7 @@ For each filter:
    - recommended next steps
    - recent activity
 6. Confirm the summary card remains readable even when one of the sections is empty.
+7. Confirm supporting evidence/context feels visually secondary to the recommended next step and current risk.
 
 ## Restore Impact Summary
 
@@ -184,6 +199,7 @@ For each filter:
 7. Confirm delta text is readable:
    - `No change`
    - or compact delta strings such as `pass +1, warning -1`
+8. Confirm the baseline warning surface remains visually stronger than the deeper health comparison details.
 
 ## Pagination
 
@@ -206,6 +222,7 @@ For each filter:
 
 1. Open `Sentinel > Event Logs`.
 2. Confirm the investigation-style top summary renders cleanly.
+3. Confirm the top hero includes a clear workflow hint for filtering, scanning, and expanding logs.
 3. Confirm the filter toolbar remains readable with:
    - severity
    - source
@@ -213,7 +230,9 @@ For each filter:
    - snapshot ID
    - search
 4. Confirm empty states remain readable when filters return no results.
-5. Confirm run summary cards and detail links do not overflow at narrower widths.
+5. Confirm long log messages are previewed first and expand cleanly on demand.
+6. Confirm critical and warning rows are more visually distinct than normal rows without making the table noisy.
+7. Confirm run summary cards and detail links do not overflow at narrower widths.
 
 ## Event Log Export
 
