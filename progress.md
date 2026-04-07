@@ -258,6 +258,9 @@
   - Event Logs presenter extraction
   - cross-screen status presenter extraction
   - presenter-focused regression coverage
+- Current branch extends that read-only presentation cleanup with:
+  - snapshot summary presenter extraction
+  - snapshot summary presenter-focused regression coverage
 - Live authenticated admin smoke validation has now been run successfully against a real wp-admin session for:
   - Sentinel Dashboard
   - Update Readiness
@@ -345,22 +348,19 @@
 ## What I Would Do Next
 
 ### Immediate Next Steps
-1. Extend browser-level manual smoke checks
-- Validate current admin screens in wp-admin after the latest UI refinement work:
+1. Continue the read-only presentation extraction work now that manual/admin validation is current
+- Likely candidates:
+  - further dashboard formatter helpers
+  - compact dashboard summary presenter seams
+- Reason: the manual/admin pass and live smoke/export checks are current, so the next highest-value work is reducing presentation logic still concentrated in the admin controller
+
+2. Keep the manual/admin validation current after each read-only extraction
+- Re-run the authenticated smoke helper and the targeted manual path for:
   - Dashboard
   - Update Readiness
   - Event Logs
-- Also validate the core WordPress dashboard widget and newer read-only summary surfaces:
-  - snapshot summary
-  - restore impact summary
-  - health comparison blocks
-- Reason: the smoke helper now passes against a real authenticated session, but the latest premium UI refinement still needs a fresh page-by-page manual pass
-
-2. Only add more read-only presentation/reporting code after manual admin validation is current
-- Likely candidates:
-  - further dashboard formatter helpers
-  - future snapshot summary presentation cleanup
-- Reason: the biggest remaining validation gap is broader manual/admin verification depth, not another obvious code seam
+  - WordPress dashboard widget when touched
+- Reason: the remaining work is mostly presentation cleanup, so regression discipline matters more than adding new restore behavior
 
 ### Product Maturity Next Steps
 3. Add broader reporting/test coverage for any newly extracted presentation helper
@@ -390,18 +390,23 @@
   - `tests/bootstrap.php`
   - `includes/admin/class-event-log-presenter.php`
   - `includes/admin/class-status-presenter.php`
+  - `includes/admin/class-snapshot-summary-presenter.php`
   - `tests/test-health-comparison.php`
   - `tests/class-admin-smoke-runner.php`
   - `tests/smoke-admin-live.php`
   - `tests/test-event-log-presenter.php`
+  - `tests/test-snapshot-summary-presenter.php`
+  - `tests/test-snapshot-summary-export.php`
   - `tests/test-status-presenter.php`
   - the latest focused test file for the seam being covered
 
 ## Handoff Note
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
-- Current local continuation branch after the latest merge:
-  - `main`
+- Current branch prepared for merge:
+  - `feature/snapshot-summary-presenter-extraction`
+- Next likely restart task after this branch merges:
+  - extract the next dashboard-focused read-only formatter/presenter seam from `includes/admin/class-admin.php`
 
 
 
