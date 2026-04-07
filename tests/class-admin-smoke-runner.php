@@ -31,6 +31,25 @@ class ZNTS_Admin_Smoke_Runner {
 				),
 			),
 			array(
+				'label'   => 'Selected Snapshot Detail',
+				'resolve' => array(
+					'path'       => 'admin.php?page=zignites-sentinel-update-readiness',
+					'query_args' => array(
+						'page'        => 'zignites-sentinel-update-readiness',
+						'snapshot_id' => true,
+					),
+				),
+				'markers' => array(
+					'Snapshot Summary',
+					'Download Summary',
+					'Snapshot Health Baseline',
+				),
+				'optional_markers' => array(
+					'Health Comparison',
+					'Restore Impact Summary',
+				),
+			),
+			array(
 				'label'   => 'Event Logs',
 				'path'    => 'admin.php?page=zignites-sentinel-event-logs',
 				'markers' => array(
@@ -74,10 +93,72 @@ class ZNTS_Admin_Smoke_Runner {
 	 * @return string
 	 */
 	public function build_url( $base_url, $path ) {
+		$path = trim( (string) $path );
+
+		if ( preg_match( '#^https?://#i', $path ) ) {
+			return $path;
+		}
+
 		$base_url = $this->normalize_base_url( $base_url );
-		$path     = ltrim( (string) $path, '/' );
+		$path     = ltrim( $path, '/' );
 
 		return $base_url . $path;
+	}
+
+	/**
+	 * Resolve a smoke check to a concrete request URL.
+	 *
+	 * @param array  $check         Check definition.
+	 * @param string $base_url      Base wp-admin URL.
+	 * @param string $cookie_header Browser cookie header value.
+	 * @param int    $timeout       Timeout in seconds.
+	 * @return array
+	 */
+	public function resolve_check( array $check, $base_url, $cookie_header, $timeout = 20 ) {
+		$path = isset( $check['path'] ) ? (string) $check['path'] : '';
+
+		if ( empty( $check['resolve'] ) || ! is_array( $check['resolve'] ) ) {
+			return array(
+				'url'                => $this->build_url( $base_url, $path ),
+				'path'               => $path,
+				'source_url'         => '',
+				'source_status_code' => 0,
+				'source_error'       => '',
+				'source_auth_fallback' => false,
+				'resolve_error'      => '',
+			);
+		}
+
+		$resolve     = $check['resolve'];
+		$source_path = isset( $resolve['path'] ) ? (string) $resolve['path'] : $path;
+		$source_url  = $this->build_url( $base_url, $source_path );
+		$http        = $this->fetch( $source_url, $cookie_header, $timeout );
+		$body        = isset( $http['body'] ) ? (string) $http['body'] : '';
+		$source_code = isset( $http['status_code'] ) ? (int) $http['status_code'] : 0;
+		$source_auth = $this->detect_login_fallback( $body );
+		$query_args  = isset( $resolve['query_args'] ) && is_array( $resolve['query_args'] ) ? $resolve['query_args'] : array();
+		$target_path = $this->find_link_by_query_args( $body, $query_args );
+		$error       = '';
+
+		if ( '' !== (string) ( isset( $http['error'] ) ? $http['error'] : '' ) ) {
+			$error = (string) $http['error'];
+		} elseif ( $source_auth ) {
+			$error = 'Source page resolved to wp-login.';
+		} elseif ( 200 !== $source_code ) {
+			$error = 'Source page returned HTTP ' . $source_code . '.';
+		} elseif ( '' === $target_path ) {
+			$error = 'Could not resolve a matching admin link from the source page.';
+		}
+
+		return array(
+			'url'                  => '' !== $target_path ? $this->build_url( $base_url, $target_path ) : '',
+			'path'                 => $target_path,
+			'source_url'           => $source_url,
+			'source_status_code'   => $source_code,
+			'source_error'         => isset( $http['error'] ) ? (string) $http['error'] : '',
+			'source_auth_fallback' => $source_auth,
+			'resolve_error'        => $error,
+		);
 	}
 
 	/**
@@ -89,11 +170,14 @@ class ZNTS_Admin_Smoke_Runner {
 	 * @return array
 	 */
 	public function evaluate_response( array $check, $status_code, $body ) {
-		$body            = (string) $body;
-		$status_code     = (int) $status_code;
-		$missing_markers = array();
-		$markers         = isset( $check['markers'] ) && is_array( $check['markers'] ) ? $check['markers'] : array();
-		$auth_fallback   = $this->detect_login_fallback( $body );
+		$body                     = (string) $body;
+		$status_code              = (int) $status_code;
+		$missing_markers          = array();
+		$observed_optional_markers = array();
+		$missing_optional_markers = array();
+		$markers                  = isset( $check['markers'] ) && is_array( $check['markers'] ) ? $check['markers'] : array();
+		$optional_markers         = isset( $check['optional_markers'] ) && is_array( $check['optional_markers'] ) ? $check['optional_markers'] : array();
+		$auth_fallback            = $this->detect_login_fallback( $body );
 
 		foreach ( $markers as $marker ) {
 			if ( false === stripos( $body, (string) $marker ) ) {
@@ -101,13 +185,24 @@ class ZNTS_Admin_Smoke_Runner {
 			}
 		}
 
+		foreach ( $optional_markers as $marker ) {
+			if ( false === stripos( $body, (string) $marker ) ) {
+				$missing_optional_markers[] = (string) $marker;
+				continue;
+			}
+
+			$observed_optional_markers[] = (string) $marker;
+		}
+
 		return array(
-			'label'            => isset( $check['label'] ) ? (string) $check['label'] : 'Smoke check',
-			'path'             => isset( $check['path'] ) ? (string) $check['path'] : '',
-			'status_code'      => $status_code,
-			'missing_markers'  => $missing_markers,
-			'auth_fallback'    => $auth_fallback,
-			'passed'           => 200 === $status_code && empty( $missing_markers ) && ! $auth_fallback,
+			'label'                   => isset( $check['label'] ) ? (string) $check['label'] : 'Smoke check',
+			'path'                    => isset( $check['path'] ) ? (string) $check['path'] : '',
+			'status_code'             => $status_code,
+			'missing_markers'         => $missing_markers,
+			'observed_optional_markers' => $observed_optional_markers,
+			'missing_optional_markers' => $missing_optional_markers,
+			'auth_fallback'           => $auth_fallback,
+			'passed'                  => 200 === $status_code && empty( $missing_markers ) && ! $auth_fallback,
 		);
 	}
 
@@ -267,5 +362,84 @@ class ZNTS_Admin_Smoke_Runner {
 			'body'        => (string) $body,
 			'error'       => $error,
 		);
+	}
+
+	/**
+	 * Find the first link whose query args match the requested values.
+	 *
+	 * @param string $body                Response body.
+	 * @param array  $required_query_args Query args to match.
+	 * @return string
+	 */
+	protected function find_link_by_query_args( $body, array $required_query_args ) {
+		foreach ( $this->extract_href_values( $body ) as $href ) {
+			$query_string = (string) parse_url( $href, PHP_URL_QUERY );
+
+			if ( '' === $query_string ) {
+				continue;
+			}
+
+			parse_str( $query_string, $query_args );
+
+			if ( $this->query_args_match( $query_args, $required_query_args ) ) {
+				return $href;
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Extract href attribute values from HTML.
+	 *
+	 * @param string $body Response body.
+	 * @return array
+	 */
+	protected function extract_href_values( $body ) {
+		$matches = array();
+		$values  = array();
+
+		if ( ! preg_match_all( '/href=(["\'])(.*?)\1/i', (string) $body, $matches ) ) {
+			return array();
+		}
+
+		foreach ( isset( $matches[2] ) && is_array( $matches[2] ) ? $matches[2] : array() as $href ) {
+			$decoded = html_entity_decode( (string) $href, ENT_QUOTES, 'UTF-8' );
+
+			if ( '' !== $decoded ) {
+				$values[] = $decoded;
+			}
+		}
+
+		return $values;
+	}
+
+	/**
+	 * Determine whether parsed query args satisfy a required set.
+	 *
+	 * @param array $query_args          Parsed query args.
+	 * @param array $required_query_args Query args to match.
+	 * @return bool
+	 */
+	protected function query_args_match( array $query_args, array $required_query_args ) {
+		foreach ( $required_query_args as $key => $expected_value ) {
+			if ( ! array_key_exists( $key, $query_args ) ) {
+				return false;
+			}
+
+			if ( true === $expected_value || null === $expected_value || '*' === $expected_value ) {
+				if ( '' === trim( (string) $query_args[ $key ] ) ) {
+					return false;
+				}
+
+				continue;
+			}
+
+			if ( (string) $query_args[ $key ] !== (string) $expected_value ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

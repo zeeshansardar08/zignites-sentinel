@@ -21,6 +21,18 @@ return array(
 			'markers' => array( 'Update Readiness', 'Recent Snapshot Metadata', 'Sentinel Settings' ),
 		),
 		array(
+			'label'   => 'Selected Snapshot Detail',
+			'resolve' => array(
+				'path'       => 'admin.php?page=zignites-sentinel-update-readiness',
+				'query_args' => array(
+					'page'        => 'zignites-sentinel-update-readiness',
+					'snapshot_id' => true,
+				),
+			),
+			'markers' => array( 'Snapshot Summary', 'Download Summary', 'Snapshot Health Baseline' ),
+			'optional_markers' => array( 'Health Comparison', 'Restore Impact Summary' ),
+		),
+		array(
 			'label'   => 'Event Logs',
 			'path'    => 'admin.php?page=zignites-sentinel-event-logs',
 			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter' ),

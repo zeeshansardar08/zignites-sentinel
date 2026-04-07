@@ -5,6 +5,22 @@
 
 require_once __DIR__ . '/class-admin-smoke-runner.php';
 
+class ZNTS_Test_Admin_Smoke_Runner extends ZNTS_Admin_Smoke_Runner {
+	public $responses = array();
+
+	public function fetch( $url, $cookie_header, $timeout = 20 ) {
+		if ( isset( $this->responses[ $url ] ) ) {
+			return $this->responses[ $url ];
+		}
+
+		return array(
+			'status_code' => 404,
+			'body'        => '',
+			'error'       => 'Missing fixture response.',
+		);
+	}
+}
+
 function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 	$runner = new ZNTS_Admin_Smoke_Runner();
 
@@ -20,14 +36,25 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 		'Admin smoke runner should build request URLs relative to the normalized wp-admin base URL.'
 	);
 
+	znts_assert_same(
+		'http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness&snapshot_id=12',
+		$runner->build_url( 'http://example.test/wp-admin/', 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness&snapshot_id=12' ),
+		'Admin smoke runner should preserve already absolute admin URLs when a resolved check returns one.'
+	);
+
 	$checks              = $runner->get_default_checks();
-	$widget_check        = $checks[3];
+	$detail_check        = $checks[2];
+	$widget_check        = $checks[4];
 	$widget_markers      = isset( $widget_check['markers'] ) && is_array( $widget_check['markers'] ) ? $widget_check['markers'] : array();
 	$contains_sentinel   = in_array( 'Sentinel', $widget_markers, true );
 	$contains_old_marker = in_array( 'Zignites Sentinel', $widget_markers, true );
+	$detail_markers      = isset( $detail_check['markers'] ) && is_array( $detail_check['markers'] ) ? $detail_check['markers'] : array();
+	$detail_optional     = isset( $detail_check['optional_markers'] ) && is_array( $detail_check['optional_markers'] ) ? $detail_check['optional_markers'] : array();
 
 	znts_assert_true( $contains_sentinel, 'Admin smoke runner should expect the current dashboard widget heading marker.' );
 	znts_assert_true( ! $contains_old_marker, 'Admin smoke runner should not require the stale dashboard widget heading marker.' );
+	znts_assert_true( in_array( 'Snapshot Summary', $detail_markers, true ), 'Admin smoke runner should include a selected snapshot detail check for snapshot-scoped surfaces.' );
+	znts_assert_true( in_array( 'Restore Impact Summary', $detail_optional, true ), 'Admin smoke runner should report optional restore impact markers on the selected snapshot detail page.' );
 }
 
 function znts_test_admin_smoke_runner_detects_login_fallback_and_missing_markers() {
@@ -65,4 +92,53 @@ function znts_test_admin_smoke_runner_passes_when_status_and_markers_match() {
 
 	znts_assert_true( $result['passed'], 'Admin smoke runner should pass when the response is HTTP 200 and all expected markers are present.' );
 	znts_assert_same( 0, count( $result['missing_markers'] ), 'Admin smoke runner should not report missing markers on a passing response.' );
+}
+
+function znts_test_admin_smoke_runner_tracks_optional_markers_without_failing_required_checks() {
+	$runner = new ZNTS_Admin_Smoke_Runner();
+	$check  = array(
+		'label'            => 'Selected Snapshot Detail',
+		'path'             => 'admin.php?page=zignites-sentinel-update-readiness&snapshot_id=12',
+		'markers'          => array( 'Snapshot Summary', 'Snapshot Health Baseline' ),
+		'optional_markers' => array( 'Health Comparison', 'Restore Impact Summary' ),
+	);
+
+	$result = $runner->evaluate_response(
+		$check,
+		200,
+		'<html><body><h2>Snapshot Summary</h2><h2>Snapshot Health Baseline</h2><details><summary>Health Comparison</summary></details></body></html>'
+	);
+
+	znts_assert_true( $result['passed'], 'Admin smoke runner should not fail when optional markers are absent but required markers are present.' );
+	znts_assert_same( array( 'Health Comparison' ), $result['observed_optional_markers'], 'Admin smoke runner should report optional markers that were found on the page.' );
+	znts_assert_same( array( 'Restore Impact Summary' ), $result['missing_optional_markers'], 'Admin smoke runner should separately report optional markers that were not found.' );
+}
+
+function znts_test_admin_smoke_runner_resolves_selected_snapshot_links_from_update_readiness() {
+	$runner = new ZNTS_Test_Admin_Smoke_Runner();
+	$runner->responses['http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness'] = array(
+		'status_code' => 200,
+		'body'        => '<html><body><a href="http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness&amp;snapshot_id=205">Open snapshot</a></body></html>',
+		'error'       => '',
+	);
+
+	$resolved = $runner->resolve_check(
+		array(
+			'label'   => 'Selected Snapshot Detail',
+			'resolve' => array(
+				'path'       => 'admin.php?page=zignites-sentinel-update-readiness',
+				'query_args' => array(
+					'page'        => 'zignites-sentinel-update-readiness',
+					'snapshot_id' => true,
+				),
+			),
+			'markers' => array( 'Snapshot Summary' ),
+		),
+		'http://example.test/wp-admin/',
+		'wordpress_logged_in_example=abc'
+	);
+
+	znts_assert_same( '', $resolved['resolve_error'], 'Admin smoke runner should resolve selected snapshot links from the update-readiness list.' );
+	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness&snapshot_id=205', $resolved['url'], 'Admin smoke runner should return the first matching selected-snapshot URL.' );
+	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness', $resolved['source_url'], 'Admin smoke runner should preserve the source page used for snapshot discovery.' );
 }
