@@ -43,20 +43,23 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 	);
 
 	$checks              = $runner->get_default_checks();
-	$detail_check        = $checks[2];
-	$dashboard_logs_check = $checks[4];
-	$widget_check        = $checks[5];
+	$detail_check         = $checks[2];
+	$snapshot_logs_check  = $checks[3];
+	$dashboard_logs_check = $checks[5];
+	$widget_check         = $checks[6];
 	$widget_markers      = isset( $widget_check['markers'] ) && is_array( $widget_check['markers'] ) ? $widget_check['markers'] : array();
 	$contains_sentinel   = in_array( 'Sentinel', $widget_markers, true );
 	$contains_old_marker = in_array( 'Zignites Sentinel', $widget_markers, true );
 	$detail_markers      = isset( $detail_check['markers'] ) && is_array( $detail_check['markers'] ) ? $detail_check['markers'] : array();
 	$detail_optional     = isset( $detail_check['optional_markers'] ) && is_array( $detail_check['optional_markers'] ) ? $detail_check['optional_markers'] : array();
+	$snapshot_logs_resolve = isset( $snapshot_logs_check['resolve'] ) && is_array( $snapshot_logs_check['resolve'] ) ? $snapshot_logs_check['resolve'] : array();
 	$dashboard_logs_resolve = isset( $dashboard_logs_check['resolve'] ) && is_array( $dashboard_logs_check['resolve'] ) ? $dashboard_logs_check['resolve'] : array();
 
 	znts_assert_true( $contains_sentinel, 'Admin smoke runner should expect the current dashboard widget heading marker.' );
 	znts_assert_true( ! $contains_old_marker, 'Admin smoke runner should not require the stale dashboard widget heading marker.' );
 	znts_assert_true( in_array( 'Snapshot Summary', $detail_markers, true ), 'Admin smoke runner should include a selected snapshot detail check for snapshot-scoped surfaces.' );
 	znts_assert_true( in_array( 'Restore Impact Summary', $detail_optional, true ), 'Admin smoke runner should report optional restore impact markers on the selected snapshot detail page.' );
+	znts_assert_same( 'admin.php?page=zignites-sentinel-update-readiness', isset( $snapshot_logs_resolve['path'] ) ? $snapshot_logs_resolve['path'] : '', 'Admin smoke runner should discover snapshot-scoped Event Logs from the selected snapshot screen.' );
 	znts_assert_same( 'admin.php?page=zignites-sentinel', isset( $dashboard_logs_resolve['path'] ) ? $dashboard_logs_resolve['path'] : '', 'Admin smoke runner should discover snapshot-scoped Event Logs from the dashboard.' );
 }
 
@@ -144,6 +147,35 @@ function znts_test_admin_smoke_runner_resolves_selected_snapshot_links_from_upda
 	znts_assert_same( '', $resolved['resolve_error'], 'Admin smoke runner should resolve selected snapshot links from the update-readiness list.' );
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness&snapshot_id=205', $resolved['url'], 'Admin smoke runner should return the first matching selected-snapshot URL.' );
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness', $resolved['source_url'], 'Admin smoke runner should preserve the source page used for snapshot discovery.' );
+}
+
+function znts_test_admin_smoke_runner_resolves_snapshot_scoped_event_logs_from_update_readiness() {
+	$runner = new ZNTS_Test_Admin_Smoke_Runner();
+	$runner->responses['http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness'] = array(
+		'status_code' => 200,
+		'body'        => '<html><body><a href="http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&amp;snapshot_id=205">View full event history</a></body></html>',
+		'error'       => '',
+	);
+
+	$resolved = $runner->resolve_check(
+		array(
+			'label'   => 'Selected Snapshot Event Logs',
+			'resolve' => array(
+				'path'       => 'admin.php?page=zignites-sentinel-update-readiness',
+				'query_args' => array(
+					'page'        => 'zignites-sentinel-event-logs',
+					'snapshot_id' => true,
+				),
+			),
+			'markers' => array( 'Event Logs' ),
+		),
+		'http://example.test/wp-admin/',
+		'wordpress_logged_in_example=abc'
+	);
+
+	znts_assert_same( '', $resolved['resolve_error'], 'Admin smoke runner should resolve snapshot-scoped Event Logs links from the selected snapshot screen.' );
+	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=205', $resolved['url'], 'Admin smoke runner should preserve the snapshot-scoped Event Logs URL resolved from Update Readiness.' );
+	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness', $resolved['source_url'], 'Admin smoke runner should record the selected snapshot screen as the source page for snapshot-scoped Event Logs discovery.' );
 }
 
 function znts_test_admin_smoke_runner_resolves_snapshot_scoped_event_logs_from_dashboard() {
