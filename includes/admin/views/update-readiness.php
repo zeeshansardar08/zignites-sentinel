@@ -1002,6 +1002,47 @@ $workspace_confidence      = ! empty( $operator_checklist['can_execute'] )
 						<?php submit_button( __( 'Build Restore Plan', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 					</form>
 				</div>
+				<p class="znts-inline-note">
+					<?php echo esc_html__( 'Each validation action saves its latest result for this snapshot and shows it below on this page.', 'zignites-sentinel' ); ?>
+					<?php if ( ! empty( $last_restore_dry_run ) || ! empty( $last_restore_stage ) || ! empty( $last_restore_plan ) ) : ?>
+						<span>
+							<?php echo esc_html__( 'Jump to:', 'zignites-sentinel' ); ?>
+							<?php
+							$jump_links = array();
+
+							if ( ! empty( $last_restore_dry_run ) ) {
+								$jump_links[] = sprintf(
+									'<a href="#znts-restore-dry-run">%s</a>',
+									esc_html__( 'Dry-Run', 'zignites-sentinel' )
+								);
+							}
+
+							if ( ! empty( $last_restore_stage ) ) {
+								$jump_links[] = sprintf(
+									'<a href="#znts-restore-stage">%s</a>',
+									esc_html__( 'Staged Validation', 'zignites-sentinel' )
+								);
+							}
+
+							if ( ! empty( $last_restore_plan ) ) {
+								$jump_links[] = sprintf(
+									'<a href="#znts-restore-plan">%s</a>',
+									esc_html__( 'Restore Plan', 'zignites-sentinel' )
+								);
+							}
+
+							echo wp_kses(
+								implode( ', ', $jump_links ),
+								array(
+									'a' => array(
+										'href' => array(),
+									),
+								)
+							);
+							?>
+						</span>
+					<?php endif; ?>
+				</p>
 				<details class="znts-disclosure" open>
 					<summary><?php echo esc_html__( 'Snapshot Basics', 'zignites-sentinel' ); ?></summary>
 					<div class="znts-disclosure-body">
@@ -1331,7 +1372,7 @@ $workspace_confidence      = ! empty( $operator_checklist['can_execute'] )
 		<?php endif; ?>
 
 		<?php if ( $snapshot_detail && ! empty( $last_restore_dry_run ) ) : ?>
-			<section class="znts-card znts-card-full znts-card-flat">
+			<section id="znts-restore-dry-run" class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Restore Dry-Run', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
 					<span class="znts-pill znts-pill-<?php echo esc_attr( 'blocked' === $last_restore_dry_run['status'] ? 'critical' : ( 'caution' === $last_restore_dry_run['status'] ? 'warning' : 'info' ) ); ?>">
@@ -1366,7 +1407,7 @@ $workspace_confidence      = ! empty( $operator_checklist['can_execute'] )
 		<?php endif; ?>
 
 		<?php if ( $snapshot_detail && ! empty( $last_restore_stage ) ) : ?>
-			<section class="znts-card znts-card-full znts-card-flat">
+			<section id="znts-restore-stage" class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Staged Restore Validation', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
 					<span class="znts-pill znts-pill-<?php echo esc_attr( 'blocked' === $last_restore_stage['status'] ? 'critical' : ( 'caution' === $last_restore_stage['status'] ? 'warning' : 'info' ) ); ?>">
@@ -1401,7 +1442,7 @@ $workspace_confidence      = ! empty( $operator_checklist['can_execute'] )
 		<?php endif; ?>
 
 		<?php if ( $snapshot_detail && ! empty( $last_restore_plan ) ) : ?>
-			<section class="znts-card znts-card-full znts-card-flat">
+			<section id="znts-restore-plan" class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Restore Execution Plan', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
 					<span class="znts-pill znts-pill-<?php echo esc_attr( 'blocked' === $last_restore_plan['status'] ? 'critical' : ( 'caution' === $last_restore_plan['status'] ? 'warning' : 'info' ) ); ?>">

@@ -893,7 +893,7 @@ class Admin {
 				'znts_notice' => 'restore-dry-run-complete',
 			),
 			admin_url( 'admin.php' )
-		);
+		) . '#znts-restore-dry-run';
 
 		wp_safe_redirect( $url );
 		exit;
@@ -927,7 +927,7 @@ class Admin {
 				'znts_notice' => 'restore-stage-complete',
 			),
 			admin_url( 'admin.php' )
-		);
+		) . '#znts-restore-stage';
 
 		wp_safe_redirect( $url );
 		exit;
@@ -960,7 +960,7 @@ class Admin {
 				'znts_notice' => 'restore-plan-complete',
 			),
 			admin_url( 'admin.php' )
-		);
+		) . '#znts-restore-plan';
 
 		wp_safe_redirect( $url );
 		exit;
