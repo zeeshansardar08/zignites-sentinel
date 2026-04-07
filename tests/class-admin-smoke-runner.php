@@ -59,6 +59,21 @@ class ZNTS_Admin_Smoke_Runner {
 				),
 			),
 			array(
+				'label'   => 'Dashboard Snapshot Event Logs',
+				'resolve' => array(
+					'path'       => 'admin.php?page=zignites-sentinel',
+					'query_args' => array(
+						'page'        => 'zignites-sentinel-event-logs',
+						'snapshot_id' => true,
+					),
+				),
+				'markers' => array(
+					'Event Logs',
+					'Export Filtered CSV',
+					'Filter',
+				),
+			),
+			array(
 				'label'   => 'WordPress Dashboard Widget',
 				'path'    => 'index.php',
 				'markers' => array(
