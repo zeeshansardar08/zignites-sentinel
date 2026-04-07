@@ -33,9 +33,61 @@ return array(
 			'optional_markers' => array( 'Health Comparison', 'Restore Impact Summary' ),
 		),
 		array(
+			'label'   => 'Selected Snapshot Event Logs',
+			'resolve' => array(
+				'path'       => 'admin.php?page=zignites-sentinel-update-readiness',
+				'query_args' => array(
+					'page'        => 'zignites-sentinel-event-logs',
+					'snapshot_id' => true,
+				),
+			),
+			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter', 'Current filters are active.' ),
+		),
+		array(
+			'label'            => 'Selected Snapshot Run Journal',
+			'resolve'          => array(
+				'path'       => 'admin.php?page=zignites-sentinel-update-readiness',
+				'query_args' => array(
+					'page'   => 'zignites-sentinel-event-logs',
+					'source' => true,
+					'run_id' => true,
+				),
+			),
+			'resolve_optional' => true,
+			'markers'          => array( 'Event Logs', 'Export Filtered CSV', 'Filter', 'Current filters are active.', 'Run Journal' ),
+		),
+		array(
 			'label'   => 'Event Logs',
 			'path'    => 'admin.php?page=zignites-sentinel-event-logs',
 			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter' ),
+		),
+		array(
+			'label'   => 'Event Logs Empty State',
+			'path'    => 'admin.php?page=zignites-sentinel-event-logs&log_search=znts-smoke-empty-state-token-9f3a0d66',
+			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Apply Filters', 'Reset', 'Current filters are active.', 'No event logs match the current filters.' ),
+		),
+		array(
+			'label'   => 'Dashboard Snapshot Event Logs',
+			'resolve' => array(
+				'path'       => 'admin.php?page=zignites-sentinel',
+				'query_args' => array(
+					'page'        => 'zignites-sentinel-event-logs',
+					'snapshot_id' => true,
+				),
+			),
+			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter' ),
+		),
+		array(
+			'label'            => 'Widget Snapshot Activity',
+			'resolve'          => array(
+				'path'       => 'index.php',
+				'query_args' => array(
+					'page'        => 'zignites-sentinel-event-logs',
+					'snapshot_id' => true,
+				),
+			),
+			'resolve_optional' => true,
+			'markers'          => array( 'Event Logs', 'Export Filtered CSV', 'Filter', 'Current filters are active.' ),
 		),
 		array(
 			'label'   => 'WordPress Dashboard Widget',

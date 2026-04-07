@@ -58,6 +58,13 @@ foreach ( $checks as $check ) {
 	$resolved  = $runner->resolve_check( $check, $base_url, $cookie, $timeout );
 	$url       = isset( $resolved['url'] ) ? (string) $resolved['url'] : $runner->build_url( $base_url, isset( $check['path'] ) ? (string) $check['path'] : '' );
 
+	if ( ! empty( $resolved['skipped'] ) ) {
+		echo '[SKIP] ' . $label . PHP_EOL;
+		echo '  Source URL: ' . ( isset( $resolved['source_url'] ) ? (string) $resolved['source_url'] : '' ) . PHP_EOL;
+		echo '  Reason: ' . ( isset( $resolved['skip_reason'] ) ? (string) $resolved['skip_reason'] : 'Optional check was not applicable.' ) . PHP_EOL;
+		continue;
+	}
+
 	if ( ! empty( $resolved['resolve_error'] ) ) {
 		$failures++;
 		echo '[FAIL] ' . $label . ' [resolve]' . PHP_EOL;
