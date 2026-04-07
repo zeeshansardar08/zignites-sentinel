@@ -75,8 +75,10 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 	znts_assert_true( false !== strpos( $event_logs_empty_path, 'znts-smoke-empty-state-token-9f3a0d66' ), 'Admin smoke runner should include a deterministic empty-state Event Logs query.' );
 	znts_assert_true( ! empty( $event_log_summary_journal['resolve_optional'] ), 'Admin smoke runner should treat Event Logs run-summary journal discovery as optional when no run summaries are present.' );
 	znts_assert_same( 'admin.php?page=zignites-sentinel-event-logs', isset( $event_log_summary_journal_resolve['path'] ) ? $event_log_summary_journal_resolve['path'] : '', 'Admin smoke runner should discover run-summary journal links from the Event Logs screen.' );
+	znts_assert_same( array( 'Run Summaries' ), isset( $event_log_summary_journal_resolve['source_markers'] ) ? $event_log_summary_journal_resolve['source_markers'] : array(), 'Admin smoke runner should require the Run Summaries section before treating a run-summary journal link as valid.' );
 	znts_assert_true( ! empty( $event_log_summary_snapshot['resolve_optional'] ), 'Admin smoke runner should treat Event Logs snapshot-return discovery as optional when no snapshot-linked run summaries are present.' );
 	znts_assert_same( 'admin.php?page=zignites-sentinel-event-logs', isset( $event_log_summary_snapshot_resolve['path'] ) ? $event_log_summary_snapshot_resolve['path'] : '', 'Admin smoke runner should discover snapshot return links from the Event Logs screen.' );
+	znts_assert_same( array( 'Run Summaries' ), isset( $event_log_summary_snapshot_resolve['source_markers'] ) ? $event_log_summary_snapshot_resolve['source_markers'] : array(), 'Admin smoke runner should require the Run Summaries section before treating a run-summary snapshot link as valid.' );
 	znts_assert_same( 'admin.php?page=zignites-sentinel', isset( $dashboard_logs_resolve['path'] ) ? $dashboard_logs_resolve['path'] : '', 'Admin smoke runner should discover snapshot-scoped Event Logs from the dashboard.' );
 	znts_assert_true( ! empty( $widget_activity_check['resolve_optional'] ), 'Admin smoke runner should treat widget snapshot activity discovery as optional when the widget has no latest snapshot.' );
 	znts_assert_same( 'index.php', isset( $widget_activity_resolve['path'] ) ? $widget_activity_resolve['path'] : '', 'Admin smoke runner should discover widget snapshot activity links from the WordPress dashboard.' );
@@ -206,6 +208,39 @@ function znts_test_admin_smoke_runner_resolves_event_log_run_summary_journal_whe
 	$runner = new ZNTS_Test_Admin_Smoke_Runner();
 	$runner->responses['http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs'] = array(
 		'status_code' => 200,
+		'body'        => '<html><body><details><summary>Run Summaries</summary><a href="http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&amp;source=restore-execution-journal&amp;run_id=run-77&amp;snapshot_id=205">run-77</a></details></body></html>',
+		'error'       => '',
+	);
+
+	$resolved = $runner->resolve_check(
+		array(
+			'label'            => 'Event Log Run Summary Journal',
+			'resolve'          => array(
+				'path'       => 'admin.php?page=zignites-sentinel-event-logs',
+				'query_args' => array(
+					'page'   => 'zignites-sentinel-event-logs',
+					'source' => true,
+					'run_id' => true,
+				),
+				'source_markers' => array(
+					'Run Summaries',
+				),
+			),
+			'resolve_optional' => true,
+			'markers'          => array( 'Event Logs' ),
+		),
+		'http://example.test/wp-admin/',
+		'wordpress_logged_in_example=abc'
+	);
+
+	znts_assert_true( empty( $resolved['skipped'] ), 'Admin smoke runner should execute Event Logs run-summary journal checks when a matching link is present.' );
+	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&source=restore-execution-journal&run_id=run-77&snapshot_id=205', $resolved['url'], 'Admin smoke runner should preserve the run-summary journal URL resolved from Event Logs.' );
+}
+
+function znts_test_admin_smoke_runner_rejects_run_summary_journal_link_without_run_summaries_section() {
+	$runner = new ZNTS_Test_Admin_Smoke_Runner();
+	$runner->responses['http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs'] = array(
+		'status_code' => 200,
 		'body'        => '<html><body><a href="http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&amp;source=restore-execution-journal&amp;run_id=run-77&amp;snapshot_id=205">run-77</a></body></html>',
 		'error'       => '',
 	);
@@ -220,6 +255,9 @@ function znts_test_admin_smoke_runner_resolves_event_log_run_summary_journal_whe
 					'source' => true,
 					'run_id' => true,
 				),
+				'source_markers' => array(
+					'Run Summaries',
+				),
 			),
 			'resolve_optional' => true,
 			'markers'          => array( 'Event Logs' ),
@@ -228,8 +266,7 @@ function znts_test_admin_smoke_runner_resolves_event_log_run_summary_journal_whe
 		'wordpress_logged_in_example=abc'
 	);
 
-	znts_assert_true( empty( $resolved['skipped'] ), 'Admin smoke runner should execute Event Logs run-summary journal checks when a matching link is present.' );
-	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&source=restore-execution-journal&run_id=run-77&snapshot_id=205', $resolved['url'], 'Admin smoke runner should preserve the run-summary journal URL resolved from Event Logs.' );
+	znts_assert_same( 'Source page missing markers: Run Summaries.', $resolved['resolve_error'], 'Admin smoke runner should reject a run-summary journal link when the source page does not expose the Run Summaries section.' );
 }
 
 function znts_test_admin_smoke_runner_skips_event_log_summary_snapshot_when_no_link_exists() {
@@ -264,7 +301,7 @@ function znts_test_admin_smoke_runner_resolves_event_log_summary_snapshot_when_p
 	$runner = new ZNTS_Test_Admin_Smoke_Runner();
 	$runner->responses['http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs'] = array(
 		'status_code' => 200,
-		'body'        => '<html><body><a href="http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness&amp;snapshot_id=205">205</a></body></html>',
+		'body'        => '<html><body><details><summary>Run Summaries</summary><a href="http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness&amp;snapshot_id=205">205</a></details></body></html>',
 		'error'       => '',
 	);
 
@@ -276,6 +313,9 @@ function znts_test_admin_smoke_runner_resolves_event_log_summary_snapshot_when_p
 				'query_args' => array(
 					'page'        => 'zignites-sentinel-update-readiness',
 					'snapshot_id' => true,
+				),
+				'source_markers' => array(
+					'Run Summaries',
 				),
 			),
 			'resolve_optional' => true,
