@@ -318,3 +318,33 @@ function znts_test_rollback_run_card_uses_resume_secondary_when_no_checkpoint_ov
 	znts_assert_same( 'Resume available with 3 completed items.', $card['secondary'], 'Rollback run cards should use resume messaging when no checkpoint override exists.' );
 	znts_assert_true( false !== strpos( $card['link_url'], 'source=restore-rollback' ), 'Rollback run cards should link to the rollback journal source.' );
 }
+
+function znts_test_restore_run_cards_render_without_execution_checkpoint() {
+	$admin = new ZNTS_Testable_Resume_Admin_Presentation();
+	$admin->fixture['last_execution'] = array(
+		'run_id'       => 'run-exec-11',
+		'status'       => 'partial',
+		'generated_at' => '2025-01-06 13:00:00',
+		'summary'      => array(
+			'pass'    => 2,
+			'warning' => 1,
+			'fail'    => 0,
+		),
+	);
+	$admin->set_resume_context(
+		RestoreExecutor::JOURNAL_SOURCE,
+		205,
+		array(
+			'can_resume'           => true,
+			'completed_item_count' => 1,
+			'run_id'               => 'run-exec-11',
+		)
+	);
+
+	$cards = $admin->build_run_cards( array( 'id' => 205 ) );
+	$card  = $cards[0];
+
+	znts_assert_same( 'Latest Restore Run', $card['title'], 'Restore run cards should still render when no execution checkpoint exists yet.' );
+	znts_assert_same( 'Resume available with 1 completed items.', $card['secondary'], 'Restore run cards should fall back to resume messaging when no execution checkpoint override exists.' );
+	znts_assert_true( false !== strpos( $card['link_url'], 'run_id=run-exec-11' ), 'Restore run cards should still link to the latest restore run journal without an execution checkpoint.' );
+}

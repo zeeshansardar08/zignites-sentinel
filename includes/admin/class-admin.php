@@ -3539,17 +3539,20 @@ class Admin {
 	/**
 	 * Build a restore or rollback run summary card.
 	 *
-	 * @param string $title          Card title.
-	 * @param array  $result         Result payload.
-	 * @param string $journal_source Journal source.
-	 * @param array  $resume_context Resume context.
+	 * @param string     $title                Card title.
+	 * @param array      $result               Result payload.
+	 * @param string     $journal_source       Journal source.
+	 * @param array      $resume_context       Resume context.
+	 * @param array|null $execution_checkpoint Optional execution checkpoint payload.
+	 * @param int        $snapshot_id          Snapshot ID for run-journal scoping.
 	 * @return array
 	 */
-	protected function build_run_card( $title, array $result, $journal_source, array $resume_context, array $execution_checkpoint = array(), $snapshot_id = 0 ) {
-		$run_id      = isset( $result['run_id'] ) ? (string) $result['run_id'] : '';
-		$summary     = isset( $result['summary'] ) && is_array( $result['summary'] ) ? $result['summary'] : array();
-		$status      = $this->status_presenter->present_run( isset( $result['status'] ) ? $result['status'] : '' );
-		$primary     = sprintf(
+	protected function build_run_card( $title, array $result, $journal_source, array $resume_context, $execution_checkpoint = null, $snapshot_id = 0 ) {
+		$execution_checkpoint = is_array( $execution_checkpoint ) ? $execution_checkpoint : array();
+		$run_id               = isset( $result['run_id'] ) ? (string) $result['run_id'] : '';
+		$summary              = isset( $result['summary'] ) && is_array( $result['summary'] ) ? $result['summary'] : array();
+		$status               = $this->status_presenter->present_run( isset( $result['status'] ) ? $result['status'] : '' );
+		$primary              = sprintf(
 			/* translators: 1: pass count, 2: warning count, 3: fail count */
 			__( '%1$d pass, %2$d warning, %3$d fail.', 'zignites-sentinel' ),
 			isset( $summary['pass'] ) ? (int) $summary['pass'] : 0,
