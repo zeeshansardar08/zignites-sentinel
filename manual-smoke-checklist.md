@@ -279,11 +279,18 @@ Optional live wp-admin smoke helper:
 php tests/smoke-admin-live.php --base-url=http://example.test/wp-admin/ --cookie="wordpress_logged_in_example=...; wordpress_sec_example=..."
 ```
 
+Optional Event Logs export verifier:
+
+```powershell
+php tests/export-event-logs-live.php --base-url=http://example.test/wp-admin/ --cookie="wordpress_logged_in_example=...; wordpress_sec_example=..." --path="admin.php?page=zignites-sentinel-event-logs&source=restore-execution-journal&run_id=run-42&snapshot_id=205"
+```
+
 Notes:
 
 - Use a real authenticated admin browser cookie header.
-- The script is read-only and only performs GET requests.
+- The page smoke helper is read-only and only performs GET requests.
 - A sample config is available at `tests/admin-smoke-config.sample.php`.
+- The export verifier posts only to the existing `Export Filtered CSV` action and can use `tests/event-log-export-config.sample.php`.
 
 Known local issue:
 
