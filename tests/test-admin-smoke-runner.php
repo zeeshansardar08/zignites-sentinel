@@ -43,12 +43,13 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 	);
 
 	$checks              = $runner->get_default_checks();
-	$detail_check           = $checks[2];
-	$snapshot_logs_check    = $checks[3];
-	$run_journal_check      = $checks[4];
-	$dashboard_logs_check   = $checks[6];
-	$widget_activity_check  = $checks[7];
-	$widget_check           = $checks[8];
+	$detail_check            = $checks[2];
+	$snapshot_logs_check     = $checks[3];
+	$run_journal_check       = $checks[4];
+	$event_logs_empty_check  = $checks[6];
+	$dashboard_logs_check    = $checks[7];
+	$widget_activity_check   = $checks[8];
+	$widget_check            = $checks[9];
 	$widget_markers      = isset( $widget_check['markers'] ) && is_array( $widget_check['markers'] ) ? $widget_check['markers'] : array();
 	$contains_sentinel   = in_array( 'Sentinel', $widget_markers, true );
 	$contains_old_marker = in_array( 'Zignites Sentinel', $widget_markers, true );
@@ -56,6 +57,7 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 	$detail_optional     = isset( $detail_check['optional_markers'] ) && is_array( $detail_check['optional_markers'] ) ? $detail_check['optional_markers'] : array();
 	$snapshot_logs_resolve = isset( $snapshot_logs_check['resolve'] ) && is_array( $snapshot_logs_check['resolve'] ) ? $snapshot_logs_check['resolve'] : array();
 	$run_journal_resolve   = isset( $run_journal_check['resolve'] ) && is_array( $run_journal_check['resolve'] ) ? $run_journal_check['resolve'] : array();
+	$event_logs_empty_path  = isset( $event_logs_empty_check['path'] ) ? (string) $event_logs_empty_check['path'] : '';
 	$dashboard_logs_resolve = isset( $dashboard_logs_check['resolve'] ) && is_array( $dashboard_logs_check['resolve'] ) ? $dashboard_logs_check['resolve'] : array();
 	$widget_activity_resolve = isset( $widget_activity_check['resolve'] ) && is_array( $widget_activity_check['resolve'] ) ? $widget_activity_check['resolve'] : array();
 
@@ -66,6 +68,7 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 	znts_assert_same( 'admin.php?page=zignites-sentinel-update-readiness', isset( $snapshot_logs_resolve['path'] ) ? $snapshot_logs_resolve['path'] : '', 'Admin smoke runner should discover snapshot-scoped Event Logs from the selected snapshot screen.' );
 	znts_assert_true( ! empty( $run_journal_check['resolve_optional'] ), 'Admin smoke runner should treat selected snapshot run-journal discovery as optional when no journal links are present.' );
 	znts_assert_same( 'admin.php?page=zignites-sentinel-update-readiness', isset( $run_journal_resolve['path'] ) ? $run_journal_resolve['path'] : '', 'Admin smoke runner should discover run-journal links from the selected snapshot screen.' );
+	znts_assert_true( false !== strpos( $event_logs_empty_path, 'znts-smoke-empty-state-token-9f3a0d66' ), 'Admin smoke runner should include a deterministic empty-state Event Logs query.' );
 	znts_assert_same( 'admin.php?page=zignites-sentinel', isset( $dashboard_logs_resolve['path'] ) ? $dashboard_logs_resolve['path'] : '', 'Admin smoke runner should discover snapshot-scoped Event Logs from the dashboard.' );
 	znts_assert_true( ! empty( $widget_activity_check['resolve_optional'] ), 'Admin smoke runner should treat widget snapshot activity discovery as optional when the widget has no latest snapshot.' );
 	znts_assert_same( 'index.php', isset( $widget_activity_resolve['path'] ) ? $widget_activity_resolve['path'] : '', 'Admin smoke runner should discover widget snapshot activity links from the WordPress dashboard.' );
@@ -143,6 +146,23 @@ function znts_test_admin_smoke_runner_requires_filtered_state_markers_for_snapsh
 	);
 
 	znts_assert_true( $result['passed'], 'Admin smoke runner should treat the filtered-state guidance as required on snapshot-scoped Event Logs pages.' );
+}
+
+function znts_test_admin_smoke_runner_requires_empty_state_markers_for_empty_event_logs_query() {
+	$runner = new ZNTS_Admin_Smoke_Runner();
+	$check  = array(
+		'label'   => 'Event Logs Empty State',
+		'path'    => 'admin.php?page=zignites-sentinel-event-logs&log_search=znts-smoke-empty-state-token-9f3a0d66',
+		'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Apply Filters', 'Reset', 'Current filters are active.', 'No event logs match the current filters.' ),
+	);
+
+	$result = $runner->evaluate_response(
+		$check,
+		200,
+		'<html><body><h1>Event Logs</h1><button>Apply Filters</button><a>Reset</a><button>Export Filtered CSV</button><p>Current filters are active. Scan the highlighted rows first.</p><strong>No event logs match the current filters.</strong></body></html>'
+	);
+
+	znts_assert_true( $result['passed'], 'Admin smoke runner should require the Event Logs empty-state copy and reset affordance for the deterministic no-match query.' );
 }
 
 function znts_test_admin_smoke_runner_resolves_selected_snapshot_links_from_update_readiness() {

@@ -59,7 +59,12 @@ return array(
 		array(
 			'label'   => 'Event Logs',
 			'path'    => 'admin.php?page=zignites-sentinel-event-logs',
-			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter', 'Current filters are active.' ),
+			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter' ),
+		),
+		array(
+			'label'   => 'Event Logs Empty State',
+			'path'    => 'admin.php?page=zignites-sentinel-event-logs&log_search=znts-smoke-empty-state-token-9f3a0d66',
+			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Apply Filters', 'Reset', 'Current filters are active.', 'No event logs match the current filters.' ),
 		),
 		array(
 			'label'   => 'Dashboard Snapshot Event Logs',
