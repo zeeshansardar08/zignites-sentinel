@@ -11,6 +11,7 @@ require_once __DIR__ . '/test-audit-report-verifier.php';
 require_once __DIR__ . '/test-restore-operator-checklist-evaluator.php';
 require_once __DIR__ . '/test-log-repository-filters.php';
 require_once __DIR__ . '/test-event-log-export-row.php';
+require_once __DIR__ . '/test-event-log-export-filename.php';
 require_once __DIR__ . '/test-event-log-presenter.php';
 require_once __DIR__ . '/test-snapshot-summary-export.php';
 require_once __DIR__ . '/test-restore-impact-summary.php';

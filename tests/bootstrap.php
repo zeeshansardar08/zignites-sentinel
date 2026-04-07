@@ -40,6 +40,15 @@ if ( ! function_exists( 'sanitize_html_class' ) ) {
 	}
 }
 
+if ( ! function_exists( 'sanitize_title' ) ) {
+	function sanitize_title( $title ) {
+		$title = strtolower( trim( (string) $title ) );
+		$title = preg_replace( '/[^a-z0-9]+/', '-', $title );
+
+		return trim( (string) $title, '-' );
+	}
+}
+
 if ( ! function_exists( 'absint' ) ) {
 	function absint( $value ) {
 		return abs( (int) $value );
