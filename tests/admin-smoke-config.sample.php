@@ -73,6 +73,18 @@ return array(
 			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter' ),
 		),
 		array(
+			'label'            => 'Widget Snapshot Activity',
+			'resolve'          => array(
+				'path'       => 'index.php',
+				'query_args' => array(
+					'page'        => 'zignites-sentinel-event-logs',
+					'snapshot_id' => true,
+				),
+			),
+			'resolve_optional' => true,
+			'markers'          => array( 'Event Logs', 'Export Filtered CSV', 'Filter' ),
+		),
+		array(
 			'label'   => 'WordPress Dashboard Widget',
 			'path'    => 'index.php',
 			'markers' => array( 'Sentinel', 'Recommended action' ),

@@ -43,11 +43,12 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 	);
 
 	$checks              = $runner->get_default_checks();
-	$detail_check          = $checks[2];
-	$snapshot_logs_check   = $checks[3];
-	$run_journal_check     = $checks[4];
-	$dashboard_logs_check  = $checks[6];
-	$widget_check          = $checks[7];
+	$detail_check           = $checks[2];
+	$snapshot_logs_check    = $checks[3];
+	$run_journal_check      = $checks[4];
+	$dashboard_logs_check   = $checks[6];
+	$widget_activity_check  = $checks[7];
+	$widget_check           = $checks[8];
 	$widget_markers      = isset( $widget_check['markers'] ) && is_array( $widget_check['markers'] ) ? $widget_check['markers'] : array();
 	$contains_sentinel   = in_array( 'Sentinel', $widget_markers, true );
 	$contains_old_marker = in_array( 'Zignites Sentinel', $widget_markers, true );
@@ -56,6 +57,7 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 	$snapshot_logs_resolve = isset( $snapshot_logs_check['resolve'] ) && is_array( $snapshot_logs_check['resolve'] ) ? $snapshot_logs_check['resolve'] : array();
 	$run_journal_resolve   = isset( $run_journal_check['resolve'] ) && is_array( $run_journal_check['resolve'] ) ? $run_journal_check['resolve'] : array();
 	$dashboard_logs_resolve = isset( $dashboard_logs_check['resolve'] ) && is_array( $dashboard_logs_check['resolve'] ) ? $dashboard_logs_check['resolve'] : array();
+	$widget_activity_resolve = isset( $widget_activity_check['resolve'] ) && is_array( $widget_activity_check['resolve'] ) ? $widget_activity_check['resolve'] : array();
 
 	znts_assert_true( $contains_sentinel, 'Admin smoke runner should expect the current dashboard widget heading marker.' );
 	znts_assert_true( ! $contains_old_marker, 'Admin smoke runner should not require the stale dashboard widget heading marker.' );
@@ -65,6 +67,8 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 	znts_assert_true( ! empty( $run_journal_check['resolve_optional'] ), 'Admin smoke runner should treat selected snapshot run-journal discovery as optional when no journal links are present.' );
 	znts_assert_same( 'admin.php?page=zignites-sentinel-update-readiness', isset( $run_journal_resolve['path'] ) ? $run_journal_resolve['path'] : '', 'Admin smoke runner should discover run-journal links from the selected snapshot screen.' );
 	znts_assert_same( 'admin.php?page=zignites-sentinel', isset( $dashboard_logs_resolve['path'] ) ? $dashboard_logs_resolve['path'] : '', 'Admin smoke runner should discover snapshot-scoped Event Logs from the dashboard.' );
+	znts_assert_true( ! empty( $widget_activity_check['resolve_optional'] ), 'Admin smoke runner should treat widget snapshot activity discovery as optional when the widget has no latest snapshot.' );
+	znts_assert_same( 'index.php', isset( $widget_activity_resolve['path'] ) ? $widget_activity_resolve['path'] : '', 'Admin smoke runner should discover widget snapshot activity links from the WordPress dashboard.' );
 }
 
 function znts_test_admin_smoke_runner_detects_login_fallback_and_missing_markers() {
@@ -271,4 +275,63 @@ function znts_test_admin_smoke_runner_resolves_snapshot_scoped_event_logs_from_d
 	znts_assert_same( '', $resolved['resolve_error'], 'Admin smoke runner should resolve snapshot-scoped Event Logs links from the dashboard.' );
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=88', $resolved['url'], 'Admin smoke runner should preserve the snapshot-scoped Event Logs URL resolved from the dashboard.' );
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel', $resolved['source_url'], 'Admin smoke runner should record the dashboard as the source page for snapshot-scoped Event Logs discovery.' );
+}
+
+function znts_test_admin_smoke_runner_skips_widget_snapshot_activity_when_no_link_exists() {
+	$runner = new ZNTS_Test_Admin_Smoke_Runner();
+	$runner->responses['http://example.test/wp-admin/index.php'] = array(
+		'status_code' => 200,
+		'body'        => '<html><body><div class="znts-dashboard-widget"><a href="http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness">Open Update Readiness</a></div></body></html>',
+		'error'       => '',
+	);
+
+	$resolved = $runner->resolve_check(
+		array(
+			'label'            => 'Widget Snapshot Activity',
+			'resolve'          => array(
+				'path'       => 'index.php',
+				'query_args' => array(
+					'page'        => 'zignites-sentinel-event-logs',
+					'snapshot_id' => true,
+				),
+			),
+			'resolve_optional' => true,
+			'markers'          => array( 'Event Logs' ),
+		),
+		'http://example.test/wp-admin/',
+		'wordpress_logged_in_example=abc'
+	);
+
+	znts_assert_true( ! empty( $resolved['skipped'] ), 'Admin smoke runner should skip optional widget snapshot activity checks when the widget has no snapshot activity link.' );
+	znts_assert_same( '', $resolved['resolve_error'], 'Admin smoke runner should not treat a missing optional widget snapshot activity link as a resolve failure.' );
+}
+
+function znts_test_admin_smoke_runner_resolves_widget_snapshot_activity_when_present() {
+	$runner = new ZNTS_Test_Admin_Smoke_Runner();
+	$runner->responses['http://example.test/wp-admin/index.php'] = array(
+		'status_code' => 200,
+		'body'        => '<html><body><div class="znts-dashboard-widget"><a href="http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&amp;snapshot_id=205">Open Snapshot Activity</a></div></body></html>',
+		'error'       => '',
+	);
+
+	$resolved = $runner->resolve_check(
+		array(
+			'label'            => 'Widget Snapshot Activity',
+			'resolve'          => array(
+				'path'       => 'index.php',
+				'query_args' => array(
+					'page'        => 'zignites-sentinel-event-logs',
+					'snapshot_id' => true,
+				),
+			),
+			'resolve_optional' => true,
+			'markers'          => array( 'Event Logs' ),
+		),
+		'http://example.test/wp-admin/',
+		'wordpress_logged_in_example=abc'
+	);
+
+	znts_assert_true( empty( $resolved['skipped'] ), 'Admin smoke runner should execute widget snapshot activity checks when a matching link is present.' );
+	znts_assert_same( '', $resolved['resolve_error'], 'Admin smoke runner should resolve the widget snapshot activity link when it is present.' );
+	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=205', $resolved['url'], 'Admin smoke runner should preserve the widget snapshot activity URL when it is present.' );
 }
