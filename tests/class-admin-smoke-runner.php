@@ -106,6 +106,67 @@ class ZNTS_Admin_Smoke_Runner {
 				),
 			),
 			array(
+				'label'            => 'Event Log Detail',
+				'resolve'          => array(
+					'path'       => 'admin.php?page=zignites-sentinel-event-logs',
+					'query_args' => array(
+						'page'   => 'zignites-sentinel-event-logs',
+						'log_id' => true,
+					),
+					'source_markers' => array(
+						'Event Explorer',
+					),
+				),
+				'resolve_optional' => true,
+				'markers'          => array(
+					'Event Logs',
+					'Event Detail',
+					'Context',
+				),
+			),
+			array(
+				'label'            => 'Event Log Run Summary Journal',
+				'resolve'          => array(
+					'path'       => 'admin.php?page=zignites-sentinel-event-logs',
+					'query_args' => array(
+						'page'   => 'zignites-sentinel-event-logs',
+						'source' => true,
+						'run_id' => true,
+					),
+					'source_markers' => array(
+						'Run Summaries',
+					),
+				),
+				'resolve_optional' => true,
+				'markers'          => array(
+					'Event Logs',
+					'Export Filtered CSV',
+					'Filter',
+					'Current filters are active.',
+					'Run Journal',
+				),
+			),
+			array(
+				'label'            => 'Event Log Run Summary Snapshot',
+				'resolve'          => array(
+					'path'       => 'admin.php?page=zignites-sentinel-event-logs',
+					'query_args' => array(
+						'page'        => 'zignites-sentinel-update-readiness',
+						'snapshot_id' => true,
+					),
+					'source_markers' => array(
+						'Run Summaries',
+					),
+				),
+				'resolve_optional' => true,
+				'markers'          => array(
+					'Update Readiness',
+					'Recent Snapshot Metadata',
+					'Sentinel Settings',
+					'Snapshot Summary',
+				),
+			),
+			array(
 				'label'   => 'Dashboard Snapshot Event Logs',
 				'resolve' => array(
 					'path'       => 'admin.php?page=zignites-sentinel',
@@ -218,9 +279,19 @@ class ZNTS_Admin_Smoke_Runner {
 		$body        = isset( $http['body'] ) ? (string) $http['body'] : '';
 		$source_code = isset( $http['status_code'] ) ? (int) $http['status_code'] : 0;
 		$source_auth = $this->detect_login_fallback( $body );
-		$query_args  = isset( $resolve['query_args'] ) && is_array( $resolve['query_args'] ) ? $resolve['query_args'] : array();
-		$target_path = $this->find_link_by_query_args( $body, $query_args );
-		$error       = '';
+		$query_args            = isset( $resolve['query_args'] ) && is_array( $resolve['query_args'] ) ? $resolve['query_args'] : array();
+		$source_markers        = isset( $resolve['source_markers'] ) && is_array( $resolve['source_markers'] ) ? $resolve['source_markers'] : array();
+		$target_path           = $this->find_link_by_query_args( $body, $query_args );
+		$source_missing_markers = array();
+		$error                 = '';
+
+		if ( '' !== $target_path ) {
+			foreach ( $source_markers as $marker ) {
+				if ( false === stripos( $body, (string) $marker ) ) {
+					$source_missing_markers[] = (string) $marker;
+				}
+			}
+		}
 
 		if ( '' !== (string) ( isset( $http['error'] ) ? $http['error'] : '' ) ) {
 			$error = (string) $http['error'];
@@ -228,6 +299,8 @@ class ZNTS_Admin_Smoke_Runner {
 			$error = 'Source page resolved to wp-login.';
 		} elseif ( 200 !== $source_code ) {
 			$error = 'Source page returned HTTP ' . $source_code . '.';
+		} elseif ( ! empty( $source_missing_markers ) ) {
+			$error = 'Source page missing markers: ' . implode( ', ', $source_missing_markers ) . '.';
 		} elseif ( '' === $target_path && ! $resolve_optional ) {
 			$error = 'Could not resolve a matching admin link from the source page.';
 		}
@@ -239,6 +312,7 @@ class ZNTS_Admin_Smoke_Runner {
 			'source_status_code'   => $source_code,
 			'source_error'         => isset( $http['error'] ) ? (string) $http['error'] : '',
 			'source_auth_fallback' => $source_auth,
+			'source_missing_markers' => $source_missing_markers,
 			'resolve_error'        => $error,
 			'skipped'              => '' === $error && '' === $target_path && $resolve_optional,
 			'skip_reason'          => '' === $error && '' === $target_path && $resolve_optional ? 'No matching optional admin link was present on the source page.' : '',
