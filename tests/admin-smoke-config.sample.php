@@ -67,6 +67,19 @@ return array(
 			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Apply Filters', 'Reset', 'Current filters are active.', 'No event logs match the current filters.' ),
 		),
 		array(
+			'label'            => 'Event Log Detail',
+			'resolve'          => array(
+				'path'       => 'admin.php?page=zignites-sentinel-event-logs',
+				'query_args' => array(
+					'page'   => 'zignites-sentinel-event-logs',
+					'log_id' => true,
+				),
+				'source_markers' => array( 'Event Explorer' ),
+			),
+			'resolve_optional' => true,
+			'markers'          => array( 'Event Logs', 'Event Detail', 'Context' ),
+		),
+		array(
 			'label'            => 'Event Log Run Summary Journal',
 			'resolve'          => array(
 				'path'       => 'admin.php?page=zignites-sentinel-event-logs',

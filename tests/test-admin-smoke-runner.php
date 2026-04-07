@@ -47,11 +47,12 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 	$snapshot_logs_check         = $checks[3];
 	$run_journal_check           = $checks[4];
 	$event_logs_empty_check      = $checks[6];
-	$event_log_summary_journal   = $checks[7];
-	$event_log_summary_snapshot  = $checks[8];
-	$dashboard_logs_check        = $checks[9];
-	$widget_activity_check       = $checks[10];
-	$widget_check                = $checks[11];
+	$event_log_detail_check      = $checks[7];
+	$event_log_summary_journal   = $checks[8];
+	$event_log_summary_snapshot  = $checks[9];
+	$dashboard_logs_check        = $checks[10];
+	$widget_activity_check       = $checks[11];
+	$widget_check                = $checks[12];
 	$widget_markers      = isset( $widget_check['markers'] ) && is_array( $widget_check['markers'] ) ? $widget_check['markers'] : array();
 	$contains_sentinel   = in_array( 'Sentinel', $widget_markers, true );
 	$contains_old_marker = in_array( 'Zignites Sentinel', $widget_markers, true );
@@ -60,6 +61,7 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 	$snapshot_logs_resolve = isset( $snapshot_logs_check['resolve'] ) && is_array( $snapshot_logs_check['resolve'] ) ? $snapshot_logs_check['resolve'] : array();
 	$run_journal_resolve   = isset( $run_journal_check['resolve'] ) && is_array( $run_journal_check['resolve'] ) ? $run_journal_check['resolve'] : array();
 	$event_logs_empty_path  = isset( $event_logs_empty_check['path'] ) ? (string) $event_logs_empty_check['path'] : '';
+	$event_log_detail_resolve = isset( $event_log_detail_check['resolve'] ) && is_array( $event_log_detail_check['resolve'] ) ? $event_log_detail_check['resolve'] : array();
 	$event_log_summary_journal_resolve = isset( $event_log_summary_journal['resolve'] ) && is_array( $event_log_summary_journal['resolve'] ) ? $event_log_summary_journal['resolve'] : array();
 	$event_log_summary_snapshot_resolve = isset( $event_log_summary_snapshot['resolve'] ) && is_array( $event_log_summary_snapshot['resolve'] ) ? $event_log_summary_snapshot['resolve'] : array();
 	$dashboard_logs_resolve = isset( $dashboard_logs_check['resolve'] ) && is_array( $dashboard_logs_check['resolve'] ) ? $dashboard_logs_check['resolve'] : array();
@@ -73,6 +75,9 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 	znts_assert_true( ! empty( $run_journal_check['resolve_optional'] ), 'Admin smoke runner should treat selected snapshot run-journal discovery as optional when no journal links are present.' );
 	znts_assert_same( 'admin.php?page=zignites-sentinel-update-readiness', isset( $run_journal_resolve['path'] ) ? $run_journal_resolve['path'] : '', 'Admin smoke runner should discover run-journal links from the selected snapshot screen.' );
 	znts_assert_true( false !== strpos( $event_logs_empty_path, 'znts-smoke-empty-state-token-9f3a0d66' ), 'Admin smoke runner should include a deterministic empty-state Event Logs query.' );
+	znts_assert_true( ! empty( $event_log_detail_check['resolve_optional'] ), 'Admin smoke runner should treat Event Log detail discovery as optional when the current filtered page has no visible row links.' );
+	znts_assert_same( 'admin.php?page=zignites-sentinel-event-logs', isset( $event_log_detail_resolve['path'] ) ? $event_log_detail_resolve['path'] : '', 'Admin smoke runner should discover Event Log detail links from the Event Logs screen.' );
+	znts_assert_same( array( 'Event Explorer' ), isset( $event_log_detail_resolve['source_markers'] ) ? $event_log_detail_resolve['source_markers'] : array(), 'Admin smoke runner should require the Event Explorer section before treating an Event Log detail link as valid.' );
 	znts_assert_true( ! empty( $event_log_summary_journal['resolve_optional'] ), 'Admin smoke runner should treat Event Logs run-summary journal discovery as optional when no run summaries are present.' );
 	znts_assert_same( 'admin.php?page=zignites-sentinel-event-logs', isset( $event_log_summary_journal_resolve['path'] ) ? $event_log_summary_journal_resolve['path'] : '', 'Admin smoke runner should discover run-summary journal links from the Event Logs screen.' );
 	znts_assert_same( array( 'Run Summaries' ), isset( $event_log_summary_journal_resolve['source_markers'] ) ? $event_log_summary_journal_resolve['source_markers'] : array(), 'Admin smoke runner should require the Run Summaries section before treating a run-summary journal link as valid.' );
@@ -173,6 +178,117 @@ function znts_test_admin_smoke_runner_requires_empty_state_markers_for_empty_eve
 	);
 
 	znts_assert_true( $result['passed'], 'Admin smoke runner should require the Event Logs empty-state copy and reset affordance for the deterministic no-match query.' );
+}
+
+function znts_test_admin_smoke_runner_skips_event_log_detail_when_no_link_exists() {
+	$runner = new ZNTS_Test_Admin_Smoke_Runner();
+	$runner->responses['http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs'] = array(
+		'status_code' => 200,
+		'body'        => '<html><body><h1>Event Logs</h1><h2>Event Explorer</h2><p>No detail rows are available.</p></body></html>',
+		'error'       => '',
+	);
+
+	$resolved = $runner->resolve_check(
+		array(
+			'label'            => 'Event Log Detail',
+			'resolve'          => array(
+				'path'       => 'admin.php?page=zignites-sentinel-event-logs',
+				'query_args' => array(
+					'page'   => 'zignites-sentinel-event-logs',
+					'log_id' => true,
+				),
+				'source_markers' => array(
+					'Event Explorer',
+				),
+			),
+			'resolve_optional' => true,
+			'markers'          => array( 'Event Logs' ),
+		),
+		'http://example.test/wp-admin/',
+		'wordpress_logged_in_example=abc'
+	);
+
+	znts_assert_true( ! empty( $resolved['skipped'] ), 'Admin smoke runner should skip Event Log detail checks when no detail link is present.' );
+}
+
+function znts_test_admin_smoke_runner_resolves_event_log_detail_when_present() {
+	$runner = new ZNTS_Test_Admin_Smoke_Runner();
+	$runner->responses['http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs'] = array(
+		'status_code' => 200,
+		'body'        => '<html><body><h2>Event Explorer</h2><table><tr><td><a href="http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&amp;log_id=91">2026-04-07 10:15:00</a></td></tr></table></body></html>',
+		'error'       => '',
+	);
+
+	$resolved = $runner->resolve_check(
+		array(
+			'label'            => 'Event Log Detail',
+			'resolve'          => array(
+				'path'       => 'admin.php?page=zignites-sentinel-event-logs',
+				'query_args' => array(
+					'page'   => 'zignites-sentinel-event-logs',
+					'log_id' => true,
+				),
+				'source_markers' => array(
+					'Event Explorer',
+				),
+			),
+			'resolve_optional' => true,
+			'markers'          => array( 'Event Logs' ),
+		),
+		'http://example.test/wp-admin/',
+		'wordpress_logged_in_example=abc'
+	);
+
+	znts_assert_true( empty( $resolved['skipped'] ), 'Admin smoke runner should execute Event Log detail checks when a matching detail link is present.' );
+	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&log_id=91', $resolved['url'], 'Admin smoke runner should preserve the Event Log detail URL resolved from the Event Logs table.' );
+}
+
+function znts_test_admin_smoke_runner_rejects_event_log_detail_link_without_event_explorer_section() {
+	$runner = new ZNTS_Test_Admin_Smoke_Runner();
+	$runner->responses['http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs'] = array(
+		'status_code' => 200,
+		'body'        => '<html><body><a href="http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&amp;log_id=91">2026-04-07 10:15:00</a></body></html>',
+		'error'       => '',
+	);
+
+	$resolved = $runner->resolve_check(
+		array(
+			'label'            => 'Event Log Detail',
+			'resolve'          => array(
+				'path'       => 'admin.php?page=zignites-sentinel-event-logs',
+				'query_args' => array(
+					'page'   => 'zignites-sentinel-event-logs',
+					'log_id' => true,
+				),
+				'source_markers' => array(
+					'Event Explorer',
+				),
+			),
+			'resolve_optional' => true,
+			'markers'          => array( 'Event Logs' ),
+		),
+		'http://example.test/wp-admin/',
+		'wordpress_logged_in_example=abc'
+	);
+
+	znts_assert_same( 'Source page missing markers: Event Explorer.', $resolved['resolve_error'], 'Admin smoke runner should reject an Event Log detail link when the source page does not expose the Event Explorer section.' );
+}
+
+function znts_test_admin_smoke_runner_requires_event_detail_markers_when_link_is_present() {
+	$runner = new ZNTS_Admin_Smoke_Runner();
+	$check  = array(
+		'label'   => 'Event Log Detail',
+		'path'    => 'admin.php?page=zignites-sentinel-event-logs&log_id=91',
+		'markers' => array( 'Event Logs', 'Event Detail', 'Context' ),
+	);
+
+	$result = $runner->evaluate_response(
+		$check,
+		200,
+		'<html><body><h1>Event Logs</h1><h2>Event Detail</h2><h3>Context</h3></body></html>'
+	);
+
+	znts_assert_true( $result['passed'], 'Admin smoke runner should require the Event Detail and Context sections when an Event Log detail link resolves successfully.' );
 }
 
 function znts_test_admin_smoke_runner_skips_event_log_run_summary_journal_when_no_link_exists() {
