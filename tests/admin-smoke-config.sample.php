@@ -44,6 +44,19 @@ return array(
 			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter' ),
 		),
 		array(
+			'label'            => 'Selected Snapshot Run Journal',
+			'resolve'          => array(
+				'path'       => 'admin.php?page=zignites-sentinel-update-readiness',
+				'query_args' => array(
+					'page'   => 'zignites-sentinel-event-logs',
+					'source' => true,
+					'run_id' => true,
+				),
+			),
+			'resolve_optional' => true,
+			'markers'          => array( 'Event Logs', 'Export Filtered CSV', 'Filter' ),
+		),
+		array(
 			'label'   => 'Event Logs',
 			'path'    => 'admin.php?page=zignites-sentinel-event-logs',
 			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter' ),

@@ -65,6 +65,23 @@ class ZNTS_Admin_Smoke_Runner {
 				),
 			),
 			array(
+				'label'            => 'Selected Snapshot Run Journal',
+				'resolve'          => array(
+					'path'       => 'admin.php?page=zignites-sentinel-update-readiness',
+					'query_args' => array(
+						'page'   => 'zignites-sentinel-event-logs',
+						'source' => true,
+						'run_id' => true,
+					),
+				),
+				'resolve_optional' => true,
+				'markers'          => array(
+					'Event Logs',
+					'Export Filtered CSV',
+					'Filter',
+				),
+			),
+			array(
 				'label'   => 'Event Logs',
 				'path'    => 'admin.php?page=zignites-sentinel-event-logs',
 				'markers' => array(
@@ -145,17 +162,20 @@ class ZNTS_Admin_Smoke_Runner {
 	 * @return array
 	 */
 	public function resolve_check( array $check, $base_url, $cookie_header, $timeout = 20 ) {
-		$path = isset( $check['path'] ) ? (string) $check['path'] : '';
+		$path             = isset( $check['path'] ) ? (string) $check['path'] : '';
+		$resolve_optional = ! empty( $check['resolve_optional'] );
 
 		if ( empty( $check['resolve'] ) || ! is_array( $check['resolve'] ) ) {
 			return array(
-				'url'                => $this->build_url( $base_url, $path ),
-				'path'               => $path,
-				'source_url'         => '',
-				'source_status_code' => 0,
-				'source_error'       => '',
+				'url'                  => $this->build_url( $base_url, $path ),
+				'path'                 => $path,
+				'source_url'           => '',
+				'source_status_code'   => 0,
+				'source_error'         => '',
 				'source_auth_fallback' => false,
-				'resolve_error'      => '',
+				'resolve_error'        => '',
+				'skipped'              => false,
+				'skip_reason'          => '',
 			);
 		}
 
@@ -176,7 +196,7 @@ class ZNTS_Admin_Smoke_Runner {
 			$error = 'Source page resolved to wp-login.';
 		} elseif ( 200 !== $source_code ) {
 			$error = 'Source page returned HTTP ' . $source_code . '.';
-		} elseif ( '' === $target_path ) {
+		} elseif ( '' === $target_path && ! $resolve_optional ) {
 			$error = 'Could not resolve a matching admin link from the source page.';
 		}
 
@@ -188,6 +208,8 @@ class ZNTS_Admin_Smoke_Runner {
 			'source_error'         => isset( $http['error'] ) ? (string) $http['error'] : '',
 			'source_auth_fallback' => $source_auth,
 			'resolve_error'        => $error,
+			'skipped'              => '' === $error && '' === $target_path && $resolve_optional,
+			'skip_reason'          => '' === $error && '' === $target_path && $resolve_optional ? 'No matching optional admin link was present on the source page.' : '',
 		);
 	}
 
