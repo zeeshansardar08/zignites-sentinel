@@ -106,6 +106,42 @@ class ZNTS_Admin_Smoke_Runner {
 				),
 			),
 			array(
+				'label'            => 'Event Log Run Summary Journal',
+				'resolve'          => array(
+					'path'       => 'admin.php?page=zignites-sentinel-event-logs',
+					'query_args' => array(
+						'page'   => 'zignites-sentinel-event-logs',
+						'source' => true,
+						'run_id' => true,
+					),
+				),
+				'resolve_optional' => true,
+				'markers'          => array(
+					'Event Logs',
+					'Export Filtered CSV',
+					'Filter',
+					'Current filters are active.',
+					'Run Journal',
+				),
+			),
+			array(
+				'label'            => 'Event Log Run Summary Snapshot',
+				'resolve'          => array(
+					'path'       => 'admin.php?page=zignites-sentinel-event-logs',
+					'query_args' => array(
+						'page'        => 'zignites-sentinel-update-readiness',
+						'snapshot_id' => true,
+					),
+				),
+				'resolve_optional' => true,
+				'markers'          => array(
+					'Update Readiness',
+					'Recent Snapshot Metadata',
+					'Sentinel Settings',
+					'Snapshot Summary',
+				),
+			),
+			array(
 				'label'   => 'Dashboard Snapshot Event Logs',
 				'resolve' => array(
 					'path'       => 'admin.php?page=zignites-sentinel',
