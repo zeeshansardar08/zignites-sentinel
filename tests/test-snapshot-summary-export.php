@@ -6,6 +6,7 @@
 require_once __DIR__ . '/bootstrap.php';
 
 use Zignites\Sentinel\Admin\Admin;
+use Zignites\Sentinel\Admin\SnapshotSummaryPresenter;
 
 class ZNTS_Fake_Snapshot_Summary_Resolver {
 	public $status_index = array();
@@ -31,6 +32,7 @@ class ZNTS_Testable_Snapshot_Summary_Admin extends Admin {
 	public function __construct() {
 		$this->snapshot_status_resolver = new ZNTS_Fake_Snapshot_Summary_Resolver();
 		$this->status_presenter         = new \Zignites\Sentinel\Admin\StatusPresenter();
+		$this->snapshot_summary_presenter = new SnapshotSummaryPresenter();
 	}
 
 	public function set_status_index( array $status_index ) {
