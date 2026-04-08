@@ -514,23 +514,20 @@ class Admin {
 			wp_die( esc_html__( 'You do not have permission to access this page.', 'zignites-sentinel' ) );
 		}
 
-		$summary = $this->get_dashboard_summary_payload( 5 );
-
-		$view_data = array(
-			'plugin_version'        => ZNTS_VERSION,
-			'db_version'            => get_option( ZNTS_OPTION_DB_VERSION, ZNTS_DB_VERSION ),
-			'logs_table'            => Installer::get_logs_table_name(),
-			'conflicts_table'       => Installer::get_conflicts_table_name(),
-			'wordpress'             => get_bloginfo( 'version' ),
-			'php'                   => PHP_VERSION,
-			'site_url'              => home_url(),
-			'recent_logs'           => $this->logs->get_recent( 8 ),
-			'recent_conflicts'      => $this->conflicts->get_recent_open( 6 ),
-			'recent_snapshots'      => $summary['recent_snapshots'],
-			'health_score'          => $summary['health_score'],
-			'restore_health_strip'  => $summary['restore_health_strip'],
-			'snapshot_status_index' => $summary['snapshot_status_index'],
-			'site_status_card'      => $summary['site_status_card'],
+		$summary   = $this->get_dashboard_summary_payload( 5 );
+		$view_data = $this->dashboard_summary_state_builder->build_dashboard_screen_state(
+			$summary,
+			array(
+				'plugin_version'   => ZNTS_VERSION,
+				'db_version'       => get_option( ZNTS_OPTION_DB_VERSION, ZNTS_DB_VERSION ),
+				'logs_table'       => Installer::get_logs_table_name(),
+				'conflicts_table'  => Installer::get_conflicts_table_name(),
+				'wordpress'        => get_bloginfo( 'version' ),
+				'php'              => PHP_VERSION,
+				'site_url'         => home_url(),
+				'recent_logs'      => $this->logs->get_recent( 8 ),
+				'recent_conflicts' => $this->conflicts->get_recent_open( 6 ),
+			)
 		);
 
 		require ZNTS_PLUGIN_DIR . 'includes/admin/views/dashboard.php';

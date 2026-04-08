@@ -128,4 +128,30 @@ class DashboardSummaryStateBuilder {
 			'activity_url'          => (string) $activity_url,
 		);
 	}
+
+	/**
+	 * Build normalized view state for the full dashboard screen.
+	 *
+	 * @param array $summary Shared dashboard summary payload.
+	 * @param array $context Dashboard screen context payload.
+	 * @return array
+	 */
+	public function build_dashboard_screen_state( array $summary, array $context ) {
+		return array(
+			'plugin_version'        => isset( $context['plugin_version'] ) ? (string) $context['plugin_version'] : '',
+			'db_version'            => isset( $context['db_version'] ) ? (string) $context['db_version'] : '',
+			'logs_table'            => isset( $context['logs_table'] ) ? (string) $context['logs_table'] : '',
+			'conflicts_table'       => isset( $context['conflicts_table'] ) ? (string) $context['conflicts_table'] : '',
+			'wordpress'             => isset( $context['wordpress'] ) ? (string) $context['wordpress'] : '',
+			'php'                   => isset( $context['php'] ) ? (string) $context['php'] : '',
+			'site_url'              => isset( $context['site_url'] ) ? (string) $context['site_url'] : '',
+			'recent_logs'           => isset( $context['recent_logs'] ) && is_array( $context['recent_logs'] ) ? $context['recent_logs'] : array(),
+			'recent_conflicts'      => isset( $context['recent_conflicts'] ) && is_array( $context['recent_conflicts'] ) ? $context['recent_conflicts'] : array(),
+			'recent_snapshots'      => isset( $summary['recent_snapshots'] ) && is_array( $summary['recent_snapshots'] ) ? $summary['recent_snapshots'] : array(),
+			'health_score'          => isset( $summary['health_score'] ) && is_array( $summary['health_score'] ) ? $summary['health_score'] : array(),
+			'restore_health_strip'  => isset( $summary['restore_health_strip'] ) && is_array( $summary['restore_health_strip'] ) ? $summary['restore_health_strip'] : array(),
+			'snapshot_status_index' => isset( $summary['snapshot_status_index'] ) && is_array( $summary['snapshot_status_index'] ) ? $summary['snapshot_status_index'] : array(),
+			'site_status_card'      => isset( $summary['site_status_card'] ) && is_array( $summary['site_status_card'] ) ? $summary['site_status_card'] : array(),
+		);
+	}
 }
