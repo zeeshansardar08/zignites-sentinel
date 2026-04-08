@@ -300,6 +300,13 @@ class Admin {
 	protected $snapshot_summary_state_builder;
 
 	/**
+	 * Dashboard summary state builder.
+	 *
+	 * @var DashboardSummaryStateBuilder
+	 */
+	protected $dashboard_summary_state_builder;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Logger                   $logger              Structured logger.
@@ -370,6 +377,7 @@ class Admin {
 		$this->restore_operator_checklist_evaluator = new RestoreOperatorChecklistEvaluator();
 		$this->snapshot_list_state_builder = new SnapshotListStateBuilder();
 		$this->snapshot_summary_state_builder = new SnapshotSummaryStateBuilder();
+		$this->dashboard_summary_state_builder = new DashboardSummaryStateBuilder();
 		$this->status_presenter             = new StatusPresenter();
 		$this->health_comparison_presenter  = new HealthComparisonPresenter( $this->status_presenter );
 		$this->restore_checkpoint_presenter = new RestoreCheckpointPresenter( $this->status_presenter );
@@ -551,20 +559,23 @@ class Admin {
 	 * @return array
 	 */
 	protected function get_dashboard_summary_payload( $snapshot_limit = 5 ) {
-		$recent_snapshots      = $this->snapshots->get_recent( max( 1, absint( $snapshot_limit ) ) );
-		$health_score          = $this->health_score->calculate();
-		$snapshot_status_index = $this->snapshot_status_resolver->build_snapshot_status_index( $recent_snapshots );
-		$site_status_card      = $this->snapshot_status_resolver->build_site_status_card( $health_score, $recent_snapshots, $snapshot_status_index );
-		$activity_url          = ! empty( $site_status_card['latest_snapshot']['id'] ) ? $this->get_snapshot_activity_url( (int) $site_status_card['latest_snapshot']['id'] ) : '';
+		$summary_state = $this->dashboard_summary_state_builder->build_summary_state(
+			$snapshot_limit,
+			$this->snapshots,
+			$this->health_score,
+			$this->snapshot_status_resolver
+		);
+		$site_status_card = isset( $summary_state['site_status_card'] ) ? $summary_state['site_status_card'] : array();
+		$summary_state['activity_url'] = ! empty( $site_status_card['latest_snapshot']['id'] ) ? $this->get_snapshot_activity_url( (int) $site_status_card['latest_snapshot']['id'] ) : '';
 
 		return $this->dashboard_summary_presenter->build_summary_payload(
-			$recent_snapshots,
-			is_array( $health_score ) ? $health_score : array(),
-			is_array( $snapshot_status_index ) ? $snapshot_status_index : array(),
-			is_array( $site_status_card ) ? $site_status_card : array(),
+			$summary_state['recent_snapshots'],
+			$summary_state['health_score'],
+			$summary_state['snapshot_status_index'],
+			$summary_state['site_status_card'],
 			$this->get_restore_dashboard_health_strip(),
 			self::UPDATE_PAGE_SLUG,
-			$activity_url
+			$summary_state['activity_url']
 		);
 	}
 
