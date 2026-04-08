@@ -93,3 +93,27 @@ function znts_test_dashboard_summary_state_builder_normalizes_restore_summary_in
 	znts_assert_same( true, $state['plan_timing']['is_fresh'], 'Dashboard restore summary state builder should preserve the plan timing payload.' );
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=92', $state['activity_url'], 'Dashboard restore summary state builder should preserve the supplied activity URL.' );
 }
+
+function znts_test_dashboard_summary_state_builder_normalizes_health_strip_inputs() {
+	$builder = new DashboardSummaryStateBuilder();
+	$state   = $builder->build_health_strip_state(
+		array(
+			'id'    => 93,
+			'label' => 'Health snapshot',
+		),
+		array(
+			array(
+				'label'  => 'Baseline',
+				'status' => 'healthy',
+			),
+			array(
+				'label'  => 'Post-Restore',
+				'status' => 'warning',
+			),
+		)
+	);
+
+	znts_assert_same( 93, $state['snapshot']['id'], 'Dashboard health strip state builder should preserve the selected snapshot.' );
+	znts_assert_same( 2, count( $state['rows'] ), 'Dashboard health strip state builder should preserve the supplied health comparison rows.' );
+	znts_assert_same( 'warning', $state['rows'][1]['status'], 'Dashboard health strip state builder should preserve the row payload order and values.' );
+}

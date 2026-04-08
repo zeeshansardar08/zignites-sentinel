@@ -69,4 +69,22 @@ class DashboardSummaryStateBuilder {
 			'activity_url'  => (string) $activity_url,
 		);
 	}
+
+	/**
+	 * Build the normalized state used by the dashboard health-strip presenter.
+	 *
+	 * @param array|null $snapshot Latest snapshot detail.
+	 * @param array      $rows     Health comparison rows.
+	 * @return array
+	 */
+	public function build_health_strip_state( $snapshot, array $rows ) {
+		if ( ! is_array( $snapshot ) || empty( $snapshot['id'] ) ) {
+			return array();
+		}
+
+		return array(
+			'snapshot' => $snapshot,
+			'rows'     => $rows,
+		);
+	}
 }

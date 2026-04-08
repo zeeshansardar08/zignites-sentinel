@@ -2483,9 +2483,17 @@ class Admin {
 			return array();
 		}
 
-		$rows = $this->get_snapshot_health_comparison( $snapshot );
+		$rows               = $this->get_snapshot_health_comparison( $snapshot );
+		$health_strip_state = $this->dashboard_summary_state_builder->build_health_strip_state(
+			$snapshot,
+			is_array( $rows ) ? $rows : array()
+		);
 
-		return $this->dashboard_summary_presenter->build_health_strip( $snapshot, is_array( $rows ) ? $rows : array(), self::UPDATE_PAGE_SLUG );
+		return $this->dashboard_summary_presenter->build_health_strip(
+			$health_strip_state['snapshot'],
+			$health_strip_state['rows'],
+			self::UPDATE_PAGE_SLUG
+		);
 	}
 
 	/**
