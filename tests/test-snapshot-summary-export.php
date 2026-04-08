@@ -6,6 +6,7 @@
 require_once __DIR__ . '/bootstrap.php';
 
 use Zignites\Sentinel\Admin\Admin;
+use Zignites\Sentinel\Admin\RestoreCheckpointPresenter;
 use Zignites\Sentinel\Admin\SnapshotSummaryPresenter;
 
 class ZNTS_Fake_Snapshot_Summary_Resolver {
@@ -32,6 +33,7 @@ class ZNTS_Testable_Snapshot_Summary_Admin extends Admin {
 	public function __construct() {
 		$this->snapshot_status_resolver = new ZNTS_Fake_Snapshot_Summary_Resolver();
 		$this->status_presenter         = new \Zignites\Sentinel\Admin\StatusPresenter();
+		$this->restore_checkpoint_presenter = new RestoreCheckpointPresenter( $this->status_presenter );
 		$this->snapshot_summary_presenter = new SnapshotSummaryPresenter();
 	}
 

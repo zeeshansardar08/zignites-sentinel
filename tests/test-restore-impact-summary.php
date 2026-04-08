@@ -6,6 +6,7 @@
 require_once __DIR__ . '/bootstrap.php';
 
 use Zignites\Sentinel\Admin\Admin;
+use Zignites\Sentinel\Admin\RestoreCheckpointPresenter;
 use Zignites\Sentinel\Admin\RestoreImpactSummaryPresenter;
 
 class ZNTS_Testable_Restore_Impact_Admin extends Admin {
@@ -13,6 +14,7 @@ class ZNTS_Testable_Restore_Impact_Admin extends Admin {
 
 	public function __construct() {
 		$this->status_presenter = new \Zignites\Sentinel\Admin\StatusPresenter();
+		$this->restore_checkpoint_presenter = new RestoreCheckpointPresenter( $this->status_presenter );
 		$this->restore_impact_summary_presenter = new RestoreImpactSummaryPresenter();
 	}
 

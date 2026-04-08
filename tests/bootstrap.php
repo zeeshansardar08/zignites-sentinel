@@ -6,6 +6,7 @@
 define( 'ABSPATH', __DIR__ . '/../' );
 define( 'DAY_IN_SECONDS', 86400 );
 define( 'HOUR_IN_SECONDS', 3600 );
+define( 'MINUTE_IN_SECONDS', 60 );
 define( 'ZNTS_VERSION', '1.29.0-test' );
 define( 'ZNTS_OPTION_SETTINGS', 'znts_settings' );
 define( 'ZNTS_OPTION_LAST_SNAPSHOT_HEALTH_BASELINE', 'znts_last_snapshot_health_baseline' );
@@ -187,6 +188,7 @@ require_once __DIR__ . '/../includes/admin/class-status-presenter.php';
 require_once __DIR__ . '/../includes/admin/class-event-log-presenter.php';
 require_once __DIR__ . '/../includes/admin/class-dashboard-summary-presenter.php';
 require_once __DIR__ . '/../includes/admin/class-health-comparison-presenter.php';
+require_once __DIR__ . '/../includes/admin/class-restore-checkpoint-presenter.php';
 require_once __DIR__ . '/../includes/admin/class-restore-impact-summary-presenter.php';
 require_once __DIR__ . '/../includes/admin/class-snapshot-summary-presenter.php';
 require_once __DIR__ . '/../includes/admin/class-restore-operator-checklist-evaluator.php';

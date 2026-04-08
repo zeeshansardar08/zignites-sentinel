@@ -230,6 +230,13 @@ class Admin {
 	protected $health_comparison_presenter;
 
 	/**
+	 * Restore checkpoint presenter.
+	 *
+	 * @var RestoreCheckpointPresenter
+	 */
+	protected $restore_checkpoint_presenter;
+
+	/**
 	 * Snapshot summary presenter.
 	 *
 	 * @var SnapshotSummaryPresenter
@@ -340,11 +347,12 @@ class Admin {
 		$this->settings_portability     = new SettingsPortability();
 		$this->audit_report_verifier    = new AuditReportVerifier();
 		$this->restore_operator_checklist_evaluator = new RestoreOperatorChecklistEvaluator();
-		$this->status_presenter           = new StatusPresenter();
-		$this->health_comparison_presenter = new HealthComparisonPresenter( $this->status_presenter );
-		$this->event_log_presenter        = new EventLogPresenter();
-		$this->snapshot_summary_presenter = new SnapshotSummaryPresenter();
-		$this->dashboard_summary_presenter = new DashboardSummaryPresenter();
+		$this->status_presenter             = new StatusPresenter();
+		$this->health_comparison_presenter  = new HealthComparisonPresenter( $this->status_presenter );
+		$this->restore_checkpoint_presenter = new RestoreCheckpointPresenter( $this->status_presenter );
+		$this->event_log_presenter          = new EventLogPresenter();
+		$this->snapshot_summary_presenter   = new SnapshotSummaryPresenter();
+		$this->dashboard_summary_presenter  = new DashboardSummaryPresenter();
 		$this->restore_impact_summary_presenter = new RestoreImpactSummaryPresenter();
 		$this->snapshot_status_resolver = new SnapshotStatusResolver(
 			$logs,
@@ -2941,10 +2949,9 @@ class Admin {
 			$cards[] = $this->build_run_card(
 				__( 'Latest Restore Run', 'zignites-sentinel' ),
 				$last_execution,
-				RestoreExecutor::JOURNAL_SOURCE,
 				$restore_resume,
 				$execution_checkpoint,
-				$snapshot_id
+				$this->get_run_journal_url( RestoreExecutor::JOURNAL_SOURCE, isset( $last_execution['run_id'] ) ? (string) $last_execution['run_id'] : '', $snapshot_id )
 			);
 		}
 
@@ -2952,10 +2959,9 @@ class Admin {
 			$cards[] = $this->build_run_card(
 				__( 'Latest Rollback Run', 'zignites-sentinel' ),
 				$last_rollback,
-				RestoreRollbackManager::JOURNAL_SOURCE,
 				$rollback_resume,
 				array(),
-				$snapshot_id
+				$this->get_run_journal_url( RestoreRollbackManager::JOURNAL_SOURCE, isset( $last_rollback['run_id'] ) ? (string) $last_rollback['run_id'] : '', $snapshot_id )
 			);
 		}
 
@@ -3003,30 +3009,11 @@ class Admin {
 	 * @return array
 	 */
 	protected function build_checkpoint_card( $title, array $checkpoint, $summary_line ) {
-		$fingerprint = isset( $checkpoint['package_fingerprint'] ) && is_array( $checkpoint['package_fingerprint'] ) ? $checkpoint['package_fingerprint'] : array();
-		$source_path = isset( $fingerprint['source_path'] ) ? (string) $fingerprint['source_path'] : '';
-		$timing      = $this->get_checkpoint_timing_summary( $checkpoint );
-		$secondary   = array();
-		$status      = $this->status_presenter->present_readiness( isset( $checkpoint['status'] ) ? $checkpoint['status'] : '' );
-
-		if ( '' !== $source_path ) {
-			$secondary[] = sprintf( __( 'Package: %s', 'zignites-sentinel' ), $source_path );
-		}
-
-		if ( ! empty( $timing['label'] ) ) {
-			$secondary[] = $timing['label'];
-		}
-
-		return array(
-			'title'      => $title,
-			'status'     => isset( $checkpoint['status'] ) ? (string) $checkpoint['status'] : '',
-			'badge'      => isset( $status['pill'] ) ? (string) $status['pill'] : 'info',
-			'status_label' => isset( $status['label'] ) ? (string) $status['label'] : '',
-			'timestamp'  => isset( $checkpoint['generated_at'] ) ? (string) $checkpoint['generated_at'] : '',
-			'primary'    => (string) $summary_line,
-			'secondary'  => implode( ' ', $secondary ),
-			'link_url'   => '',
-			'link_label' => '',
+		return $this->restore_checkpoint_presenter->build_checkpoint_card(
+			$title,
+			$checkpoint,
+			$summary_line,
+			$this->get_checkpoint_timing_summary( $checkpoint )
 		);
 	}
 
@@ -3037,43 +3024,10 @@ class Admin {
 	 * @return array
 	 */
 	protected function get_checkpoint_timing_summary( array $checkpoint ) {
-		$generated_at = isset( $checkpoint['generated_at'] ) ? (string) $checkpoint['generated_at'] : '';
-		$generated_ts = '' !== $generated_at ? strtotime( $generated_at ) : false;
 		$settings     = $this->get_settings();
 		$max_age_hours = isset( $settings['restore_checkpoint_max_age_hours'] ) ? max( 1, (int) $settings['restore_checkpoint_max_age_hours'] ) : 24;
 
-		if ( false === $generated_ts ) {
-			return array(
-				'is_fresh'       => false,
-				'generated_at'   => $generated_at,
-				'expires_at'     => '',
-				'seconds_until'  => 0,
-				'label'          => __( 'Checkpoint timestamp is invalid.', 'zignites-sentinel' ),
-			);
-		}
-
-		$expires_ts    = $generated_ts + ( $max_age_hours * HOUR_IN_SECONDS );
-		$seconds_until = $expires_ts - time();
-		$duration      = $this->format_duration_seconds( abs( $seconds_until ) );
-		$label         = $seconds_until >= 0
-			? sprintf(
-				/* translators: %s: remaining duration */
-				__( 'Expires in %s.', 'zignites-sentinel' ),
-				$duration
-			)
-			: sprintf(
-				/* translators: %s: expired duration */
-				__( 'Expired %s ago.', 'zignites-sentinel' ),
-				$duration
-			);
-
-		return array(
-			'is_fresh'      => $seconds_until >= 0,
-			'generated_at'  => $generated_at,
-			'expires_at'    => gmdate( 'Y-m-d H:i:s', $expires_ts ),
-			'seconds_until' => (int) $seconds_until,
-			'label'         => $label,
-		);
+		return $this->restore_checkpoint_presenter->build_timing_summary( $checkpoint, $max_age_hours, time() );
 	}
 
 	/**
@@ -3084,17 +3038,10 @@ class Admin {
 	 * @return string
 	 */
 	protected function build_restore_gate_summary( $missing_message, $checkpoint ) {
-		if ( ! is_array( $checkpoint ) || empty( $checkpoint ) ) {
-			return $missing_message;
-		}
-
-		$timing = $this->get_checkpoint_timing_summary( $checkpoint );
-
-		return sprintf(
-			/* translators: 1: checkpoint status, 2: timing label */
-			__( '%1$s. %2$s', 'zignites-sentinel' ),
-			isset( $checkpoint['status'] ) ? $this->status_presenter->format_status_label( (string) $checkpoint['status'] ) : __( 'Stored', 'zignites-sentinel' ),
-			isset( $timing['label'] ) ? (string) $timing['label'] : ''
+		return $this->restore_checkpoint_presenter->build_gate_summary(
+			$missing_message,
+			$checkpoint,
+			( is_array( $checkpoint ) && ! empty( $checkpoint ) ) ? $this->get_checkpoint_timing_summary( $checkpoint ) : array()
 		);
 	}
 
@@ -3107,28 +3054,7 @@ class Admin {
 	 * @return string
 	 */
 	protected function build_restore_backup_summary( array $snapshot, array $execution, array $resume_context ) {
-		if ( ! empty( $resume_context['can_resume'] ) && ! empty( $execution['backup_root'] ) ) {
-			return sprintf(
-				/* translators: %s: backup root path */
-				__( 'Resume will reuse the existing backup root at %s', 'zignites-sentinel' ),
-				(string) $execution['backup_root']
-			);
-		}
-
-		$uploads = wp_upload_dir();
-
-		if ( empty( $uploads['basedir'] ) || ! empty( $uploads['error'] ) ) {
-			return __( 'Backup storage path will be resolved under uploads at execution time.', 'zignites-sentinel' );
-		}
-
-		$base_path = trailingslashit( wp_normalize_path( $uploads['basedir'] ) ) . RestoreExecutor::BACKUP_DIRECTORY;
-
-		return sprintf(
-			/* translators: 1: backup root base path, 2: snapshot ID */
-			__( 'A new run-specific backup directory will be created under %1$s for snapshot %2$d', 'zignites-sentinel' ),
-			$base_path,
-			isset( $snapshot['id'] ) ? (int) $snapshot['id'] : 0
-		);
+		return $this->restore_checkpoint_presenter->build_backup_summary( $snapshot, $execution, $resume_context, wp_upload_dir() );
 	}
 
 	/**
@@ -3137,84 +3063,8 @@ class Admin {
 	 * @param int $seconds Duration in seconds.
 	 * @return string
 	 */
-	protected function format_duration_seconds( $seconds ) {
-		$seconds = max( 0, (int) $seconds );
-		$hours   = (int) floor( $seconds / HOUR_IN_SECONDS );
-		$minutes = (int) floor( ( $seconds % HOUR_IN_SECONDS ) / MINUTE_IN_SECONDS );
-
-		if ( $hours > 0 ) {
-			return sprintf(
-				/* translators: 1: hours, 2: minutes */
-				__( '%1$dh %2$dm', 'zignites-sentinel' ),
-				$hours,
-				$minutes
-			);
-		}
-
-		return sprintf(
-			/* translators: %d: minutes */
-			__( '%dm', 'zignites-sentinel' ),
-			max( 1, $minutes )
-		);
-	}
-
-	/**
-	 * Build a restore or rollback run summary card.
-	 *
-	 * @param string     $title                Card title.
-	 * @param array      $result               Result payload.
-	 * @param string     $journal_source       Journal source.
-	 * @param array      $resume_context       Resume context.
-	 * @param array|null $execution_checkpoint Optional execution checkpoint payload.
-	 * @param int        $snapshot_id          Snapshot ID for run-journal scoping.
-	 * @return array
-	 */
-	protected function build_run_card( $title, array $result, $journal_source, array $resume_context, $execution_checkpoint = null, $snapshot_id = 0 ) {
-		$execution_checkpoint = is_array( $execution_checkpoint ) ? $execution_checkpoint : array();
-		$run_id               = isset( $result['run_id'] ) ? (string) $result['run_id'] : '';
-		$summary              = isset( $result['summary'] ) && is_array( $result['summary'] ) ? $result['summary'] : array();
-		$status               = $this->status_presenter->present_run( isset( $result['status'] ) ? $result['status'] : '' );
-		$primary              = sprintf(
-			/* translators: 1: pass count, 2: warning count, 3: fail count */
-			__( '%1$d pass, %2$d warning, %3$d fail.', 'zignites-sentinel' ),
-			isset( $summary['pass'] ) ? (int) $summary['pass'] : 0,
-			isset( $summary['warning'] ) ? (int) $summary['warning'] : 0,
-			isset( $summary['fail'] ) ? (int) $summary['fail'] : 0
-		);
-		$secondary   = ! empty( $resume_context['can_resume'] )
-			? sprintf(
-				/* translators: %d: completed item count */
-				__( 'Resume available with %d completed items.', 'zignites-sentinel' ),
-				isset( $resume_context['completed_item_count'] ) ? (int) $resume_context['completed_item_count'] : 0
-			)
-			: __( 'No resume action is currently required.', 'zignites-sentinel' );
-
-		if ( ! empty( $result['health_verification']['status'] ) ) {
-			$secondary = sprintf(
-				/* translators: %s: health status */
-				__( 'Health: %s', 'zignites-sentinel' ),
-				(string) $result['health_verification']['status']
-			);
-		}
-
-		if ( ! empty( $execution_checkpoint['checkpoint'] ) && is_array( $execution_checkpoint['checkpoint'] ) ) {
-			$checkpoint_state = $execution_checkpoint['checkpoint'];
-			$stage_reuse      = ! empty( $checkpoint_state['stage_ready'] ) ? __( 'Stage reuse ready.', 'zignites-sentinel' ) : __( 'No preserved stage.', 'zignites-sentinel' );
-			$health_reuse     = ! empty( $checkpoint_state['health_completed'] ) ? __( 'Health reuse ready.', 'zignites-sentinel' ) : __( 'Health will rerun.', 'zignites-sentinel' );
-			$secondary        = $stage_reuse . ' ' . $health_reuse;
-		}
-
-		return array(
-			'title'      => $title,
-			'status'     => isset( $result['status'] ) ? (string) $result['status'] : '',
-			'badge'      => isset( $status['pill'] ) ? (string) $status['pill'] : 'info',
-			'status_label' => isset( $status['label'] ) ? (string) $status['label'] : '',
-			'timestamp'  => isset( $result['generated_at'] ) ? (string) $result['generated_at'] : '',
-			'primary'    => $primary,
-			'secondary'  => $secondary,
-			'link_url'   => '' !== $run_id ? $this->get_run_journal_url( $journal_source, $run_id, $snapshot_id ) : '',
-			'link_label' => '' !== $run_id ? sprintf( __( 'Run ID: %s', 'zignites-sentinel' ), $run_id ) : '',
-		);
+	protected function build_run_card( $title, array $result, array $resume_context, $execution_checkpoint = null, $journal_url = '' ) {
+		return $this->restore_checkpoint_presenter->build_run_card( $title, $result, $resume_context, $execution_checkpoint, $journal_url );
 	}
 
 	/**

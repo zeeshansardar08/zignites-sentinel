@@ -6,6 +6,7 @@
 require_once __DIR__ . '/bootstrap.php';
 
 use Zignites\Sentinel\Admin\Admin;
+use Zignites\Sentinel\Admin\RestoreCheckpointPresenter;
 use Zignites\Sentinel\Snapshots\RestoreExecutor;
 use Zignites\Sentinel\Snapshots\RestoreRollbackManager;
 
@@ -53,6 +54,7 @@ class ZNTS_Testable_Resume_Admin_Presentation extends Admin {
 		$this->restore_journal_recorder = new ZNTS_Fake_Resume_Admin_Journal_Recorder();
 		$this->restore_checkpoint_store = new ZNTS_Fake_Resume_Admin_Checkpoint_Store();
 		$this->status_presenter         = new \Zignites\Sentinel\Admin\StatusPresenter();
+		$this->restore_checkpoint_presenter = new RestoreCheckpointPresenter( $this->status_presenter );
 	}
 
 	public function set_resume_context( $source, $snapshot_id, array $context ) {

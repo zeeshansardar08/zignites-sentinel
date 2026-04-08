@@ -263,7 +263,8 @@
 - Current branch extends that read-only presentation cleanup with:
   - restore impact summary presenter extraction
   - health comparison presenter extraction
-  - presenter-focused regression coverage for both seams
+  - restore checkpoint/run-card presenter extraction
+  - presenter-focused regression coverage for all three seams
 - Live authenticated admin smoke validation has now been run successfully against a real wp-admin session for:
   - Sentinel Dashboard
   - Update Readiness
@@ -324,6 +325,7 @@
 - `includes/admin/class-dashboard-summary-presenter.php`
 - `includes/admin/class-event-log-presenter.php`
 - `includes/admin/class-health-comparison-presenter.php`
+- `includes/admin/class-restore-checkpoint-presenter.php`
 - `includes/admin/class-restore-impact-summary-presenter.php`
 - `includes/admin/class-restore-operator-checklist-evaluator.php`
 - `includes/admin/class-settings-portability.php`
@@ -352,6 +354,7 @@
 - `tests/test-dashboard-summary-presenter.php`
 - `tests/test-event-log-presenter.php`
 - `tests/test-health-comparison-presenter.php`
+- `tests/test-restore-checkpoint-presenter.php`
 - `tests/test-restore-impact-summary-presenter.php`
 - `tests/test-snapshot-summary-presenter.php`
 - `tests/test-status-presenter.php`
@@ -361,7 +364,7 @@
 ### Immediate Next Steps
 1. Continue the read-only presentation extraction work now that manual/admin validation is current
 - Likely candidates:
-  - remaining Update Readiness formatter helpers
+  - remaining Update Readiness formatter helpers outside restore checkpoint/run-card payloads
   - compact dashboard/update-readiness presenter seams still embedded in `includes/admin/class-admin.php`
 - Reason: the manual/admin pass and live smoke/export checks are current, so the next highest-value work is reducing presentation logic still concentrated in the admin controller
 
@@ -377,7 +380,7 @@
 3. Add broader reporting/test coverage for any newly extracted presentation helper
 - Likely seams:
   - future update-readiness formatter helpers
-  - remaining dashboard/readiness presenter helpers
+  - remaining dashboard/readiness presenter helpers after checkpoint/run-card extraction
 
 4. Consider a compact printable operator handoff report later
 - Only after the current reporting surfaces are better covered by tests
@@ -402,6 +405,7 @@
   - `includes/admin/class-dashboard-summary-presenter.php`
   - `includes/admin/class-event-log-presenter.php`
   - `includes/admin/class-health-comparison-presenter.php`
+  - `includes/admin/class-restore-checkpoint-presenter.php`
   - `includes/admin/class-restore-impact-summary-presenter.php`
   - `includes/admin/class-status-presenter.php`
   - `includes/admin/class-snapshot-summary-presenter.php`
@@ -411,6 +415,7 @@
   - `tests/smoke-admin-live.php`
   - `tests/test-dashboard-summary-presenter.php`
   - `tests/test-event-log-presenter.php`
+  - `tests/test-restore-checkpoint-presenter.php`
   - `tests/test-restore-impact-summary-presenter.php`
   - `tests/test-snapshot-summary-presenter.php`
   - `tests/test-snapshot-summary-export.php`
