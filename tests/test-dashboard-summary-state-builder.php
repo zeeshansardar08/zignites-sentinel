@@ -185,3 +185,54 @@ function znts_test_dashboard_summary_state_builder_normalizes_summary_view_state
 	znts_assert_same( 'Baseline', $state['restore_health_strip']['rows'][0]['label'], 'Dashboard summary view-state builder should preserve the health strip payload.' );
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=95', $state['activity_url'], 'Dashboard summary view-state builder should preserve the supplied activity URL.' );
 }
+
+function znts_test_dashboard_summary_state_builder_normalizes_dashboard_screen_state() {
+	$builder = new DashboardSummaryStateBuilder();
+	$state   = $builder->build_dashboard_screen_state(
+		array(
+			'recent_snapshots' => array(
+				array(
+					'id' => 96,
+				),
+			),
+			'health_score' => array(
+				'score' => 98,
+			),
+			'restore_health_strip' => array(
+				'rows' => array(
+					array( 'label' => 'Baseline' ),
+				),
+			),
+			'snapshot_status_index' => array(
+				96 => array(
+					'restore_ready' => true,
+				),
+			),
+			'site_status_card' => array(
+				'status' => 'stable',
+			),
+		),
+		array(
+			'plugin_version'  => '1.32.0',
+			'db_version'      => '1.4.0',
+			'logs_table'      => 'wp_znts_logs',
+			'conflicts_table' => 'wp_znts_conflicts',
+			'wordpress'       => '6.8.1',
+			'php'             => '8.1.10',
+			'site_url'        => 'http://example.test',
+			'recent_logs'     => array(
+				array( 'message' => 'Latest log' ),
+			),
+			'recent_conflicts' => array(
+				array( 'summary' => 'Latest conflict' ),
+			),
+		)
+	);
+
+	znts_assert_same( '1.32.0', $state['plugin_version'], 'Dashboard screen state builder should preserve plugin version metadata.' );
+	znts_assert_same( 'wp_znts_logs', $state['logs_table'], 'Dashboard screen state builder should preserve logs table metadata.' );
+	znts_assert_same( 'Latest log', $state['recent_logs'][0]['message'], 'Dashboard screen state builder should preserve recent logs.' );
+	znts_assert_same( 'Latest conflict', $state['recent_conflicts'][0]['summary'], 'Dashboard screen state builder should preserve recent conflicts.' );
+	znts_assert_same( 98, $state['health_score']['score'], 'Dashboard screen state builder should preserve the summary health score payload.' );
+	znts_assert_same( 'stable', $state['site_status_card']['status'], 'Dashboard screen state builder should preserve the summary site-status payload.' );
+}
