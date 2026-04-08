@@ -583,16 +583,20 @@ class Admin {
 			$this->snapshot_status_resolver
 		);
 		$site_status_card = isset( $summary_state['site_status_card'] ) ? $summary_state['site_status_card'] : array();
-		$summary_state['activity_url'] = ! empty( $site_status_card['latest_snapshot']['id'] ) ? $this->get_snapshot_activity_url( (int) $site_status_card['latest_snapshot']['id'] ) : '';
+		$view_state       = $this->dashboard_summary_state_builder->build_summary_view_state(
+			$summary_state,
+			$this->get_restore_dashboard_health_strip(),
+			! empty( $site_status_card['latest_snapshot']['id'] ) ? $this->get_snapshot_activity_url( (int) $site_status_card['latest_snapshot']['id'] ) : ''
+		);
 
 		return $this->dashboard_summary_presenter->build_summary_payload(
-			$summary_state['recent_snapshots'],
-			$summary_state['health_score'],
-			$summary_state['snapshot_status_index'],
-			$summary_state['site_status_card'],
-			$this->get_restore_dashboard_health_strip(),
+			$view_state['recent_snapshots'],
+			$view_state['health_score'],
+			$view_state['snapshot_status_index'],
+			$view_state['site_status_card'],
+			$view_state['restore_health_strip'],
 			self::UPDATE_PAGE_SLUG,
-			$summary_state['activity_url']
+			$view_state['activity_url']
 		);
 	}
 

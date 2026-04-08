@@ -109,4 +109,23 @@ class DashboardSummaryStateBuilder {
 				: array(),
 		);
 	}
+
+	/**
+	 * Build normalized state for the shared dashboard summary presenter handoff.
+	 *
+	 * @param array  $summary_state        Shared dashboard summary state.
+	 * @param array  $restore_health_strip Dashboard health-strip payload.
+	 * @param string $activity_url         Latest snapshot activity URL.
+	 * @return array
+	 */
+	public function build_summary_view_state( array $summary_state, array $restore_health_strip, $activity_url = '' ) {
+		return array(
+			'recent_snapshots'      => isset( $summary_state['recent_snapshots'] ) && is_array( $summary_state['recent_snapshots'] ) ? $summary_state['recent_snapshots'] : array(),
+			'health_score'          => isset( $summary_state['health_score'] ) && is_array( $summary_state['health_score'] ) ? $summary_state['health_score'] : array(),
+			'snapshot_status_index' => isset( $summary_state['snapshot_status_index'] ) && is_array( $summary_state['snapshot_status_index'] ) ? $summary_state['snapshot_status_index'] : array(),
+			'site_status_card'      => isset( $summary_state['site_status_card'] ) && is_array( $summary_state['site_status_card'] ) ? $summary_state['site_status_card'] : array(),
+			'restore_health_strip'  => $restore_health_strip,
+			'activity_url'          => (string) $activity_url,
+		);
+	}
 }
