@@ -264,7 +264,8 @@
   - restore impact summary presenter extraction
   - health comparison presenter extraction
   - restore checkpoint/run-card presenter extraction
-  - presenter-focused regression coverage for all three seams
+  - Event Logs export-row and snapshot-activity row formatting extraction into the existing Event Logs presenter
+  - presenter-focused regression coverage for all four seams
 - Live authenticated admin smoke validation has now been run successfully against a real wp-admin session for:
   - Sentinel Dashboard
   - Update Readiness
@@ -380,7 +381,7 @@
 3. Add broader reporting/test coverage for any newly extracted presentation helper
 - Likely seams:
   - future update-readiness formatter helpers
-  - remaining dashboard/readiness presenter helpers after checkpoint/run-card extraction
+  - remaining dashboard/readiness presenter helpers after checkpoint/run-card and activity-row extraction
 
 4. Consider a compact printable operator handoff report later
 - Only after the current reporting surfaces are better covered by tests

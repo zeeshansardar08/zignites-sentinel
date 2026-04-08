@@ -80,3 +80,30 @@ function znts_test_event_log_presenter_decorates_run_summary_and_journal_status_
 	znts_assert_same( 'critical', $run_journal['entries'][0]['status_pill'], 'Event log presenter should map failed journal entries to the critical pill.' );
 	znts_assert_same( 'Pass', $run_journal['entries'][1]['status_label'], 'Event log presenter should format readable journal status labels.' );
 }
+
+function znts_test_event_log_presenter_builds_snapshot_activity_entries() {
+	$presenter = new EventLogPresenter();
+
+	$entry = $presenter->build_snapshot_activity_entry(
+		array(
+			'id'         => 91,
+			'created_at' => '2025-01-06 12:00:00',
+			'severity'   => 'warning',
+			'source'     => 'restore-execution-journal',
+			'event_type' => 'restore_item_written',
+			'message'    => 'Payload written.',
+		),
+		array(
+			'run_id' => 'run-91',
+		),
+		205,
+		'zignites-sentinel-event-logs',
+		'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&source=restore-execution-journal&run_id=run-91&snapshot_id=205'
+	);
+
+	znts_assert_same( 'restore-execution-journal', $entry['source'], 'Event log presenter should preserve the activity source.' );
+	znts_assert_same( 'run-91', $entry['run_id'], 'Event log presenter should expose the activity run ID from decoded context.' );
+	znts_assert_same( 'Run run-91', $entry['journal_label'], 'Event log presenter should build a stable run-journal label.' );
+	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=205&log_id=91', $entry['detail_url'], 'Event log presenter should build snapshot-scoped detail links for activity rows.' );
+	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&source=restore-execution-journal&run_id=run-91&snapshot_id=205', $entry['journal_url'], 'Event log presenter should preserve the supplied journal URL for run-scoped activity rows.' );
+}

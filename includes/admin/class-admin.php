@@ -3314,23 +3314,9 @@ class Admin {
 	 * @return array
 	 */
 	protected function build_event_log_export_row( array $row ) {
-		$context       = $this->decode_json_field( isset( $row['context'] ) ? $row['context'] : '' );
-		$journal_entry = isset( $context['entry'] ) && is_array( $context['entry'] ) ? $context['entry'] : array();
+		$context = $this->decode_json_field( isset( $row['context'] ) ? $row['context'] : '' );
 
-		return array(
-			isset( $row['id'] ) ? (int) $row['id'] : 0,
-			isset( $row['created_at'] ) ? (string) $row['created_at'] : '',
-			isset( $row['severity'] ) ? (string) $row['severity'] : '',
-			isset( $row['source'] ) ? (string) $row['source'] : '',
-			isset( $row['event_type'] ) ? (string) $row['event_type'] : '',
-			isset( $row['message'] ) ? (string) $row['message'] : '',
-			isset( $context['snapshot_id'] ) ? absint( $context['snapshot_id'] ) : 0,
-			isset( $context['run_id'] ) ? (string) $context['run_id'] : '',
-			isset( $journal_entry['scope'] ) ? (string) $journal_entry['scope'] : '',
-			isset( $journal_entry['phase'] ) ? (string) $journal_entry['phase'] : '',
-			isset( $journal_entry['status'] ) ? (string) $journal_entry['status'] : '',
-			! empty( $context ) ? wp_json_encode( $context ) : '',
-		);
+		return $this->event_log_presenter->build_export_row( $row, $context );
 	}
 
 	/**
@@ -3341,31 +3327,13 @@ class Admin {
 	 * @return array
 	 */
 	protected function build_snapshot_activity_entry( array $row, $snapshot_id ) {
-		$context  = $this->decode_json_field( isset( $row['context'] ) ? $row['context'] : '' );
-		$run_id   = isset( $context['run_id'] ) ? sanitize_text_field( (string) $context['run_id'] ) : '';
-		$source   = isset( $row['source'] ) ? sanitize_text_field( (string) $row['source'] ) : '';
-		$is_run   = in_array( $source, array( RestoreExecutor::JOURNAL_SOURCE, RestoreRollbackManager::JOURNAL_SOURCE ), true );
-		$detail   = add_query_arg(
-			array(
-				'page'        => self::LOGS_PAGE_SLUG,
-				'snapshot_id' => absint( $snapshot_id ),
-				'log_id'      => isset( $row['id'] ) ? (int) $row['id'] : 0,
-			),
-			admin_url( 'admin.php' )
-		);
-		$journal  = ( $is_run && '' !== $run_id ) ? $this->get_run_journal_url( $source, $run_id, $snapshot_id ) : '';
+		$context = $this->decode_json_field( isset( $row['context'] ) ? $row['context'] : '' );
+		$run_id  = isset( $context['run_id'] ) ? sanitize_text_field( (string) $context['run_id'] ) : '';
+		$source  = isset( $row['source'] ) ? sanitize_text_field( (string) $row['source'] ) : '';
+		$is_run  = in_array( $source, array( RestoreExecutor::JOURNAL_SOURCE, RestoreRollbackManager::JOURNAL_SOURCE ), true );
+		$journal = ( $is_run && '' !== $run_id ) ? $this->get_run_journal_url( $source, $run_id, $snapshot_id ) : '';
 
-		return array(
-			'created_at'   => isset( $row['created_at'] ) ? (string) $row['created_at'] : '',
-			'severity'     => isset( $row['severity'] ) ? (string) $row['severity'] : 'info',
-			'source'       => $source,
-			'event_type'   => isset( $row['event_type'] ) ? (string) $row['event_type'] : '',
-			'message'      => isset( $row['message'] ) ? (string) $row['message'] : '',
-			'run_id'       => $run_id,
-			'detail_url'   => $detail,
-			'journal_url'  => $journal,
-			'journal_label'=> '' !== $run_id ? sprintf( __( 'Run %s', 'zignites-sentinel' ), $run_id ) : '',
-		);
+		return $this->event_log_presenter->build_snapshot_activity_entry( $row, $context, $snapshot_id, self::LOGS_PAGE_SLUG, $journal );
 	}
 
 	/**

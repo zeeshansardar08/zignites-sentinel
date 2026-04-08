@@ -5,16 +5,12 @@
 
 require_once __DIR__ . '/bootstrap.php';
 
-use Zignites\Sentinel\Admin\Admin;
+use Zignites\Sentinel\Admin\EventLogPresenter;
 
 function znts_test_event_log_export_row_extracts_context_and_journal_fields() {
-	$reflection = new ReflectionClass( Admin::class );
-	$instance   = $reflection->newInstanceWithoutConstructor();
-	$method     = $reflection->getMethod( 'build_event_log_export_row' );
-	$method->setAccessible( true );
+	$presenter = new EventLogPresenter();
 
-	$row = $method->invoke(
-		$instance,
+	$row = $presenter->build_export_row(
 		array(
 			'id'         => 14,
 			'created_at' => '2025-01-01 12:00:00',
@@ -32,6 +28,15 @@ function znts_test_event_log_export_row_extracts_context_and_journal_fields() {
 						'status' => 'pass',
 					),
 				)
+			),
+		),
+		array(
+			'snapshot_id' => 77,
+			'run_id'      => 'run-77',
+			'entry'       => array(
+				'scope'  => 'item',
+				'phase'  => 'payload_written',
+				'status' => 'pass',
 			),
 		)
 	);
@@ -51,13 +56,9 @@ function znts_test_event_log_export_row_extracts_context_and_journal_fields() {
 }
 
 function znts_test_event_log_export_row_handles_invalid_context_payloads() {
-	$reflection = new ReflectionClass( Admin::class );
-	$instance   = $reflection->newInstanceWithoutConstructor();
-	$method     = $reflection->getMethod( 'build_event_log_export_row' );
-	$method->setAccessible( true );
+	$presenter = new EventLogPresenter();
 
-	$row = $method->invoke(
-		$instance,
+	$row = $presenter->build_export_row(
 		array(
 			'id'         => 15,
 			'created_at' => '2025-01-01 13:00:00',
@@ -66,7 +67,8 @@ function znts_test_event_log_export_row_handles_invalid_context_payloads() {
 			'event_type' => 'snapshot_audit_report_downloaded',
 			'message'    => 'Snapshot audit report downloaded.',
 			'context'    => '{invalid-json',
-		)
+		),
+		array()
 	);
 
 	znts_assert_same( 0, $row[6], 'Invalid context should yield a zero snapshot ID.' );

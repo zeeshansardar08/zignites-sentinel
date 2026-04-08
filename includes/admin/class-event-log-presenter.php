@@ -192,4 +192,65 @@ class EventLogPresenter {
 
 		return $decorated;
 	}
+
+	/**
+	 * Build a CSV row for an event log export.
+	 *
+	 * @param array $row     Log row.
+	 * @param array $context Decoded log context.
+	 * @return array
+	 */
+	public function build_export_row( array $row, array $context = array() ) {
+		$journal_entry = isset( $context['entry'] ) && is_array( $context['entry'] ) ? $context['entry'] : array();
+
+		return array(
+			isset( $row['id'] ) ? (int) $row['id'] : 0,
+			isset( $row['created_at'] ) ? (string) $row['created_at'] : '',
+			isset( $row['severity'] ) ? (string) $row['severity'] : '',
+			isset( $row['source'] ) ? (string) $row['source'] : '',
+			isset( $row['event_type'] ) ? (string) $row['event_type'] : '',
+			isset( $row['message'] ) ? (string) $row['message'] : '',
+			isset( $context['snapshot_id'] ) ? absint( $context['snapshot_id'] ) : 0,
+			isset( $context['run_id'] ) ? (string) $context['run_id'] : '',
+			isset( $journal_entry['scope'] ) ? (string) $journal_entry['scope'] : '',
+			isset( $journal_entry['phase'] ) ? (string) $journal_entry['phase'] : '',
+			isset( $journal_entry['status'] ) ? (string) $journal_entry['status'] : '',
+			! empty( $context ) ? wp_json_encode( $context ) : '',
+		);
+	}
+
+	/**
+	 * Build a snapshot activity row for the update readiness screen.
+	 *
+	 * @param array  $row          Log row.
+	 * @param array  $context      Decoded log context.
+	 * @param int    $snapshot_id  Snapshot ID.
+	 * @param string $logs_page    Event Logs page slug.
+	 * @param string $journal_url  Optional run journal URL.
+	 * @return array
+	 */
+	public function build_snapshot_activity_entry( array $row, array $context, $snapshot_id, $logs_page, $journal_url = '' ) {
+		$run_id = isset( $context['run_id'] ) ? sanitize_text_field( (string) $context['run_id'] ) : '';
+		$source = isset( $row['source'] ) ? sanitize_text_field( (string) $row['source'] ) : '';
+		$detail = add_query_arg(
+			array(
+				'page'        => (string) $logs_page,
+				'snapshot_id' => absint( $snapshot_id ),
+				'log_id'      => isset( $row['id'] ) ? (int) $row['id'] : 0,
+			),
+			admin_url( 'admin.php' )
+		);
+
+		return array(
+			'created_at'    => isset( $row['created_at'] ) ? (string) $row['created_at'] : '',
+			'severity'      => isset( $row['severity'] ) ? (string) $row['severity'] : 'info',
+			'source'        => $source,
+			'event_type'    => isset( $row['event_type'] ) ? (string) $row['event_type'] : '',
+			'message'       => isset( $row['message'] ) ? (string) $row['message'] : '',
+			'run_id'        => $run_id,
+			'detail_url'    => $detail,
+			'journal_url'   => (string) $journal_url,
+			'journal_label' => '' !== $run_id ? sprintf( __( 'Run %s', 'zignites-sentinel' ), $run_id ) : '',
+		);
+	}
 }
