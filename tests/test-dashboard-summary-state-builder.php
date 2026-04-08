@@ -117,3 +117,35 @@ function znts_test_dashboard_summary_state_builder_normalizes_health_strip_input
 	znts_assert_same( 2, count( $state['rows'] ), 'Dashboard health strip state builder should preserve the supplied health comparison rows.' );
 	znts_assert_same( 'warning', $state['rows'][1]['status'], 'Dashboard health strip state builder should preserve the row payload order and values.' );
 }
+
+function znts_test_dashboard_summary_state_builder_normalizes_widget_view_state() {
+	$builder = new DashboardSummaryStateBuilder();
+	$state   = $builder->build_widget_state(
+		array(
+			'site_status_card' => array(
+				'status' => 'stable',
+			),
+			'restore_health_strip' => array(
+				'rows' => array(
+					array( 'label' => 'Baseline' ),
+				),
+			),
+			'recent_snapshots' => array(
+				array(
+					'id'    => 94,
+					'label' => 'Widget snapshot',
+				),
+			),
+			'snapshot_status_index' => array(
+				94 => array(
+					'restore_ready' => true,
+				),
+			),
+		)
+	);
+
+	znts_assert_same( 'stable', $state['site_status_card']['status'], 'Dashboard widget state builder should preserve the site-status card payload.' );
+	znts_assert_same( 'Widget snapshot', $state['latest_snapshot']['label'], 'Dashboard widget state builder should preserve the latest snapshot payload.' );
+	znts_assert_same( true, $state['snapshot_status']['restore_ready'], 'Dashboard widget state builder should resolve the latest snapshot status payload.' );
+	znts_assert_same( 'Baseline', $state['restore_health_strip']['rows'][0]['label'], 'Dashboard widget state builder should preserve the health strip payload.' );
+}
