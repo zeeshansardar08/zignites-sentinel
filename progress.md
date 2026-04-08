@@ -261,8 +261,8 @@
   - dashboard summary presenter extraction
   - presenter-focused regression coverage
 - Current branch extends that read-only presentation cleanup with:
-  - restore checkpoint execution/rollback summary extraction into the existing restore checkpoint presenter
-  - presenter-focused regression coverage for the checkpoint summary seam
+  - Update Readiness snapshot-list state extraction into a dedicated helper
+  - presenter-focused regression coverage for the snapshot-list state seam
 - Live authenticated admin smoke validation has now been run successfully against a real wp-admin session for:
   - Sentinel Dashboard
   - Update Readiness
@@ -365,7 +365,7 @@
 ### Immediate Next Steps
 1. Continue the read-only presentation extraction work now that manual/admin validation is current
 - Likely candidates:
-  - remaining Update Readiness formatter helpers outside restore checkpoint payloads
+  - remaining Update Readiness formatter helpers outside snapshot-list state and checkpoint payloads
   - compact dashboard/update-readiness presenter seams still embedded in `includes/admin/class-admin.php`
 - Reason: the manual/admin pass and live smoke/export checks are current, so the next highest-value work is reducing presentation logic still concentrated in the admin controller
 
@@ -381,7 +381,7 @@
 3. Add broader reporting/test coverage for any newly extracted presentation helper
 - Likely seams:
   - future update-readiness formatter helpers
-  - remaining dashboard/readiness presenter helpers after checkpoint summary extraction
+  - remaining dashboard/readiness presenter helpers after snapshot-list state extraction
 
 4. Consider a compact printable operator handoff report later
 - Only after the current reporting surfaces are better covered by tests
@@ -408,7 +408,8 @@
   - `includes/admin/class-health-comparison-presenter.php`
   - `includes/admin/class-restore-checkpoint-presenter.php`
   - `includes/admin/class-restore-impact-summary-presenter.php`
-  - `includes/admin/class-snapshot-audit-report-presenter.php`
+- `includes/admin/class-snapshot-audit-report-presenter.php`
+- `includes/admin/class-snapshot-list-state-builder.php`
   - `includes/admin/class-status-presenter.php`
   - `includes/admin/class-snapshot-summary-presenter.php`
   - `tests/test-health-comparison.php`
@@ -419,9 +420,10 @@
   - `tests/test-event-log-presenter.php`
   - `tests/test-restore-checkpoint-presenter.php`
   - `tests/test-restore-impact-summary-presenter.php`
-  - `tests/test-snapshot-audit-report-presenter.php`
-  - `tests/test-snapshot-audit-report.php`
-  - `tests/test-snapshot-summary-presenter.php`
+- `tests/test-snapshot-audit-report-presenter.php`
+- `tests/test-snapshot-audit-report.php`
+- `tests/test-snapshot-list-state-builder.php`
+- `tests/test-snapshot-summary-presenter.php`
   - `tests/test-snapshot-summary-export.php`
   - `tests/test-status-presenter.php`
   - the latest focused test file for the seam being covered
@@ -430,7 +432,7 @@
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
 - Current branch prepared for merge:
-  - `feature/restore-checkpoint-summary-presenter-extraction`
+  - `feature/snapshot-list-state-builder-extraction`
 - Next likely restart task after this branch merges:
   - extract the next update-readiness/dashboard read-only formatter/presenter seam from `includes/admin/class-admin.php`
 
