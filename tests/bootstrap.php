@@ -192,6 +192,7 @@ require_once __DIR__ . '/../includes/admin/class-restore-checkpoint-presenter.ph
 require_once __DIR__ . '/../includes/admin/class-restore-impact-summary-presenter.php';
 require_once __DIR__ . '/../includes/admin/class-restore-impact-summary-state-builder.php';
 require_once __DIR__ . '/../includes/admin/class-snapshot-audit-report-presenter.php';
+require_once __DIR__ . '/../includes/admin/class-restore-operator-checklist-state-builder.php';
 require_once __DIR__ . '/../includes/admin/class-snapshot-list-state-builder.php';
 require_once __DIR__ . '/../includes/admin/class-dashboard-summary-state-builder.php';
 require_once __DIR__ . '/../includes/admin/class-snapshot-summary-state-builder.php';
