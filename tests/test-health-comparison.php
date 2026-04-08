@@ -8,6 +8,7 @@ require_once __DIR__ . '/bootstrap.php';
 use Zignites\Sentinel\Admin\Admin;
 use Zignites\Sentinel\Admin\DashboardSummaryPresenter;
 use Zignites\Sentinel\Admin\DashboardSummaryStateBuilder;
+use Zignites\Sentinel\Admin\HealthComparisonStateBuilder;
 use Zignites\Sentinel\Admin\HealthComparisonPresenter;
 
 class ZNTS_Fake_Health_Comparison_Snapshot_Repository {
@@ -24,6 +25,7 @@ class ZNTS_Testable_Health_Comparison_Admin extends Admin {
 	public function __construct() {
 		$this->snapshots = new ZNTS_Fake_Health_Comparison_Snapshot_Repository();
 		$this->status_presenter = new \Zignites\Sentinel\Admin\StatusPresenter();
+		$this->health_comparison_state_builder = new HealthComparisonStateBuilder();
 		$this->health_comparison_presenter = new HealthComparisonPresenter( $this->status_presenter );
 		$this->dashboard_summary_state_builder = new DashboardSummaryStateBuilder();
 		$this->dashboard_summary_presenter = new DashboardSummaryPresenter();

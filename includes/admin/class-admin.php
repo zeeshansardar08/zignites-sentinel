@@ -230,6 +230,13 @@ class Admin {
 	protected $health_comparison_presenter;
 
 	/**
+	 * Health comparison state builder.
+	 *
+	 * @var HealthComparisonStateBuilder
+	 */
+	protected $health_comparison_state_builder;
+
+	/**
 	 * Restore checkpoint presenter.
 	 *
 	 * @var RestoreCheckpointPresenter
@@ -394,6 +401,7 @@ class Admin {
 		$this->snapshot_summary_state_builder = new SnapshotSummaryStateBuilder();
 		$this->dashboard_summary_state_builder = new DashboardSummaryStateBuilder();
 		$this->restore_impact_summary_state_builder = new RestoreImpactSummaryStateBuilder();
+		$this->health_comparison_state_builder = new HealthComparisonStateBuilder();
 		$this->status_presenter             = new StatusPresenter();
 		$this->health_comparison_presenter  = new HealthComparisonPresenter( $this->status_presenter );
 		$this->restore_checkpoint_presenter = new RestoreCheckpointPresenter( $this->status_presenter );
@@ -2319,10 +2327,17 @@ class Admin {
 			return array();
 		}
 
-		$baseline  = $this->get_snapshot_health_baseline( $snapshot );
-		$execution = $this->get_last_restore_execution( $snapshot );
-		$rollback  = $this->get_last_restore_rollback( $snapshot );
-		return $this->health_comparison_presenter->build_comparison( $baseline, $execution, $rollback );
+		$comparison_state = $this->health_comparison_state_builder->build_comparison_state(
+			$snapshot,
+			$this->get_snapshot_health_baseline( $snapshot ),
+			$this->get_last_restore_execution( $snapshot ),
+			$this->get_last_restore_rollback( $snapshot )
+		);
+		return $this->health_comparison_presenter->build_comparison(
+			$comparison_state['baseline'],
+			$comparison_state['execution'],
+			$comparison_state['rollback']
+		);
 	}
 
 	/**

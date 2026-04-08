@@ -15,6 +15,7 @@ require_once __DIR__ . '/test-event-log-export-row.php';
 require_once __DIR__ . '/test-event-log-export-filename.php';
 require_once __DIR__ . '/test-event-log-presenter.php';
 require_once __DIR__ . '/test-dashboard-summary-presenter.php';
+require_once __DIR__ . '/test-health-comparison-state-builder.php';
 require_once __DIR__ . '/test-health-comparison-presenter.php';
 require_once __DIR__ . '/test-restore-checkpoint-presenter.php';
 require_once __DIR__ . '/test-restore-impact-summary-presenter.php';

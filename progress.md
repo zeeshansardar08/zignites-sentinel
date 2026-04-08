@@ -261,8 +261,8 @@
   - dashboard summary presenter extraction
   - presenter-focused regression coverage
 - Current branch extends that read-only presentation cleanup with:
-  - restore operator checklist state extraction into a dedicated helper ahead of the existing checklist evaluator
-  - presenter/evaluator-focused regression coverage for the restore-operator checklist state seam
+  - health comparison state extraction into a dedicated helper ahead of the existing health comparison presenter
+  - presenter-focused regression coverage for the health-comparison state seam
 - Live authenticated admin smoke validation has now been run successfully against a real wp-admin session for:
   - Sentinel Dashboard
   - Update Readiness
@@ -366,7 +366,7 @@
 1. Continue the read-only presentation extraction work now that manual/admin validation is current
 - Likely candidates:
   - remaining Update Readiness formatter helpers outside snapshot-list state, snapshot-summary state, dashboard-summary state, and checkpoint payloads
-  - compact dashboard/update-readiness presenter seams still embedded in `includes/admin/class-admin.php`, especially remaining dashboard/readiness state normalization after operator-checklist state extraction
+  - compact dashboard/update-readiness presenter seams still embedded in `includes/admin/class-admin.php`, especially remaining dashboard/readiness state normalization after health-comparison state extraction
 - Reason: the manual/admin pass and live smoke/export checks are current, so the next highest-value work is reducing presentation logic still concentrated in the admin controller
 
 2. Keep the manual/admin validation current after each read-only extraction
@@ -381,7 +381,7 @@
 3. Add broader reporting/test coverage for any newly extracted presentation helper
 - Likely seams:
   - future update-readiness formatter helpers
-  - remaining dashboard/readiness presenter helpers after restore-operator checklist state extraction
+  - remaining dashboard/readiness presenter helpers after health-comparison state extraction
 
 4. Consider a compact printable operator handoff report later
 - Only after the current reporting surfaces are better covered by tests
@@ -436,9 +436,9 @@
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
 - Current branch prepared for merge:
-  - `feature/restore-operator-checklist-state-builder-extraction`
+  - `feature/health-comparison-state-builder-extraction`
 - Next likely restart task after this branch merges:
-  - extract the next update-readiness/dashboard read-only formatter/presenter seam from `includes/admin/class-admin.php`, likely remaining dashboard/readiness state normalization after the operator checklist path
+  - extract the next update-readiness/dashboard read-only formatter/presenter seam from `includes/admin/class-admin.php`, likely remaining dashboard/readiness state normalization after the health comparison path
 
 
 
