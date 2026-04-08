@@ -187,6 +187,7 @@ require_once __DIR__ . '/../includes/admin/class-audit-report-verifier.php';
 require_once __DIR__ . '/../includes/admin/class-status-presenter.php';
 require_once __DIR__ . '/../includes/admin/class-event-log-presenter.php';
 require_once __DIR__ . '/../includes/admin/class-dashboard-summary-presenter.php';
+require_once __DIR__ . '/../includes/admin/class-health-comparison-state-builder.php';
 require_once __DIR__ . '/../includes/admin/class-health-comparison-presenter.php';
 require_once __DIR__ . '/../includes/admin/class-restore-checkpoint-presenter.php';
 require_once __DIR__ . '/../includes/admin/class-restore-impact-summary-presenter.php';
