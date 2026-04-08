@@ -257,10 +257,13 @@
 - Main is now current through the merged read-only presentation cleanup for:
   - Event Logs presenter extraction
   - cross-screen status presenter extraction
+  - snapshot summary presenter extraction
+  - dashboard summary presenter extraction
   - presenter-focused regression coverage
 - Current branch extends that read-only presentation cleanup with:
-  - snapshot summary presenter extraction
-  - snapshot summary presenter-focused regression coverage
+  - restore impact summary presenter extraction
+  - health comparison presenter extraction
+  - presenter-focused regression coverage for both seams
 - Live authenticated admin smoke validation has now been run successfully against a real wp-admin session for:
   - Sentinel Dashboard
   - Update Readiness
@@ -318,9 +321,13 @@
 - `includes/class-plugin.php`
 - `includes/admin/class-admin.php`
 - `includes/admin/class-audit-report-verifier.php`
+- `includes/admin/class-dashboard-summary-presenter.php`
 - `includes/admin/class-event-log-presenter.php`
+- `includes/admin/class-health-comparison-presenter.php`
+- `includes/admin/class-restore-impact-summary-presenter.php`
 - `includes/admin/class-restore-operator-checklist-evaluator.php`
 - `includes/admin/class-settings-portability.php`
+- `includes/admin/class-snapshot-summary-presenter.php`
 - `includes/admin/class-status-presenter.php`
 - `includes/admin/views/dashboard.php`
 - `includes/admin/views/update-readiness.php`
@@ -342,7 +349,11 @@
 - `includes/snapshots/class-restore-checkpoint-store.php`
 - `tests/bootstrap.php`
 - `tests/run.php`
+- `tests/test-dashboard-summary-presenter.php`
 - `tests/test-event-log-presenter.php`
+- `tests/test-health-comparison-presenter.php`
+- `tests/test-restore-impact-summary-presenter.php`
+- `tests/test-snapshot-summary-presenter.php`
 - `tests/test-status-presenter.php`
 
 ## What I Would Do Next
@@ -350,8 +361,8 @@
 ### Immediate Next Steps
 1. Continue the read-only presentation extraction work now that manual/admin validation is current
 - Likely candidates:
-  - further dashboard formatter helpers
-  - compact dashboard summary presenter seams
+  - remaining Update Readiness formatter helpers
+  - compact dashboard/update-readiness presenter seams still embedded in `includes/admin/class-admin.php`
 - Reason: the manual/admin pass and live smoke/export checks are current, so the next highest-value work is reducing presentation logic still concentrated in the admin controller
 
 2. Keep the manual/admin validation current after each read-only extraction
@@ -365,8 +376,8 @@
 ### Product Maturity Next Steps
 3. Add broader reporting/test coverage for any newly extracted presentation helper
 - Likely seams:
-  - future dashboard formatter helpers
-  - future snapshot summary presenter helpers
+  - future update-readiness formatter helpers
+  - remaining dashboard/readiness presenter helpers
 
 4. Consider a compact printable operator handoff report later
 - Only after the current reporting surfaces are better covered by tests
@@ -388,13 +399,19 @@
 - For current test work, also start from:
   - `tests/run.php`
   - `tests/bootstrap.php`
+  - `includes/admin/class-dashboard-summary-presenter.php`
   - `includes/admin/class-event-log-presenter.php`
+  - `includes/admin/class-health-comparison-presenter.php`
+  - `includes/admin/class-restore-impact-summary-presenter.php`
   - `includes/admin/class-status-presenter.php`
   - `includes/admin/class-snapshot-summary-presenter.php`
   - `tests/test-health-comparison.php`
+  - `tests/test-health-comparison-presenter.php`
   - `tests/class-admin-smoke-runner.php`
   - `tests/smoke-admin-live.php`
+  - `tests/test-dashboard-summary-presenter.php`
   - `tests/test-event-log-presenter.php`
+  - `tests/test-restore-impact-summary-presenter.php`
   - `tests/test-snapshot-summary-presenter.php`
   - `tests/test-snapshot-summary-export.php`
   - `tests/test-status-presenter.php`
@@ -404,9 +421,9 @@
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
 - Current branch prepared for merge:
-  - `feature/snapshot-summary-presenter-extraction`
+  - `feature/restore-impact-summary-presenter-extraction`
 - Next likely restart task after this branch merges:
-  - extract the next dashboard-focused read-only formatter/presenter seam from `includes/admin/class-admin.php`
+  - extract the next update-readiness/dashboard read-only formatter/presenter seam from `includes/admin/class-admin.php`
 
 
 

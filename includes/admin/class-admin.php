@@ -223,6 +223,13 @@ class Admin {
 	protected $status_presenter;
 
 	/**
+	 * Health comparison presenter.
+	 *
+	 * @var HealthComparisonPresenter
+	 */
+	protected $health_comparison_presenter;
+
+	/**
 	 * Snapshot summary presenter.
 	 *
 	 * @var SnapshotSummaryPresenter
@@ -333,8 +340,9 @@ class Admin {
 		$this->settings_portability     = new SettingsPortability();
 		$this->audit_report_verifier    = new AuditReportVerifier();
 		$this->restore_operator_checklist_evaluator = new RestoreOperatorChecklistEvaluator();
-		$this->status_presenter         = new StatusPresenter();
-		$this->event_log_presenter      = new EventLogPresenter();
+		$this->status_presenter           = new StatusPresenter();
+		$this->health_comparison_presenter = new HealthComparisonPresenter( $this->status_presenter );
+		$this->event_log_presenter        = new EventLogPresenter();
 		$this->snapshot_summary_presenter = new SnapshotSummaryPresenter();
 		$this->dashboard_summary_presenter = new DashboardSummaryPresenter();
 		$this->restore_impact_summary_presenter = new RestoreImpactSummaryPresenter();
@@ -2320,21 +2328,7 @@ class Admin {
 		$baseline  = $this->get_snapshot_health_baseline( $snapshot );
 		$execution = $this->get_last_restore_execution( $snapshot );
 		$rollback  = $this->get_last_restore_rollback( $snapshot );
-		$rows      = array();
-
-		if ( is_array( $baseline ) ) {
-			$rows[] = $this->build_health_snapshot_row( __( 'Baseline', 'zignites-sentinel' ), $baseline, array() );
-		}
-
-		if ( is_array( $execution ) && ! empty( $execution['health_verification'] ) && is_array( $execution['health_verification'] ) ) {
-			$rows[] = $this->build_health_snapshot_row( __( 'Post-Restore', 'zignites-sentinel' ), $execution['health_verification'], is_array( $baseline ) ? $baseline : array() );
-		}
-
-		if ( is_array( $rollback ) && ! empty( $rollback['health_verification'] ) && is_array( $rollback['health_verification'] ) ) {
-			$rows[] = $this->build_health_snapshot_row( __( 'Post-Rollback', 'zignites-sentinel' ), $rollback['health_verification'], is_array( $baseline ) ? $baseline : array() );
-		}
-
-		return $rows;
+		return $this->health_comparison_presenter->build_comparison( $baseline, $execution, $rollback );
 	}
 
 	/**
@@ -3604,24 +3598,7 @@ class Admin {
 	 * @return array
 	 */
 	protected function build_health_snapshot_row( $label, array $health, array $baseline = array() ) {
-		$summary          = isset( $health['summary'] ) && is_array( $health['summary'] ) ? $health['summary'] : array();
-		$baseline_summary = isset( $baseline['summary'] ) && is_array( $baseline['summary'] ) ? $baseline['summary'] : array();
-		$status_payload   = $this->status_presenter->present_health( isset( $health['status'] ) ? $health['status'] : '' );
-
-		return array(
-			'label'        => $label,
-			'status'       => isset( $health['status'] ) ? (string) $health['status'] : '',
-			'status_pill'  => isset( $status_payload['pill'] ) ? (string) $status_payload['pill'] : 'info',
-			'status_label' => isset( $status_payload['label'] ) ? (string) $status_payload['label'] : '',
-			'generated_at' => isset( $health['generated_at'] ) ? (string) $health['generated_at'] : '',
-			'summary'      => array(
-				'pass'    => isset( $summary['pass'] ) ? (int) $summary['pass'] : 0,
-				'warning' => isset( $summary['warning'] ) ? (int) $summary['warning'] : 0,
-				'fail'    => isset( $summary['fail'] ) ? (int) $summary['fail'] : 0,
-			),
-			'delta'        => empty( $baseline_summary ) ? '' : $this->build_health_delta_summary( $summary, $baseline_summary ),
-			'note'         => isset( $health['note'] ) ? (string) $health['note'] : '',
-		);
+		return $this->health_comparison_presenter->build_row( $label, $health, $baseline );
 	}
 
 	/**
@@ -3632,19 +3609,7 @@ class Admin {
 	 * @return string
 	 */
 	protected function build_health_delta_summary( array $summary, array $baseline_summary ) {
-		$parts = array();
-
-		foreach ( array( 'pass', 'warning', 'fail' ) as $key ) {
-			$delta = ( isset( $summary[ $key ] ) ? (int) $summary[ $key ] : 0 ) - ( isset( $baseline_summary[ $key ] ) ? (int) $baseline_summary[ $key ] : 0 );
-
-			if ( 0 === $delta ) {
-				continue;
-			}
-
-			$parts[] = sprintf( '%s %s%d', $key, $delta > 0 ? '+' : '', $delta );
-		}
-
-		return empty( $parts ) ? __( 'No change', 'zignites-sentinel' ) : implode( ', ', $parts );
+		return $this->health_comparison_presenter->build_delta_summary( $summary, $baseline_summary );
 	}
 
 	/**
