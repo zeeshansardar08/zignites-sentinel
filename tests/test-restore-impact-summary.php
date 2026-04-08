@@ -8,6 +8,7 @@ require_once __DIR__ . '/bootstrap.php';
 use Zignites\Sentinel\Admin\Admin;
 use Zignites\Sentinel\Admin\RestoreCheckpointPresenter;
 use Zignites\Sentinel\Admin\RestoreImpactSummaryPresenter;
+use Zignites\Sentinel\Admin\RestoreImpactSummaryStateBuilder;
 
 class ZNTS_Testable_Restore_Impact_Admin extends Admin {
 	public $fixture = array();
@@ -16,6 +17,7 @@ class ZNTS_Testable_Restore_Impact_Admin extends Admin {
 		$this->status_presenter = new \Zignites\Sentinel\Admin\StatusPresenter();
 		$this->restore_checkpoint_presenter = new RestoreCheckpointPresenter( $this->status_presenter );
 		$this->restore_impact_summary_presenter = new RestoreImpactSummaryPresenter();
+		$this->restore_impact_summary_state_builder = new RestoreImpactSummaryStateBuilder();
 	}
 
 	public function build_impact_summary( array $snapshot ) {

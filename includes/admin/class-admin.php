@@ -258,6 +258,13 @@ class Admin {
 	protected $restore_impact_summary_presenter;
 
 	/**
+	 * Restore impact summary state builder.
+	 *
+	 * @var RestoreImpactSummaryStateBuilder
+	 */
+	protected $restore_impact_summary_state_builder;
+
+	/**
 	 * Settings portability helper.
 	 *
 	 * @var SettingsPortability
@@ -378,6 +385,7 @@ class Admin {
 		$this->snapshot_list_state_builder = new SnapshotListStateBuilder();
 		$this->snapshot_summary_state_builder = new SnapshotSummaryStateBuilder();
 		$this->dashboard_summary_state_builder = new DashboardSummaryStateBuilder();
+		$this->restore_impact_summary_state_builder = new RestoreImpactSummaryStateBuilder();
 		$this->status_presenter             = new StatusPresenter();
 		$this->health_comparison_presenter  = new HealthComparisonPresenter( $this->status_presenter );
 		$this->restore_checkpoint_presenter = new RestoreCheckpointPresenter( $this->status_presenter );
@@ -2400,8 +2408,8 @@ class Admin {
 		$stage_checkpoint = is_array( $stage_checkpoint ) ? $stage_checkpoint : array();
 		$plan_checkpoint  = $this->get_restore_plan_checkpoint( $snapshot );
 		$plan_checkpoint  = is_array( $plan_checkpoint ) ? $plan_checkpoint : array();
-		return $this->restore_impact_summary_presenter->build_summary(
-			(int) $snapshot['id'],
+		$summary_state    = $this->restore_impact_summary_state_builder->build_summary_state(
+			$snapshot,
 			$plan,
 			$baseline,
 			$checklist,
@@ -2409,6 +2417,16 @@ class Admin {
 			$this->build_restore_backup_summary( $snapshot, $execution, $resume_context ),
 			$this->build_restore_gate_summary( __( 'No staged validation checkpoint is available.', 'zignites-sentinel' ), $stage_checkpoint ),
 			$this->build_restore_gate_summary( __( 'No restore plan checkpoint is available.', 'zignites-sentinel' ), $plan_checkpoint )
+		);
+		return $this->restore_impact_summary_presenter->build_summary(
+			$summary_state['snapshot_id'],
+			$summary_state['plan'],
+			$summary_state['baseline'],
+			$summary_state['checklist'],
+			$summary_state['resume_context'],
+			$summary_state['backup_summary'],
+			$summary_state['stage_summary'],
+			$summary_state['plan_summary']
 		);
 	}
 
