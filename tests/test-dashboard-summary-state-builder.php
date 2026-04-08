@@ -149,3 +149,39 @@ function znts_test_dashboard_summary_state_builder_normalizes_widget_view_state(
 	znts_assert_same( true, $state['snapshot_status']['restore_ready'], 'Dashboard widget state builder should resolve the latest snapshot status payload.' );
 	znts_assert_same( 'Baseline', $state['restore_health_strip']['rows'][0]['label'], 'Dashboard widget state builder should preserve the health strip payload.' );
 }
+
+function znts_test_dashboard_summary_state_builder_normalizes_summary_view_state() {
+	$builder = new DashboardSummaryStateBuilder();
+	$state   = $builder->build_summary_view_state(
+		array(
+			'recent_snapshots' => array(
+				array(
+					'id' => 95,
+				),
+			),
+			'health_score' => array(
+				'details' => array(),
+			),
+			'snapshot_status_index' => array(
+				95 => array(
+					'restore_ready' => true,
+				),
+			),
+			'site_status_card' => array(
+				'status' => 'stable',
+			),
+		),
+		array(
+			'rows' => array(
+				array( 'label' => 'Baseline' ),
+			),
+		),
+		'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=95'
+	);
+
+	znts_assert_same( 1, count( $state['recent_snapshots'] ), 'Dashboard summary view-state builder should preserve recent snapshots.' );
+	znts_assert_same( 'stable', $state['site_status_card']['status'], 'Dashboard summary view-state builder should preserve the site-status card payload.' );
+	znts_assert_same( true, $state['snapshot_status_index'][95]['restore_ready'], 'Dashboard summary view-state builder should preserve the snapshot status index payload.' );
+	znts_assert_same( 'Baseline', $state['restore_health_strip']['rows'][0]['label'], 'Dashboard summary view-state builder should preserve the health strip payload.' );
+	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=95', $state['activity_url'], 'Dashboard summary view-state builder should preserve the supplied activity URL.' );
+}
