@@ -2437,10 +2437,7 @@ class Admin {
 		$plan       = $this->get_restore_plan_checkpoint( $snapshot );
 		$execution  = $this->get_last_restore_execution( $snapshot );
 		$rollback   = $this->get_last_restore_rollback( $snapshot );
-		$stage_timing = is_array( $stage ) ? $this->get_checkpoint_timing_summary( $stage ) : array();
-		$plan_timing  = is_array( $plan ) ? $this->get_checkpoint_timing_summary( $plan ) : array();
-
-		return $this->dashboard_summary_presenter->build_restore_summary(
+		$summary_state = $this->dashboard_summary_state_builder->build_restore_summary_state(
 			$snapshot,
 			is_array( $checklist ) ? $checklist : array(),
 			$baseline,
@@ -2448,10 +2445,23 @@ class Admin {
 			$plan,
 			is_array( $execution ) ? $execution : array(),
 			is_array( $rollback ) ? $rollback : array(),
-			$stage_timing,
-			$plan_timing,
-			self::UPDATE_PAGE_SLUG,
+			is_array( $stage ) ? $this->get_checkpoint_timing_summary( $stage ) : array(),
+			is_array( $plan ) ? $this->get_checkpoint_timing_summary( $plan ) : array(),
 			$this->get_snapshot_activity_url( (int) $snapshot['id'] )
+		);
+
+		return $this->dashboard_summary_presenter->build_restore_summary(
+			$summary_state['snapshot'],
+			$summary_state['checklist'],
+			$summary_state['baseline'],
+			$summary_state['stage'],
+			$summary_state['plan'],
+			$summary_state['execution'],
+			$summary_state['rollback'],
+			$summary_state['stage_timing'],
+			$summary_state['plan_timing'],
+			self::UPDATE_PAGE_SLUG,
+			$summary_state['activity_url']
 		);
 	}
 

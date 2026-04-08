@@ -35,4 +35,38 @@ class DashboardSummaryStateBuilder {
 			'activity_url'          => (string) $activity_url,
 		);
 	}
+
+	/**
+	 * Build the normalized state used by the dashboard restore summary presenter.
+	 *
+	 * @param array|null $snapshot     Latest snapshot detail.
+	 * @param array      $checklist    Restore operator checklist.
+	 * @param array|null $baseline     Health baseline payload.
+	 * @param array|null $stage        Stage checkpoint payload.
+	 * @param array|null $plan         Plan checkpoint payload.
+	 * @param array      $execution    Last restore execution payload.
+	 * @param array      $rollback     Last restore rollback payload.
+	 * @param array      $stage_timing Stage timing payload.
+	 * @param array      $plan_timing  Plan timing payload.
+	 * @param string     $activity_url Snapshot activity URL.
+	 * @return array
+	 */
+	public function build_restore_summary_state( $snapshot, array $checklist, $baseline, $stage, $plan, array $execution, array $rollback, array $stage_timing, array $plan_timing, $activity_url = '' ) {
+		if ( ! is_array( $snapshot ) || empty( $snapshot['id'] ) ) {
+			return array();
+		}
+
+		return array(
+			'snapshot'      => $snapshot,
+			'checklist'     => $checklist,
+			'baseline'      => is_array( $baseline ) ? $baseline : null,
+			'stage'         => is_array( $stage ) ? $stage : null,
+			'plan'          => is_array( $plan ) ? $plan : null,
+			'execution'     => $execution,
+			'rollback'      => $rollback,
+			'stage_timing'  => $stage_timing,
+			'plan_timing'   => $plan_timing,
+			'activity_url'  => (string) $activity_url,
+		);
+	}
 }

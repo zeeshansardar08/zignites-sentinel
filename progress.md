@@ -261,8 +261,8 @@
   - dashboard summary presenter extraction
   - presenter-focused regression coverage
 - Current branch extends that read-only presentation cleanup with:
-  - dashboard summary state extraction into a dedicated helper ahead of the existing dashboard summary presenter
-  - presenter-focused regression coverage for the dashboard-summary state seam
+  - dashboard restore-summary state extraction into the existing dashboard summary state helper ahead of the existing dashboard summary presenter
+  - presenter-focused regression coverage for the dashboard restore-summary state seam
 - Live authenticated admin smoke validation has now been run successfully against a real wp-admin session for:
   - Sentinel Dashboard
   - Update Readiness
@@ -366,7 +366,7 @@
 1. Continue the read-only presentation extraction work now that manual/admin validation is current
 - Likely candidates:
   - remaining Update Readiness formatter helpers outside snapshot-list state, snapshot-summary state, dashboard-summary state, and checkpoint payloads
-  - compact dashboard/update-readiness presenter seams still embedded in `includes/admin/class-admin.php`
+  - compact dashboard/update-readiness presenter seams still embedded in `includes/admin/class-admin.php`, especially the latest-snapshot health-strip and operator-checklist/readiness summary assembly paths
 - Reason: the manual/admin pass and live smoke/export checks are current, so the next highest-value work is reducing presentation logic still concentrated in the admin controller
 
 2. Keep the manual/admin validation current after each read-only extraction
@@ -381,7 +381,7 @@
 3. Add broader reporting/test coverage for any newly extracted presentation helper
 - Likely seams:
   - future update-readiness formatter helpers
-  - remaining dashboard/readiness presenter helpers after dashboard-summary state extraction
+  - remaining dashboard/readiness presenter helpers after dashboard restore-summary state extraction
 
 4. Consider a compact printable operator handoff report later
 - Only after the current reporting surfaces are better covered by tests
@@ -436,9 +436,9 @@
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
 - Current branch prepared for merge:
-  - `feature/dashboard-summary-state-builder-extraction`
+  - `feature/dashboard-restore-summary-state-builder-extraction`
 - Next likely restart task after this branch merges:
-  - extract the next update-readiness/dashboard read-only formatter/presenter seam from `includes/admin/class-admin.php`
+  - extract the next update-readiness/dashboard read-only formatter/presenter seam from `includes/admin/class-admin.php`, likely the latest-snapshot health-strip or operator-checklist/readiness helper path
 
 
 
