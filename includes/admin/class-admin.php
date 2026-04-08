@@ -272,6 +272,13 @@ class Admin {
 	protected $audit_report_verifier;
 
 	/**
+	 * Snapshot audit report presenter.
+	 *
+	 * @var SnapshotAuditReportPresenter
+	 */
+	protected $snapshot_audit_report_presenter;
+
+	/**
 	 * Restore operator checklist evaluator.
 	 *
 	 * @var RestoreOperatorChecklistEvaluator
@@ -352,6 +359,7 @@ class Admin {
 		$this->restore_checkpoint_presenter = new RestoreCheckpointPresenter( $this->status_presenter );
 		$this->event_log_presenter          = new EventLogPresenter();
 		$this->snapshot_summary_presenter   = new SnapshotSummaryPresenter();
+		$this->snapshot_audit_report_presenter = new SnapshotAuditReportPresenter( $this->audit_report_verifier );
 		$this->dashboard_summary_presenter  = new DashboardSummaryPresenter();
 		$this->restore_impact_summary_presenter = new RestoreImpactSummaryPresenter();
 		$this->snapshot_status_resolver = new SnapshotStatusResolver(
@@ -3437,37 +3445,24 @@ class Admin {
 	 * @return array
 	 */
 	protected function build_snapshot_audit_report( array $snapshot ) {
-		$payload = array(
-			'generated_at' => current_time( 'mysql', true ),
-			'plugin_version' => ZNTS_VERSION,
-			'snapshot' => $snapshot,
-			'comparison' => $this->get_snapshot_comparison( $snapshot ),
-			'artifacts' => $this->get_snapshot_artifacts( $snapshot ),
-			'artifact_diff' => $this->get_artifact_diff( $snapshot ),
-			'health' => array(
-				'baseline' => $this->get_snapshot_health_baseline( $snapshot ),
-				'comparison' => $this->get_snapshot_health_comparison( $snapshot ),
-			),
-			'readiness' => array(
-				'restore_check' => $this->get_last_restore_check( $snapshot ),
-				'restore_dry_run' => $this->get_last_restore_dry_run( $snapshot ),
-				'restore_stage' => $this->get_last_restore_stage( $snapshot ),
-				'restore_plan' => $this->get_last_restore_plan( $snapshot ),
-				'restore_execution' => $this->get_last_restore_execution( $snapshot ),
-				'restore_rollback' => $this->get_last_restore_rollback( $snapshot ),
-			),
-			'checkpoints' => array(
-				'stage' => $this->get_restore_stage_checkpoint( $snapshot ),
-				'plan' => $this->get_restore_plan_checkpoint( $snapshot ),
-				'execution' => $this->get_restore_execution_checkpoint( $snapshot ),
-			),
-			'operator_checklist' => $this->get_restore_operator_checklist( $snapshot ),
-			'activity' => $this->get_snapshot_activity( $snapshot ),
-		);
-
-		return array(
-			'report'    => $payload,
-			'integrity' => $this->audit_report_verifier->build_integrity( $payload ),
+		return $this->snapshot_audit_report_presenter->build_report(
+			$snapshot,
+			(array) $this->get_snapshot_comparison( $snapshot ),
+			(array) $this->get_snapshot_artifacts( $snapshot ),
+			(array) $this->get_artifact_diff( $snapshot ),
+			(array) $this->get_snapshot_health_baseline( $snapshot ),
+			(array) $this->get_snapshot_health_comparison( $snapshot ),
+			(array) $this->get_last_restore_check( $snapshot ),
+			(array) $this->get_last_restore_dry_run( $snapshot ),
+			(array) $this->get_last_restore_stage( $snapshot ),
+			(array) $this->get_last_restore_plan( $snapshot ),
+			(array) $this->get_last_restore_execution( $snapshot ),
+			(array) $this->get_last_restore_rollback( $snapshot ),
+			(array) $this->get_restore_stage_checkpoint( $snapshot ),
+			(array) $this->get_restore_plan_checkpoint( $snapshot ),
+			(array) $this->get_restore_execution_checkpoint( $snapshot ),
+			(array) $this->get_restore_operator_checklist( $snapshot ),
+			(array) $this->get_snapshot_activity( $snapshot )
 		);
 	}
 

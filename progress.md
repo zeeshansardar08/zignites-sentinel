@@ -265,7 +265,8 @@
   - health comparison presenter extraction
   - restore checkpoint/run-card presenter extraction
   - Event Logs export-row and snapshot-activity row formatting extraction into the existing Event Logs presenter
-  - presenter-focused regression coverage for all four seams
+  - snapshot audit report payload presenter extraction
+  - presenter-focused regression coverage for all five seams
 - Live authenticated admin smoke validation has now been run successfully against a real wp-admin session for:
   - Sentinel Dashboard
   - Update Readiness
@@ -328,6 +329,7 @@
 - `includes/admin/class-health-comparison-presenter.php`
 - `includes/admin/class-restore-checkpoint-presenter.php`
 - `includes/admin/class-restore-impact-summary-presenter.php`
+- `includes/admin/class-snapshot-audit-report-presenter.php`
 - `includes/admin/class-restore-operator-checklist-evaluator.php`
 - `includes/admin/class-settings-portability.php`
 - `includes/admin/class-snapshot-summary-presenter.php`
@@ -357,6 +359,8 @@
 - `tests/test-health-comparison-presenter.php`
 - `tests/test-restore-checkpoint-presenter.php`
 - `tests/test-restore-impact-summary-presenter.php`
+- `tests/test-snapshot-audit-report-presenter.php`
+- `tests/test-snapshot-audit-report.php`
 - `tests/test-snapshot-summary-presenter.php`
 - `tests/test-status-presenter.php`
 
@@ -381,7 +385,7 @@
 3. Add broader reporting/test coverage for any newly extracted presentation helper
 - Likely seams:
   - future update-readiness formatter helpers
-  - remaining dashboard/readiness presenter helpers after checkpoint/run-card and activity-row extraction
+  - remaining dashboard/readiness presenter helpers after checkpoint/run-card, activity-row, and audit-report extraction
 
 4. Consider a compact printable operator handoff report later
 - Only after the current reporting surfaces are better covered by tests
@@ -408,6 +412,7 @@
   - `includes/admin/class-health-comparison-presenter.php`
   - `includes/admin/class-restore-checkpoint-presenter.php`
   - `includes/admin/class-restore-impact-summary-presenter.php`
+  - `includes/admin/class-snapshot-audit-report-presenter.php`
   - `includes/admin/class-status-presenter.php`
   - `includes/admin/class-snapshot-summary-presenter.php`
   - `tests/test-health-comparison.php`
@@ -418,6 +423,8 @@
   - `tests/test-event-log-presenter.php`
   - `tests/test-restore-checkpoint-presenter.php`
   - `tests/test-restore-impact-summary-presenter.php`
+  - `tests/test-snapshot-audit-report-presenter.php`
+  - `tests/test-snapshot-audit-report.php`
   - `tests/test-snapshot-summary-presenter.php`
   - `tests/test-snapshot-summary-export.php`
   - `tests/test-status-presenter.php`

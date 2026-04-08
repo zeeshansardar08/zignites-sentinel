@@ -17,6 +17,8 @@ require_once __DIR__ . '/test-dashboard-summary-presenter.php';
 require_once __DIR__ . '/test-health-comparison-presenter.php';
 require_once __DIR__ . '/test-restore-checkpoint-presenter.php';
 require_once __DIR__ . '/test-restore-impact-summary-presenter.php';
+require_once __DIR__ . '/test-snapshot-audit-report-presenter.php';
+require_once __DIR__ . '/test-snapshot-audit-report.php';
 require_once __DIR__ . '/test-snapshot-summary-presenter.php';
 require_once __DIR__ . '/test-snapshot-summary-export.php';
 require_once __DIR__ . '/test-restore-impact-summary.php';
