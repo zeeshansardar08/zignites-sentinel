@@ -7,6 +7,7 @@ require_once __DIR__ . '/bootstrap.php';
 
 use Zignites\Sentinel\Admin\Admin;
 use Zignites\Sentinel\Admin\DashboardSummaryPresenter;
+use Zignites\Sentinel\Admin\DashboardSummaryStateBuilder;
 use Zignites\Sentinel\Admin\RestoreCheckpointPresenter;
 
 class ZNTS_Fake_Dashboard_Snapshot_Repository {
@@ -53,6 +54,7 @@ class ZNTS_Testable_Dashboard_Admin extends Admin {
 		$this->snapshot_status_resolver = new ZNTS_Fake_Dashboard_Status_Resolver();
 		$this->status_presenter         = new \Zignites\Sentinel\Admin\StatusPresenter();
 		$this->restore_checkpoint_presenter = new RestoreCheckpointPresenter( $this->status_presenter );
+		$this->dashboard_summary_state_builder = new DashboardSummaryStateBuilder();
 		$this->dashboard_summary_presenter = new DashboardSummaryPresenter();
 	}
 
