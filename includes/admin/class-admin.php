@@ -293,6 +293,13 @@ class Admin {
 	protected $snapshot_list_state_builder;
 
 	/**
+	 * Snapshot summary state builder.
+	 *
+	 * @var SnapshotSummaryStateBuilder
+	 */
+	protected $snapshot_summary_state_builder;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Logger                   $logger              Structured logger.
@@ -362,6 +369,7 @@ class Admin {
 		$this->audit_report_verifier    = new AuditReportVerifier();
 		$this->restore_operator_checklist_evaluator = new RestoreOperatorChecklistEvaluator();
 		$this->snapshot_list_state_builder = new SnapshotListStateBuilder();
+		$this->snapshot_summary_state_builder = new SnapshotSummaryStateBuilder();
 		$this->status_presenter             = new StatusPresenter();
 		$this->health_comparison_presenter  = new HealthComparisonPresenter( $this->status_presenter );
 		$this->restore_checkpoint_presenter = new RestoreCheckpointPresenter( $this->status_presenter );
@@ -1947,34 +1955,53 @@ class Admin {
 		}
 
 		$artifacts          = $this->get_snapshot_artifacts( $snapshot );
-		$artifacts          = is_array( $artifacts ) ? $artifacts : array();
 		$activity           = $this->get_snapshot_activity( $snapshot );
-		$activity           = is_array( $activity ) ? array_slice( $activity, 0, 5 ) : array();
 		$operator_checklist = $this->get_restore_operator_checklist( $snapshot );
-		$operator_checklist = is_array( $operator_checklist ) ? $operator_checklist : array();
 		$restore_check      = $this->get_last_restore_check( $snapshot );
-		$restore_check      = is_array( $restore_check ) ? $restore_check : array();
 		$restore_stage      = $this->get_last_restore_stage( $snapshot );
-		$restore_stage      = is_array( $restore_stage ) ? $restore_stage : array();
 		$restore_plan       = $this->get_last_restore_plan( $snapshot );
-		$restore_plan       = is_array( $restore_plan ) ? $restore_plan : array();
 		$last_execution     = $this->get_last_restore_execution( $snapshot );
-		$last_execution     = is_array( $last_execution ) ? $last_execution : array();
 		$last_rollback      = $this->get_last_restore_rollback( $snapshot );
-		$last_rollback      = is_array( $last_rollback ) ? $last_rollback : array();
 		$baseline           = $this->get_snapshot_health_baseline( $snapshot );
-		$baseline           = is_array( $baseline ) ? $baseline : array();
 		$stage_checkpoint   = $this->get_restore_stage_checkpoint( $snapshot );
-		$stage_checkpoint   = is_array( $stage_checkpoint ) ? $stage_checkpoint : array();
 		$plan_checkpoint    = $this->get_restore_plan_checkpoint( $snapshot );
-		$plan_checkpoint    = is_array( $plan_checkpoint ) ? $plan_checkpoint : array();
 		$status_index       = $this->snapshot_status_resolver->build_snapshot_status_index( array( $snapshot ) );
-		$snapshot_status    = isset( $status_index[ (int) $snapshot['id'] ] ) ? $status_index[ (int) $snapshot['id'] ] : array();
-		$artifact_counts    = $this->summarize_snapshot_artifacts( $artifacts );
-		$stage_timing       = ! empty( $stage_checkpoint ) ? $this->get_checkpoint_timing_summary( $stage_checkpoint ) : array();
-		$plan_timing        = ! empty( $plan_checkpoint ) ? $this->get_checkpoint_timing_summary( $plan_checkpoint ) : array();
+		$stage_timing       = is_array( $stage_checkpoint ) && ! empty( $stage_checkpoint ) ? $this->get_checkpoint_timing_summary( $stage_checkpoint ) : array();
+		$plan_timing        = is_array( $plan_checkpoint ) && ! empty( $plan_checkpoint ) ? $this->get_checkpoint_timing_summary( $plan_checkpoint ) : array();
+		$summary_state      = $this->snapshot_summary_state_builder->build_summary_state(
+			$snapshot,
+			is_array( $artifacts ) ? $artifacts : array(),
+			is_array( $activity ) ? $activity : array(),
+			is_array( $operator_checklist ) ? $operator_checklist : array(),
+			is_array( $restore_check ) ? $restore_check : array(),
+			is_array( $restore_stage ) ? $restore_stage : array(),
+			is_array( $restore_plan ) ? $restore_plan : array(),
+			is_array( $last_execution ) ? $last_execution : array(),
+			is_array( $last_rollback ) ? $last_rollback : array(),
+			is_array( $baseline ) ? $baseline : array(),
+			is_array( $stage_checkpoint ) ? $stage_checkpoint : array(),
+			is_array( $plan_checkpoint ) ? $plan_checkpoint : array(),
+			is_array( $status_index ) ? $status_index : array(),
+			$stage_timing,
+			$plan_timing,
+			$this->snapshot_summary_presenter
+		);
 
-		return $this->snapshot_summary_presenter->build_summary( $snapshot, $snapshot_status, $artifact_counts, $activity, $operator_checklist, $baseline, $restore_check, $stage_timing, $plan_timing, $last_execution, $last_rollback, $restore_stage, $restore_plan );
+		return $this->snapshot_summary_presenter->build_summary(
+			$summary_state['snapshot'],
+			$summary_state['snapshot_status'],
+			$summary_state['artifact_counts'],
+			$summary_state['activity'],
+			$summary_state['operator_checklist'],
+			$summary_state['baseline'],
+			$summary_state['restore_check'],
+			$summary_state['stage_timing'],
+			$summary_state['plan_timing'],
+			$summary_state['last_execution'],
+			$summary_state['last_rollback'],
+			$summary_state['restore_stage'],
+			$summary_state['restore_plan']
+		);
 	}
 
 	/**
