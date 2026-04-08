@@ -261,12 +261,8 @@
   - dashboard summary presenter extraction
   - presenter-focused regression coverage
 - Current branch extends that read-only presentation cleanup with:
-  - restore impact summary presenter extraction
-  - health comparison presenter extraction
-  - restore checkpoint/run-card presenter extraction
-  - Event Logs export-row and snapshot-activity row formatting extraction into the existing Event Logs presenter
-  - snapshot audit report payload presenter extraction
-  - presenter-focused regression coverage for all five seams
+  - restore checkpoint execution/rollback summary extraction into the existing restore checkpoint presenter
+  - presenter-focused regression coverage for the checkpoint summary seam
 - Live authenticated admin smoke validation has now been run successfully against a real wp-admin session for:
   - Sentinel Dashboard
   - Update Readiness
@@ -369,7 +365,7 @@
 ### Immediate Next Steps
 1. Continue the read-only presentation extraction work now that manual/admin validation is current
 - Likely candidates:
-  - remaining Update Readiness formatter helpers outside restore checkpoint/run-card payloads
+  - remaining Update Readiness formatter helpers outside restore checkpoint payloads
   - compact dashboard/update-readiness presenter seams still embedded in `includes/admin/class-admin.php`
 - Reason: the manual/admin pass and live smoke/export checks are current, so the next highest-value work is reducing presentation logic still concentrated in the admin controller
 
@@ -385,7 +381,7 @@
 3. Add broader reporting/test coverage for any newly extracted presentation helper
 - Likely seams:
   - future update-readiness formatter helpers
-  - remaining dashboard/readiness presenter helpers after checkpoint/run-card, activity-row, and audit-report extraction
+  - remaining dashboard/readiness presenter helpers after checkpoint summary extraction
 
 4. Consider a compact printable operator handoff report later
 - Only after the current reporting surfaces are better covered by tests
@@ -434,7 +430,7 @@
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
 - Current branch prepared for merge:
-  - `feature/restore-impact-summary-presenter-extraction`
+  - `feature/restore-checkpoint-summary-presenter-extraction`
 - Next likely restart task after this branch merges:
   - extract the next update-readiness/dashboard read-only formatter/presenter seam from `includes/admin/class-admin.php`
 

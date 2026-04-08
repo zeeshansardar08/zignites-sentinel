@@ -2257,22 +2257,7 @@ class Admin {
 			return array();
 		}
 
-		$checkpoint_state = isset( $checkpoint['checkpoint'] ) && is_array( $checkpoint['checkpoint'] ) ? $checkpoint['checkpoint'] : array();
-		$item_summary     = $this->summarize_execution_checkpoint_items(
-			isset( $checkpoint_state['items'] ) && is_array( $checkpoint_state['items'] ) ? $checkpoint_state['items'] : array()
-		);
-
-		return array_merge(
-			array(
-				'run_id'           => isset( $checkpoint['run_id'] ) ? (string) $checkpoint['run_id'] : '',
-				'generated_at'     => isset( $checkpoint['generated_at'] ) ? (string) $checkpoint['generated_at'] : '',
-				'stage_ready'      => ! empty( $checkpoint_state['stage_ready'] ),
-				'stage_path'       => isset( $checkpoint_state['stage_path'] ) ? (string) $checkpoint_state['stage_path'] : '',
-				'health_completed' => ! empty( $checkpoint_state['health_completed'] ),
-				'health_status'    => isset( $checkpoint_state['health_verification']['status'] ) ? (string) $checkpoint_state['health_verification']['status'] : '',
-			),
-			$item_summary
-		);
+		return $this->restore_checkpoint_presenter->build_execution_checkpoint_summary( $checkpoint );
 	}
 
 	/**
@@ -2288,19 +2273,7 @@ class Admin {
 			return array();
 		}
 
-		$checkpoint_state = isset( $checkpoint['checkpoint'] ) && is_array( $checkpoint['checkpoint'] ) ? $checkpoint['checkpoint'] : array();
-		$item_summary     = $this->summarize_rollback_checkpoint_items(
-			isset( $checkpoint_state['items'] ) && is_array( $checkpoint_state['items'] ) ? $checkpoint_state['items'] : array()
-		);
-
-		return array_merge(
-			array(
-				'run_id'       => isset( $checkpoint['run_id'] ) ? (string) $checkpoint['run_id'] : '',
-				'generated_at' => isset( $checkpoint['generated_at'] ) ? (string) $checkpoint['generated_at'] : '',
-				'backup_root'  => isset( $checkpoint_state['backup_root'] ) ? (string) $checkpoint_state['backup_root'] : '',
-			),
-			$item_summary
-		);
+		return $this->restore_checkpoint_presenter->build_rollback_checkpoint_summary( $checkpoint );
 	}
 
 	/**
@@ -2828,43 +2801,7 @@ class Admin {
 	 * @return array
 	 */
 	protected function summarize_execution_checkpoint_items( array $items ) {
-		$summary = array(
-			'item_count'        => count( $items ),
-			'backup_count'      => 0,
-			'write_count'       => 0,
-			'failed_count'      => 0,
-			'phase_counts'      => array(),
-		);
-
-		foreach ( $items as $item ) {
-			if ( ! is_array( $item ) ) {
-				continue;
-			}
-
-			if ( ! empty( $item['backup_completed'] ) ) {
-				++$summary['backup_count'];
-			}
-
-			if ( ! empty( $item['write_completed'] ) ) {
-				++$summary['write_count'];
-			}
-
-			if ( ! empty( $item['status'] ) && 'fail' === sanitize_key( (string) $item['status'] ) ) {
-				++$summary['failed_count'];
-			}
-
-			$phase = ! empty( $item['phase'] ) ? sanitize_key( (string) $item['phase'] ) : 'unknown';
-
-			if ( ! isset( $summary['phase_counts'][ $phase ] ) ) {
-				$summary['phase_counts'][ $phase ] = 0;
-			}
-
-			++$summary['phase_counts'][ $phase ];
-		}
-
-		arsort( $summary['phase_counts'] );
-
-		return $summary;
+		return $this->restore_checkpoint_presenter->summarize_execution_items( $items );
 	}
 
 	/**
@@ -2874,38 +2811,7 @@ class Admin {
 	 * @return array
 	 */
 	protected function summarize_rollback_checkpoint_items( array $items ) {
-		$summary = array(
-			'item_count'        => count( $items ),
-			'completed_count'   => 0,
-			'failed_count'      => 0,
-			'phase_counts'      => array(),
-		);
-
-		foreach ( $items as $item ) {
-			if ( ! is_array( $item ) ) {
-				continue;
-			}
-
-			if ( ! empty( $item['completed'] ) ) {
-				++$summary['completed_count'];
-			}
-
-			if ( ! empty( $item['status'] ) && 'fail' === sanitize_key( (string) $item['status'] ) ) {
-				++$summary['failed_count'];
-			}
-
-			$phase = ! empty( $item['phase'] ) ? sanitize_key( (string) $item['phase'] ) : 'unknown';
-
-			if ( ! isset( $summary['phase_counts'][ $phase ] ) ) {
-				$summary['phase_counts'][ $phase ] = 0;
-			}
-
-			++$summary['phase_counts'][ $phase ];
-		}
-
-		arsort( $summary['phase_counts'] );
-
-		return $summary;
+		return $this->restore_checkpoint_presenter->summarize_rollback_items( $items );
 	}
 
 	/**
