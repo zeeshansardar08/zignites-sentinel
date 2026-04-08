@@ -6,12 +6,14 @@
 require_once __DIR__ . '/bootstrap.php';
 
 use Zignites\Sentinel\Admin\Admin;
+use Zignites\Sentinel\Admin\RestoreImpactSummaryPresenter;
 
 class ZNTS_Testable_Restore_Impact_Admin extends Admin {
 	public $fixture = array();
 
 	public function __construct() {
 		$this->status_presenter = new \Zignites\Sentinel\Admin\StatusPresenter();
+		$this->restore_impact_summary_presenter = new RestoreImpactSummaryPresenter();
 	}
 
 	public function build_impact_summary( array $snapshot ) {
