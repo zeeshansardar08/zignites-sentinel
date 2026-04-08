@@ -563,15 +563,8 @@ class Admin {
 	 * @return void
 	 */
 	public function render_dashboard_widget() {
-		$summary = $this->get_dashboard_summary_payload( 1 );
-		$view_data = array(
-			'site_status_card'     => $summary['site_status_card'],
-			'restore_health_strip' => $summary['restore_health_strip'],
-			'latest_snapshot'      => ! empty( $summary['recent_snapshots'][0] ) ? $summary['recent_snapshots'][0] : array(),
-			'snapshot_status'      => ! empty( $summary['recent_snapshots'][0]['id'] ) && isset( $summary['snapshot_status_index'][ (int) $summary['recent_snapshots'][0]['id'] ] )
-				? $summary['snapshot_status_index'][ (int) $summary['recent_snapshots'][0]['id'] ]
-				: array(),
-		);
+		$summary   = $this->get_dashboard_summary_payload( 1 );
+		$view_data = $this->dashboard_summary_state_builder->build_widget_state( $summary );
 
 		require ZNTS_PLUGIN_DIR . 'includes/admin/views/dashboard-widget.php';
 	}
