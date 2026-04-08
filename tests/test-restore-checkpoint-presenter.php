@@ -103,3 +103,78 @@ function znts_test_restore_checkpoint_presenter_builds_run_cards_with_checkpoint
 	znts_assert_same( 'Stage reuse ready. Health will rerun.', $card['secondary'], 'Restore checkpoint presenter should prioritize execution checkpoint reuse messaging over generic health or resume text.' );
 	znts_assert_same( 'Run ID: run-exec-9', $card['link_label'], 'Restore checkpoint presenter should surface the run ID as the card link label.' );
 }
+
+function znts_test_restore_checkpoint_presenter_builds_execution_checkpoint_summaries() {
+	$presenter = new RestoreCheckpointPresenter( new StatusPresenter() );
+
+	$summary = $presenter->build_execution_checkpoint_summary(
+		array(
+			'run_id'       => 'run-exec-1',
+			'generated_at' => '2025-01-06 10:00:00',
+			'checkpoint'   => array(
+				'stage_ready'         => true,
+				'stage_path'          => 'D:/uploads/zignites-sentinel/staging/run-exec-1',
+				'health_completed'    => true,
+				'health_verification' => array(
+					'status' => 'healthy',
+				),
+				'items'               => array(
+					'plugin-a' => array(
+						'phase'            => 'payload_written',
+						'backup_completed' => true,
+						'write_completed'  => true,
+					),
+					'plugin-b' => array(
+						'phase'            => 'backup_moved',
+						'backup_completed' => true,
+					),
+					'theme-a' => array(
+						'phase'  => 'target_reset',
+						'status' => 'fail',
+					),
+				),
+			),
+		)
+	);
+
+	znts_assert_same( 'run-exec-1', $summary['run_id'], 'Restore checkpoint presenter should preserve execution checkpoint run IDs.' );
+	znts_assert_true( $summary['stage_ready'], 'Restore checkpoint presenter should preserve stage reuse state in execution summaries.' );
+	znts_assert_same( 3, $summary['item_count'], 'Restore checkpoint presenter should count execution checkpoint items.' );
+	znts_assert_same( 2, $summary['backup_count'], 'Restore checkpoint presenter should count completed execution backups.' );
+	znts_assert_same( 1, $summary['write_count'], 'Restore checkpoint presenter should count completed execution writes.' );
+	znts_assert_same( 1, $summary['failed_count'], 'Restore checkpoint presenter should count failed execution items.' );
+}
+
+function znts_test_restore_checkpoint_presenter_builds_rollback_checkpoint_summaries() {
+	$presenter = new RestoreCheckpointPresenter( new StatusPresenter() );
+
+	$summary = $presenter->build_rollback_checkpoint_summary(
+		array(
+			'run_id'       => 'run-rollback-7',
+			'generated_at' => '2025-01-06 11:00:00',
+			'checkpoint'   => array(
+				'backup_root' => 'D:/uploads/zignites-sentinel/backups/run-rollback-7',
+				'items'       => array(
+					'plugin-a' => array(
+						'phase'     => 'target_removed',
+						'completed' => true,
+					),
+					'plugin-b' => array(
+						'phase'     => 'restore_completed',
+						'completed' => true,
+					),
+					'theme-a' => array(
+						'phase'  => 'restore_completed',
+						'status' => 'fail',
+					),
+				),
+			),
+		)
+	);
+
+	znts_assert_same( 'run-rollback-7', $summary['run_id'], 'Restore checkpoint presenter should preserve rollback checkpoint run IDs.' );
+	znts_assert_same( 'D:/uploads/zignites-sentinel/backups/run-rollback-7', $summary['backup_root'], 'Restore checkpoint presenter should preserve rollback backup roots.' );
+	znts_assert_same( 3, $summary['item_count'], 'Restore checkpoint presenter should count rollback checkpoint items.' );
+	znts_assert_same( 2, $summary['completed_count'], 'Restore checkpoint presenter should count completed rollback items.' );
+	znts_assert_same( 1, $summary['failed_count'], 'Restore checkpoint presenter should count failed rollback items.' );
+}
