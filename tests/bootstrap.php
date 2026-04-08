@@ -185,6 +185,7 @@ require_once __DIR__ . '/../includes/snapshots/class-snapshot-artifact-repositor
 require_once __DIR__ . '/../includes/admin/class-audit-report-verifier.php';
 require_once __DIR__ . '/../includes/admin/class-status-presenter.php';
 require_once __DIR__ . '/../includes/admin/class-event-log-presenter.php';
+require_once __DIR__ . '/../includes/admin/class-dashboard-summary-presenter.php';
 require_once __DIR__ . '/../includes/admin/class-snapshot-summary-presenter.php';
 require_once __DIR__ . '/../includes/admin/class-restore-operator-checklist-evaluator.php';
 require_once __DIR__ . '/../includes/admin/class-settings-portability.php';

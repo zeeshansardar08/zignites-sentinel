@@ -6,6 +6,7 @@
 require_once __DIR__ . '/bootstrap.php';
 
 use Zignites\Sentinel\Admin\Admin;
+use Zignites\Sentinel\Admin\DashboardSummaryPresenter;
 
 class ZNTS_Fake_Dashboard_Snapshot_Repository {
 	public $recent = array();
@@ -50,6 +51,7 @@ class ZNTS_Testable_Dashboard_Admin extends Admin {
 		$this->health_score             = new ZNTS_Fake_Dashboard_Health_Score();
 		$this->snapshot_status_resolver = new ZNTS_Fake_Dashboard_Status_Resolver();
 		$this->status_presenter         = new \Zignites\Sentinel\Admin\StatusPresenter();
+		$this->dashboard_summary_presenter = new DashboardSummaryPresenter();
 	}
 
 	public function build_dashboard_summary_payload( $limit = 5 ) {

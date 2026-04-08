@@ -230,6 +230,13 @@ class Admin {
 	protected $snapshot_summary_presenter;
 
 	/**
+	 * Dashboard summary presenter.
+	 *
+	 * @var DashboardSummaryPresenter
+	 */
+	protected $dashboard_summary_presenter;
+
+	/**
 	 * Settings portability helper.
 	 *
 	 * @var SettingsPortability
@@ -322,6 +329,7 @@ class Admin {
 		$this->status_presenter         = new StatusPresenter();
 		$this->event_log_presenter      = new EventLogPresenter();
 		$this->snapshot_summary_presenter = new SnapshotSummaryPresenter();
+		$this->dashboard_summary_presenter = new DashboardSummaryPresenter();
 		$this->snapshot_status_resolver = new SnapshotStatusResolver(
 			$logs,
 			$restore_checkpoint_store,
@@ -499,24 +507,16 @@ class Admin {
 		$health_score          = $this->health_score->calculate();
 		$snapshot_status_index = $this->snapshot_status_resolver->build_snapshot_status_index( $recent_snapshots );
 		$site_status_card      = $this->snapshot_status_resolver->build_site_status_card( $health_score, $recent_snapshots, $snapshot_status_index );
+		$activity_url          = ! empty( $site_status_card['latest_snapshot']['id'] ) ? $this->get_snapshot_activity_url( (int) $site_status_card['latest_snapshot']['id'] ) : '';
 
-		if ( ! empty( $site_status_card['latest_snapshot']['id'] ) ) {
-			$site_status_card['detail_url'] = add_query_arg(
-				array(
-					'page'        => self::UPDATE_PAGE_SLUG,
-					'snapshot_id' => (int) $site_status_card['latest_snapshot']['id'],
-				),
-				admin_url( 'admin.php' )
-			);
-			$site_status_card['activity_url'] = $this->get_snapshot_activity_url( (int) $site_status_card['latest_snapshot']['id'] );
-		}
-
-		return array(
-			'recent_snapshots'      => $recent_snapshots,
-			'health_score'          => $health_score,
-			'restore_health_strip'  => $this->get_restore_dashboard_health_strip(),
-			'snapshot_status_index' => $snapshot_status_index,
-			'site_status_card'      => $site_status_card,
+		return $this->dashboard_summary_presenter->build_summary_payload(
+			$recent_snapshots,
+			is_array( $health_score ) ? $health_score : array(),
+			is_array( $snapshot_status_index ) ? $snapshot_status_index : array(),
+			is_array( $site_status_card ) ? $site_status_card : array(),
+			$this->get_restore_dashboard_health_strip(),
+			self::UPDATE_PAGE_SLUG,
+			$activity_url
 		);
 	}
 
@@ -2566,71 +2566,19 @@ class Admin {
 		$rollback   = $this->get_last_restore_rollback( $snapshot );
 		$stage_timing = is_array( $stage ) ? $this->get_checkpoint_timing_summary( $stage ) : array();
 		$plan_timing  = is_array( $plan ) ? $this->get_checkpoint_timing_summary( $plan ) : array();
-		$stage_fresh = ! empty( $stage_timing['is_fresh'] );
-		$plan_fresh  = ! empty( $plan_timing['is_fresh'] );
 
-		return array(
-			'snapshot'        => $snapshot,
-			'checklist'       => $checklist,
-			'baseline'        => $baseline,
-			'stage_checkpoint'=> $stage,
-			'plan_checkpoint' => $plan,
-			'last_execution'  => $execution,
-			'last_rollback'   => $rollback,
-			'summary_rows'    => array(
-				array(
-					'label'   => __( 'Health baseline', 'zignites-sentinel' ),
-					'status'  => is_array( $baseline ) ? 'pass' : 'fail',
-					'message' => is_array( $baseline )
-						? __( 'Captured for the latest snapshot.', 'zignites-sentinel' )
-						: __( 'Not captured yet.', 'zignites-sentinel' ),
-				),
-				array(
-					'label'   => __( 'Stage checkpoint', 'zignites-sentinel' ),
-					'status'  => $stage_fresh ? 'pass' : ( is_array( $stage ) ? 'warning' : 'fail' ),
-					'message' => $stage_fresh
-						? sprintf(
-							/* translators: %s: countdown label */
-							__( 'Fresh staged validation is available. %s', 'zignites-sentinel' ),
-							isset( $stage_timing['label'] ) ? $stage_timing['label'] : ''
-						)
-						: ( is_array( $stage )
-							? sprintf(
-								/* translators: %s: countdown label */
-								__( 'Stored checkpoint exists but is expired or no longer reusable. %s', 'zignites-sentinel' ),
-								isset( $stage_timing['label'] ) ? $stage_timing['label'] : ''
-							)
-							: __( 'No staged validation checkpoint is available.', 'zignites-sentinel' ) ),
-				),
-				array(
-					'label'   => __( 'Restore plan', 'zignites-sentinel' ),
-					'status'  => $plan_fresh ? 'pass' : ( is_array( $plan ) ? 'warning' : 'fail' ),
-					'message' => $plan_fresh
-						? sprintf(
-							/* translators: %s: countdown label */
-							__( 'Fresh restore plan is available. %s', 'zignites-sentinel' ),
-							isset( $plan_timing['label'] ) ? $plan_timing['label'] : ''
-						)
-						: ( is_array( $plan )
-							? sprintf(
-								/* translators: %s: countdown label */
-								__( 'Stored plan exists but is expired or blocked. %s', 'zignites-sentinel' ),
-								isset( $plan_timing['label'] ) ? $plan_timing['label'] : ''
-							)
-							: __( 'No restore plan checkpoint is available.', 'zignites-sentinel' ) ),
-				),
-			),
-			'can_execute'     => ! empty( $checklist['can_execute'] ),
-			'status'          => ! empty( $checklist['can_execute'] ) ? 'ready' : 'blocked',
-			'status_badge'    => ! empty( $checklist['can_execute'] ) ? 'info' : 'critical',
-			'detail_url'      => add_query_arg(
-				array(
-					'page'        => self::UPDATE_PAGE_SLUG,
-					'snapshot_id' => (int) $snapshot['id'],
-				),
-				admin_url( 'admin.php' )
-			),
-			'activity_url'    => $this->get_snapshot_activity_url( (int) $snapshot['id'] ),
+		return $this->dashboard_summary_presenter->build_restore_summary(
+			$snapshot,
+			is_array( $checklist ) ? $checklist : array(),
+			$baseline,
+			$stage,
+			$plan,
+			is_array( $execution ) ? $execution : array(),
+			is_array( $rollback ) ? $rollback : array(),
+			$stage_timing,
+			$plan_timing,
+			self::UPDATE_PAGE_SLUG,
+			$this->get_snapshot_activity_url( (int) $snapshot['id'] )
 		);
 	}
 
@@ -2654,31 +2602,7 @@ class Admin {
 
 		$rows = $this->get_snapshot_health_comparison( $snapshot );
 
-		if ( empty( $rows ) ) {
-			return array(
-				'snapshot'   => $snapshot,
-				'rows'       => array(),
-				'detail_url' => add_query_arg(
-					array(
-						'page'        => self::UPDATE_PAGE_SLUG,
-						'snapshot_id' => (int) $snapshot['id'],
-					),
-					admin_url( 'admin.php' )
-				),
-			);
-		}
-
-		return array(
-			'snapshot'   => $snapshot,
-			'rows'       => $rows,
-			'detail_url' => add_query_arg(
-				array(
-					'page'        => self::UPDATE_PAGE_SLUG,
-					'snapshot_id' => (int) $snapshot['id'],
-				),
-				admin_url( 'admin.php' )
-			),
-		);
+		return $this->dashboard_summary_presenter->build_health_strip( $snapshot, is_array( $rows ) ? $rows : array(), self::UPDATE_PAGE_SLUG );
 	}
 
 	/**
