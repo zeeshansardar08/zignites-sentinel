@@ -6,6 +6,7 @@
 require_once __DIR__ . '/bootstrap.php';
 
 use Zignites\Sentinel\Admin\Admin;
+use Zignites\Sentinel\Admin\DashboardSummaryPresenter;
 
 class ZNTS_Fake_Health_Comparison_Snapshot_Repository {
 	public $recent = array();
@@ -21,6 +22,7 @@ class ZNTS_Testable_Health_Comparison_Admin extends Admin {
 	public function __construct() {
 		$this->snapshots = new ZNTS_Fake_Health_Comparison_Snapshot_Repository();
 		$this->status_presenter = new \Zignites\Sentinel\Admin\StatusPresenter();
+		$this->dashboard_summary_presenter = new DashboardSummaryPresenter();
 	}
 
 	public function build_health_delta( array $summary, array $baseline_summary ) {
