@@ -8,6 +8,7 @@ require_once __DIR__ . '/bootstrap.php';
 use Zignites\Sentinel\Admin\Admin;
 use Zignites\Sentinel\Admin\RestoreCheckpointPresenter;
 use Zignites\Sentinel\Admin\SnapshotSummaryPresenter;
+use Zignites\Sentinel\Admin\SnapshotSummaryStateBuilder;
 
 class ZNTS_Fake_Snapshot_Summary_Resolver {
 	public $status_index = array();
@@ -35,6 +36,7 @@ class ZNTS_Testable_Snapshot_Summary_Admin extends Admin {
 		$this->status_presenter         = new \Zignites\Sentinel\Admin\StatusPresenter();
 		$this->restore_checkpoint_presenter = new RestoreCheckpointPresenter( $this->status_presenter );
 		$this->snapshot_summary_presenter = new SnapshotSummaryPresenter();
+		$this->snapshot_summary_state_builder = new SnapshotSummaryStateBuilder();
 	}
 
 	public function set_status_index( array $status_index ) {
