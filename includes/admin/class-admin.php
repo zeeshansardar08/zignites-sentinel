@@ -293,6 +293,13 @@ class Admin {
 	protected $restore_operator_checklist_evaluator;
 
 	/**
+	 * Restore operator checklist state builder.
+	 *
+	 * @var RestoreOperatorChecklistStateBuilder
+	 */
+	protected $restore_operator_checklist_state_builder;
+
+	/**
 	 * Snapshot list state builder.
 	 *
 	 * @var SnapshotListStateBuilder
@@ -382,6 +389,7 @@ class Admin {
 		$this->settings_portability     = new SettingsPortability();
 		$this->audit_report_verifier    = new AuditReportVerifier();
 		$this->restore_operator_checklist_evaluator = new RestoreOperatorChecklistEvaluator();
+		$this->restore_operator_checklist_state_builder = new RestoreOperatorChecklistStateBuilder();
 		$this->snapshot_list_state_builder = new SnapshotListStateBuilder();
 		$this->snapshot_summary_state_builder = new SnapshotSummaryStateBuilder();
 		$this->dashboard_summary_state_builder = new DashboardSummaryStateBuilder();
@@ -2370,13 +2378,13 @@ class Admin {
 		}
 
 		return $this->restore_operator_checklist_evaluator->evaluate(
-			array(
-				'baseline_present'        => is_array( $baseline ),
-				'stage_result_ready'      => ! empty( $stage_result ),
-				'plan_result_ready'       => ! empty( $plan_result ),
-				'stage_checkpoint_exists' => ! empty( $stage_checkpoint ),
-				'plan_checkpoint_exists'  => ! empty( $plan_checkpoint ),
-				'max_age_hours'           => $max_age_hours,
+			$this->restore_operator_checklist_state_builder->build_context(
+				$baseline,
+				$stage_result,
+				$plan_result,
+				$stage_checkpoint,
+				$plan_checkpoint,
+				$settings
 			)
 		);
 	}
