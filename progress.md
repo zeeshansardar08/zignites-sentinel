@@ -260,6 +260,7 @@
   - Update Readiness restore readiness assessment presentation state
   - Update Readiness snapshot activity and restore action jump-link presentation state
   - Update Readiness snapshot list row and pagination presentation state
+  - Update Readiness settings and restore confirmation form defaults
   - event log presentation payloads
   - shared cross-screen status presentation
 - Main is now current through the merged read-only presentation cleanup for:
@@ -334,10 +335,14 @@
   - restore action jump links prepared by `UpdateReadinessStateBuilder`
   - snapshot activity rows normalized before rendering
   - focused regression coverage for activity severity rows, trace labels, jump-link labels, and empty defaults
-- Current branch extends the Update Readiness snapshot-list presentation-state cleanup with:
+- Main is now current through the merged Update Readiness snapshot-list presentation-state cleanup for:
   - recent snapshot table rows prepared by `UpdateReadinessStateBuilder`
   - snapshot list empty-state, filter reset, and pagination state prepared before rendering
   - focused regression coverage for snapshot row URLs, badge rows, pagination copy, filter reset URLs, and pagination query args
+- Current branch extends the Update Readiness form-defaults presentation-state cleanup with:
+  - settings form checkbox and numeric defaults prepared by `UpdateReadinessStateBuilder`
+  - restore/rollback confirmation form fields rendering from prepared form state without inline fallback checks
+  - focused regression coverage for settings form values and empty defaults
 - Live authenticated admin smoke validation has now been run successfully against a real wp-admin session for:
   - Sentinel Dashboard
   - Update Readiness
@@ -442,9 +447,9 @@
 ### Immediate Next Steps
 1. Continue the read-only presentation extraction work now that manual/admin validation is current
 - Likely candidates:
-  - remaining settings and form-field defaults still embedded in the Update Readiness view
   - remaining inline table/status fallbacks in less-traveled Update Readiness sections
-- Reason: controller-level, workspace-level, validation-row, restore validation/planning, execution/rollback result, journal row, checkpoint summary, form/resume, status-section, snapshot-detail, health-baseline, restore-assessment, activity/navigation, and snapshot-list state are now extracted, so the next highest-value work is reducing remaining form defaults and residual fallback rendering still concentrated in the view
+  - any remaining raw run-link, backup-root, or impact-summary formatting still embedded in the Update Readiness view
+- Reason: controller-level, workspace-level, validation-row, restore validation/planning, execution/rollback result, journal row, checkpoint summary, form/resume, status-section, snapshot-detail, health-baseline, restore-assessment, activity/navigation, snapshot-list, and form-default state are now extracted, so the next highest-value work is reducing residual fallback rendering still concentrated in the view
 
 2. Keep the manual/admin validation current after each read-only extraction
 - Re-run the authenticated smoke helper and the targeted manual path for:
@@ -515,10 +520,10 @@
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
 - Current branch prepared for merge:
-  - `feature/update-readiness-snapshot-list-state`
+  - `feature/update-readiness-form-defaults-state`
 - Next likely restart task after this branch merges:
   - start from `includes/admin/views/update-readiness.php`
-  - extract the next settings/form defaults or residual table fallback presentation-state seam into the Update Readiness state builder or a focused presenter
+  - extract the next residual table fallback, run-link, or impact-summary presentation-state seam into the Update Readiness state builder or a focused presenter
   - avoid new restore behavior; keep this track to presentation-state cleanup and regression coverage
 
 

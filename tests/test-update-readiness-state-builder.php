@@ -87,7 +87,11 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 				),
 			),
 			'settings' => array(
-				'retention' => 5,
+				'logging_enabled'                  => 1,
+				'delete_data_on_uninstall'         => 0,
+				'auto_snapshot_on_plan'            => 1,
+				'snapshot_retention_days'          => 45,
+				'restore_checkpoint_max_age_hours' => 12,
 			),
 			'update_candidates' => array(
 				array(
@@ -486,6 +490,11 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'Release snapshot', $state['recent_snapshots'][0]['label'], 'Update Readiness state builder should expose snapshot list items as recent snapshots.' );
 	znts_assert_same( true, $state['snapshot_status_index'][101]['restore_ready'], 'Update Readiness state builder should expose the snapshot status index from list state.' );
 	znts_assert_same( 25, $state['snapshot_pagination']['total_items'], 'Update Readiness state builder should expose snapshot pagination from list state.' );
+	znts_assert_same( true, $state['settings_form_state']['logging_enabled'], 'Update Readiness state builder should derive settings form logging state.' );
+	znts_assert_same( false, $state['settings_form_state']['delete_data_on_uninstall'], 'Update Readiness state builder should derive settings form uninstall state.' );
+	znts_assert_same( true, $state['settings_form_state']['auto_snapshot_on_plan'], 'Update Readiness state builder should derive settings form auto-snapshot state.' );
+	znts_assert_same( '45', $state['settings_form_state']['snapshot_retention_days'], 'Update Readiness state builder should derive settings form retention values.' );
+	znts_assert_same( '12', $state['settings_form_state']['restore_checkpoint_max_age_hours'], 'Update Readiness state builder should derive settings form checkpoint age values.' );
 	znts_assert_same( 'Release snapshot', $state['recent_snapshot_rows'][0]['label'], 'Update Readiness state builder should derive recent snapshot row labels.' );
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness&snapshot_id=101', $state['recent_snapshot_rows'][0]['detail_url'], 'Update Readiness state builder should derive recent snapshot detail URLs.' );
 	znts_assert_same( 'Ready', $state['recent_snapshot_rows'][0]['status_badges'][0]['label'], 'Update Readiness state builder should derive recent snapshot status badge labels.' );
@@ -626,6 +635,11 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( array(), $state['recent_snapshots'], 'Update Readiness state builder should default missing snapshot list rows to an empty array.' );
 	znts_assert_same( array(), $state['snapshot_status_index'], 'Update Readiness state builder should default missing status index payloads to an empty array.' );
 	znts_assert_same( array(), $state['snapshot_pagination'], 'Update Readiness state builder should default missing pagination payloads to an empty array.' );
+	znts_assert_same( true, $state['settings_form_state']['logging_enabled'], 'Update Readiness state builder should default settings form logging state to enabled.' );
+	znts_assert_same( true, $state['settings_form_state']['delete_data_on_uninstall'], 'Update Readiness state builder should default settings form uninstall state to enabled.' );
+	znts_assert_same( true, $state['settings_form_state']['auto_snapshot_on_plan'], 'Update Readiness state builder should default settings form auto-snapshot state to enabled.' );
+	znts_assert_same( '30', $state['settings_form_state']['snapshot_retention_days'], 'Update Readiness state builder should default settings form retention values.' );
+	znts_assert_same( '24', $state['settings_form_state']['restore_checkpoint_max_age_hours'], 'Update Readiness state builder should default settings form checkpoint age values.' );
 	znts_assert_same( array(), $state['recent_snapshot_rows'], 'Update Readiness state builder should default missing recent snapshot rows to an empty array.' );
 	znts_assert_same( 'No snapshots matched the current filters.', $state['snapshot_empty_message'], 'Update Readiness state builder should derive filtered snapshot empty-state copy.' );
 	znts_assert_same( '', $state['snapshot_pagination_summary'], 'Update Readiness state builder should default missing snapshot pagination summary to an empty string.' );

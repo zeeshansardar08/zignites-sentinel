@@ -10,7 +10,6 @@ defined( 'ABSPATH' ) || exit;
 $preflight                 = isset( $view_data['last_preflight'] ) && is_array( $view_data['last_preflight'] ) ? $view_data['last_preflight'] : array();
 $last_plan                 = isset( $view_data['last_update_plan'] ) && is_array( $view_data['last_update_plan'] ) ? $view_data['last_update_plan'] : array();
 $last_restore_check        = isset( $view_data['last_restore_check'] ) && is_array( $view_data['last_restore_check'] ) ? $view_data['last_restore_check'] : array();
-$settings                  = isset( $view_data['settings'] ) && is_array( $view_data['settings'] ) ? $view_data['settings'] : array();
 $notice                    = isset( $view_data['notice'] ) && is_array( $view_data['notice'] ) ? $view_data['notice'] : array();
 $snapshot_detail           = isset( $view_data['snapshot_detail'] ) && is_array( $view_data['snapshot_detail'] ) ? $view_data['snapshot_detail'] : null;
 $snapshot_comparison       = isset( $view_data['snapshot_comparison'] ) && is_array( $view_data['snapshot_comparison'] ) ? $view_data['snapshot_comparison'] : array();
@@ -44,6 +43,7 @@ $snapshot_pagination_summary = isset( $view_data['snapshot_pagination_summary'] 
 $show_snapshot_filter_clear = ! empty( $view_data['show_snapshot_filter_clear'] );
 $snapshot_filter_clear_url  = isset( $view_data['snapshot_filter_clear_url'] ) ? (string) $view_data['snapshot_filter_clear_url'] : '';
 $snapshot_pagination_links_args = isset( $view_data['snapshot_pagination_links_args'] ) && is_array( $view_data['snapshot_pagination_links_args'] ) ? $view_data['snapshot_pagination_links_args'] : array();
+$settings_form_state     = isset( $view_data['settings_form_state'] ) && is_array( $view_data['settings_form_state'] ) ? $view_data['settings_form_state'] : array();
 $selected_snapshot_status  = isset( $view_data['selected_snapshot_status'] ) && is_array( $view_data['selected_snapshot_status'] ) ? $view_data['selected_snapshot_status'] : array();
 $operator_checklist_status = isset( $view_data['operator_checklist_status'] ) && is_array( $view_data['operator_checklist_status'] ) ? $view_data['operator_checklist_status'] : array();
 $operator_checklist_check_rows = isset( $view_data['operator_checklist_check_rows'] ) && is_array( $view_data['operator_checklist_check_rows'] ) ? $view_data['operator_checklist_check_rows'] : array();
@@ -525,23 +525,23 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<tbody>
 						<tr>
 							<th scope="row"><?php echo esc_html__( 'Enable logging', 'zignites-sentinel' ); ?></th>
-							<td><label><input type="checkbox" name="logging_enabled" value="1" <?php checked( ! empty( $settings['logging_enabled'] ) ); ?> /> <?php echo esc_html__( 'Store diagnostic events.', 'zignites-sentinel' ); ?></label></td>
+							<td><label><input type="checkbox" name="logging_enabled" value="1" <?php checked( ! empty( $settings_form_state['logging_enabled'] ) ); ?> /> <?php echo esc_html__( 'Store diagnostic events.', 'zignites-sentinel' ); ?></label></td>
 						</tr>
 						<tr>
 							<th scope="row"><?php echo esc_html__( 'Delete data on uninstall', 'zignites-sentinel' ); ?></th>
-							<td><label><input type="checkbox" name="delete_data_on_uninstall" value="1" <?php checked( ! empty( $settings['delete_data_on_uninstall'] ) ); ?> /> <?php echo esc_html__( 'Remove Sentinel tables and options when the plugin is uninstalled.', 'zignites-sentinel' ); ?></label></td>
+							<td><label><input type="checkbox" name="delete_data_on_uninstall" value="1" <?php checked( ! empty( $settings_form_state['delete_data_on_uninstall'] ) ); ?> /> <?php echo esc_html__( 'Remove Sentinel tables and options when the plugin is uninstalled.', 'zignites-sentinel' ); ?></label></td>
 						</tr>
 						<tr>
 							<th scope="row"><?php echo esc_html__( 'Auto-create snapshot on plan', 'zignites-sentinel' ); ?></th>
-							<td><label><input type="checkbox" name="auto_snapshot_on_plan" value="1" <?php checked( ! empty( $settings['auto_snapshot_on_plan'] ) ); ?> /> <?php echo esc_html__( 'Create snapshot metadata automatically when generating a manual update plan.', 'zignites-sentinel' ); ?></label></td>
+							<td><label><input type="checkbox" name="auto_snapshot_on_plan" value="1" <?php checked( ! empty( $settings_form_state['auto_snapshot_on_plan'] ) ); ?> /> <?php echo esc_html__( 'Create snapshot metadata automatically when generating a manual update plan.', 'zignites-sentinel' ); ?></label></td>
 						</tr>
 						<tr>
 							<th scope="row"><label for="znts-snapshot-retention-days"><?php echo esc_html__( 'Snapshot retention (days)', 'zignites-sentinel' ); ?></label></th>
-							<td><input id="znts-snapshot-retention-days" type="number" min="1" name="snapshot_retention_days" value="<?php echo esc_attr( (string) $settings['snapshot_retention_days'] ); ?>" class="small-text" /></td>
+							<td><input id="znts-snapshot-retention-days" type="number" min="1" name="snapshot_retention_days" value="<?php echo esc_attr( $settings_form_state['snapshot_retention_days'] ); ?>" class="small-text" /></td>
 						</tr>
 						<tr>
 							<th scope="row"><label for="znts-restore-checkpoint-max-age-hours"><?php echo esc_html__( 'Checkpoint max age (hours)', 'zignites-sentinel' ); ?></label></th>
-							<td><input id="znts-restore-checkpoint-max-age-hours" type="number" min="1" name="restore_checkpoint_max_age_hours" value="<?php echo esc_attr( isset( $settings['restore_checkpoint_max_age_hours'] ) ? (string) $settings['restore_checkpoint_max_age_hours'] : '24' ); ?>" class="small-text" /></td>
+							<td><input id="znts-restore-checkpoint-max-age-hours" type="number" min="1" name="restore_checkpoint_max_age_hours" value="<?php echo esc_attr( $settings_form_state['restore_checkpoint_max_age_hours'] ); ?>" class="small-text" /></td>
 						</tr>
 					</tbody>
 				</table>
@@ -1393,9 +1393,9 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						<?php wp_nonce_field( 'znts_execute_restore_action' ); ?>
 						<p>
 							<label for="znts-restore-confirmation"><?php echo esc_html__( 'Type confirmation phrase', 'zignites-sentinel' ); ?></label><br />
-							<input id="znts-restore-confirmation" type="text" name="restore_confirmation_phrase" class="regular-text" placeholder="<?php echo esc_attr( isset( $restore_form_state['restore_confirmation_phrase'] ) ? $restore_form_state['restore_confirmation_phrase'] : '' ); ?>" />
+							<input id="znts-restore-confirmation" type="text" name="restore_confirmation_phrase" class="regular-text" placeholder="<?php echo esc_attr( $restore_form_state['restore_confirmation_phrase'] ); ?>" />
 						</p>
-						<p class="description"><?php echo esc_html( isset( $restore_form_state['restore_confirmation_phrase'] ) ? $restore_form_state['restore_confirmation_phrase'] : '' ); ?></p>
+						<p class="description"><?php echo esc_html( $restore_form_state['restore_confirmation_phrase'] ); ?></p>
 						<?php submit_button( __( 'Execute Live Restore', 'zignites-sentinel' ), 'primary', 'submit', false ); ?>
 					</form>
 				<?php else : ?>
@@ -1403,7 +1403,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<?php endif; ?>
 				<?php if ( ! empty( $restore_resume_context['can_resume'] ) ) : ?>
 					<h3><?php echo esc_html__( 'Resume Restore Execution', 'zignites-sentinel' ); ?></h3>
-					<p><?php echo esc_html( isset( $restore_form_state['restore_resume_message'] ) ? $restore_form_state['restore_resume_message'] : '' ); ?></p>
+					<p><?php echo esc_html( $restore_form_state['restore_resume_message'] ); ?></p>
 					<?php if ( ! empty( $operator_checklist['can_execute'] ) ) : ?>
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 							<input type="hidden" name="action" value="znts_resume_restore" />
@@ -1411,9 +1411,9 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							<?php wp_nonce_field( 'znts_resume_restore_action' ); ?>
 							<p>
 								<label for="znts-resume-confirmation"><?php echo esc_html__( 'Type confirmation phrase', 'zignites-sentinel' ); ?></label><br />
-								<input id="znts-resume-confirmation" type="text" name="restore_confirmation_phrase" class="regular-text" placeholder="<?php echo esc_attr( isset( $restore_form_state['restore_confirmation_phrase'] ) ? $restore_form_state['restore_confirmation_phrase'] : '' ); ?>" />
+								<input id="znts-resume-confirmation" type="text" name="restore_confirmation_phrase" class="regular-text" placeholder="<?php echo esc_attr( $restore_form_state['restore_confirmation_phrase'] ); ?>" />
 							</p>
-							<p class="description"><?php echo esc_html( isset( $restore_form_state['restore_resume_run_label'] ) ? $restore_form_state['restore_resume_run_label'] : '' ); ?></p>
+							<p class="description"><?php echo esc_html( $restore_form_state['restore_resume_run_label'] ); ?></p>
 							<?php submit_button( __( 'Resume Restore Execution', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 						</form>
 					<?php else : ?>
@@ -1579,14 +1579,14 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						<?php wp_nonce_field( 'znts_rollback_restore_action' ); ?>
 						<p>
 							<label for="znts-rollback-confirmation"><?php echo esc_html__( 'Type rollback confirmation phrase', 'zignites-sentinel' ); ?></label><br />
-							<input id="znts-rollback-confirmation" type="text" name="rollback_confirmation_phrase" class="regular-text" placeholder="<?php echo esc_attr( isset( $restore_form_state['rollback_confirmation_phrase'] ) ? $restore_form_state['rollback_confirmation_phrase'] : '' ); ?>" />
+							<input id="znts-rollback-confirmation" type="text" name="rollback_confirmation_phrase" class="regular-text" placeholder="<?php echo esc_attr( $restore_form_state['rollback_confirmation_phrase'] ); ?>" />
 						</p>
-						<p class="description"><?php echo esc_html( isset( $restore_form_state['rollback_confirmation_phrase'] ) ? $restore_form_state['rollback_confirmation_phrase'] : '' ); ?></p>
+						<p class="description"><?php echo esc_html( $restore_form_state['rollback_confirmation_phrase'] ); ?></p>
 						<?php submit_button( __( 'Run Rollback', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 					</form>
 					<?php if ( ! empty( $restore_rollback_resume_context['can_resume'] ) ) : ?>
 						<h3><?php echo esc_html__( 'Resume Rollback', 'zignites-sentinel' ); ?></h3>
-						<p><?php echo esc_html( isset( $restore_form_state['rollback_resume_message'] ) ? $restore_form_state['rollback_resume_message'] : '' ); ?></p>
+						<p><?php echo esc_html( $restore_form_state['rollback_resume_message'] ); ?></p>
 						<?php if ( ! empty( $restore_form_state['rollback_checkpoint_message'] ) ) : ?>
 							<p class="description"><?php echo esc_html( $restore_form_state['rollback_checkpoint_message'] ); ?></p>
 						<?php endif; ?>
@@ -1596,9 +1596,9 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							<?php wp_nonce_field( 'znts_resume_restore_rollback_action' ); ?>
 							<p>
 								<label for="znts-resume-rollback-confirmation"><?php echo esc_html__( 'Type rollback confirmation phrase', 'zignites-sentinel' ); ?></label><br />
-								<input id="znts-resume-rollback-confirmation" type="text" name="rollback_confirmation_phrase" class="regular-text" placeholder="<?php echo esc_attr( isset( $restore_form_state['rollback_confirmation_phrase'] ) ? $restore_form_state['rollback_confirmation_phrase'] : '' ); ?>" />
+								<input id="znts-resume-rollback-confirmation" type="text" name="rollback_confirmation_phrase" class="regular-text" placeholder="<?php echo esc_attr( $restore_form_state['rollback_confirmation_phrase'] ); ?>" />
 							</p>
-							<p class="description"><?php echo esc_html( isset( $restore_form_state['rollback_resume_run_label'] ) ? $restore_form_state['rollback_resume_run_label'] : '' ); ?></p>
+							<p class="description"><?php echo esc_html( $restore_form_state['rollback_resume_run_label'] ); ?></p>
 							<?php submit_button( __( 'Resume Rollback', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 						</form>
 					<?php endif; ?>
