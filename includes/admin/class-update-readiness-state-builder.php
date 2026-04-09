@@ -139,6 +139,8 @@ class UpdateReadinessStateBuilder {
 		$last_restore_dry_run = $this->array_value( $view_data, 'last_restore_dry_run' );
 		$last_restore_stage   = $this->array_value( $view_data, 'last_restore_stage' );
 		$last_restore_plan    = $this->array_value( $view_data, 'last_restore_plan' );
+		$last_restore_execution = $this->array_value( $view_data, 'last_restore_execution' );
+		$last_restore_rollback = $this->array_value( $view_data, 'last_restore_rollback' );
 
 		$view_data['restore_dry_run_status'] = $this->build_restore_result_status( $last_restore_dry_run );
 		$view_data['restore_dry_run_check_rows'] = $this->build_check_rows( $last_restore_dry_run );
@@ -147,6 +149,15 @@ class UpdateReadinessStateBuilder {
 		$view_data['restore_plan_status'] = $this->build_restore_result_status( $last_restore_plan );
 		$view_data['restore_plan_check_rows'] = $this->build_check_rows( $last_restore_plan );
 		$view_data['restore_plan_item_rows'] = $this->build_restore_plan_item_rows( $last_restore_plan );
+		$view_data['restore_execution_status'] = $this->build_execution_result_status( $last_restore_execution );
+		$view_data['restore_execution_health_status'] = $this->build_health_verification_status( $this->array_value( $last_restore_execution, 'health_verification' ) );
+		$view_data['restore_execution_health_check_rows'] = $this->build_check_rows( $this->array_value( $last_restore_execution, 'health_verification' ) );
+		$view_data['restore_execution_check_rows'] = $this->build_check_rows( $last_restore_execution );
+		$view_data['restore_execution_item_rows'] = $this->build_execution_item_rows( $last_restore_execution );
+		$view_data['restore_rollback_status'] = $this->build_execution_result_status( $last_restore_rollback );
+		$view_data['restore_rollback_health_status'] = $this->build_health_verification_status( $this->array_value( $last_restore_rollback, 'health_verification' ) );
+		$view_data['restore_rollback_check_rows'] = $this->build_check_rows( $last_restore_rollback );
+		$view_data['restore_rollback_item_rows'] = $this->build_execution_item_rows( $last_restore_rollback );
 
 		return $view_data;
 	}
@@ -190,6 +201,69 @@ class UpdateReadinessStateBuilder {
 				'target_path'    => isset( $item['target_path'] ) ? (string) $item['target_path'] : '',
 				'conflict_count' => isset( $item['conflict_count'] ) ? (string) $item['conflict_count'] : '0',
 				'message'        => isset( $item['message'] ) ? (string) $item['message'] : '',
+			);
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * Build normalized status state for restore execution and rollback payloads.
+	 *
+	 * @param array $payload Restore execution or rollback payload.
+	 * @return array
+	 */
+	protected function build_execution_result_status( array $payload ) {
+		$status = isset( $payload['status'] ) ? (string) $payload['status'] : '';
+
+		return array(
+			'status'       => $status,
+			'status_label' => ucfirst( $status ),
+			'badge'        => 'blocked' === $status ? 'critical' : ( 'partial' === $status ? 'warning' : 'info' ),
+			'generated_at' => isset( $payload['generated_at'] ) ? (string) $payload['generated_at'] : '',
+			'note'         => isset( $payload['note'] ) ? (string) $payload['note'] : '',
+		);
+	}
+
+	/**
+	 * Build normalized health verification status state.
+	 *
+	 * @param array $payload Health verification payload.
+	 * @return array
+	 */
+	protected function build_health_verification_status( array $payload ) {
+		$status = isset( $payload['status'] ) ? (string) $payload['status'] : '';
+
+		return array(
+			'status'       => $status,
+			'status_label' => ucfirst( $status ),
+			'badge'        => 'unhealthy' === $status ? 'critical' : ( 'degraded' === $status ? 'warning' : 'info' ),
+			'generated_at' => isset( $payload['generated_at'] ) ? (string) $payload['generated_at'] : '',
+			'note'         => isset( $payload['note'] ) ? (string) $payload['note'] : '',
+		);
+	}
+
+	/**
+	 * Build normalized restore execution/rollback item rows.
+	 *
+	 * @param array $payload Restore execution or rollback payload.
+	 * @return array
+	 */
+	protected function build_execution_item_rows( array $payload ) {
+		$items = isset( $payload['items'] ) && is_array( $payload['items'] ) ? $payload['items'] : array();
+		$rows  = array();
+
+		foreach ( $items as $item ) {
+			$action = isset( $item['action'] ) ? (string) $item['action'] : '';
+			$status = isset( $item['status'] ) ? (string) $item['status'] : '';
+
+			$rows[] = array(
+				'label'        => isset( $item['label'] ) ? (string) $item['label'] : '',
+				'action_label' => ucfirst( $action ),
+				'status'       => $status,
+				'status_label' => ucfirst( $status ),
+				'badge'        => 'fail' === $status ? 'critical' : $status,
+				'message'      => isset( $item['message'] ) ? (string) $item['message'] : '',
 			);
 		}
 

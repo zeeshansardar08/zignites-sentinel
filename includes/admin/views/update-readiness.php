@@ -57,6 +57,15 @@ $restore_stage_check_rows = isset( $view_data['restore_stage_check_rows'] ) && i
 $restore_plan_status     = isset( $view_data['restore_plan_status'] ) && is_array( $view_data['restore_plan_status'] ) ? $view_data['restore_plan_status'] : array();
 $restore_plan_check_rows = isset( $view_data['restore_plan_check_rows'] ) && is_array( $view_data['restore_plan_check_rows'] ) ? $view_data['restore_plan_check_rows'] : array();
 $restore_plan_item_rows  = isset( $view_data['restore_plan_item_rows'] ) && is_array( $view_data['restore_plan_item_rows'] ) ? $view_data['restore_plan_item_rows'] : array();
+$restore_execution_status = isset( $view_data['restore_execution_status'] ) && is_array( $view_data['restore_execution_status'] ) ? $view_data['restore_execution_status'] : array();
+$restore_execution_health_status = isset( $view_data['restore_execution_health_status'] ) && is_array( $view_data['restore_execution_health_status'] ) ? $view_data['restore_execution_health_status'] : array();
+$restore_execution_health_check_rows = isset( $view_data['restore_execution_health_check_rows'] ) && is_array( $view_data['restore_execution_health_check_rows'] ) ? $view_data['restore_execution_health_check_rows'] : array();
+$restore_execution_check_rows = isset( $view_data['restore_execution_check_rows'] ) && is_array( $view_data['restore_execution_check_rows'] ) ? $view_data['restore_execution_check_rows'] : array();
+$restore_execution_item_rows = isset( $view_data['restore_execution_item_rows'] ) && is_array( $view_data['restore_execution_item_rows'] ) ? $view_data['restore_execution_item_rows'] : array();
+$restore_rollback_status = isset( $view_data['restore_rollback_status'] ) && is_array( $view_data['restore_rollback_status'] ) ? $view_data['restore_rollback_status'] : array();
+$restore_rollback_health_status = isset( $view_data['restore_rollback_health_status'] ) && is_array( $view_data['restore_rollback_health_status'] ) ? $view_data['restore_rollback_health_status'] : array();
+$restore_rollback_check_rows = isset( $view_data['restore_rollback_check_rows'] ) && is_array( $view_data['restore_rollback_check_rows'] ) ? $view_data['restore_rollback_check_rows'] : array();
+$restore_rollback_item_rows = isset( $view_data['restore_rollback_item_rows'] ) && is_array( $view_data['restore_rollback_item_rows'] ) ? $view_data['restore_rollback_item_rows'] : array();
 $component_manifest        = isset( $view_data['component_manifest'] ) && is_array( $view_data['component_manifest'] ) ? $view_data['component_manifest'] : array();
 $selected_snapshot_label   = isset( $view_data['selected_snapshot_label'] ) ? (string) $view_data['selected_snapshot_label'] : '';
 $selected_snapshot_note    = isset( $view_data['selected_snapshot_note'] ) ? (string) $view_data['selected_snapshot_note'] : '';
@@ -1593,12 +1602,12 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			<section class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Restore Execution Result', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
-					<span class="znts-pill znts-pill-<?php echo esc_attr( 'blocked' === $last_restore_execution['status'] || 'partial' === $last_restore_execution['status'] ? ( 'blocked' === $last_restore_execution['status'] ? 'critical' : 'warning' ) : 'info' ); ?>">
-						<?php echo esc_html( ucfirst( $last_restore_execution['status'] ) ); ?>
+					<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $restore_execution_status['badge'] ) ? $restore_execution_status['badge'] : 'info' ); ?>">
+						<?php echo esc_html( isset( $restore_execution_status['status_label'] ) ? $restore_execution_status['status_label'] : '' ); ?>
 					</span>
-					<span><?php echo esc_html( $last_restore_execution['generated_at'] ); ?></span>
+					<span><?php echo esc_html( isset( $restore_execution_status['generated_at'] ) ? $restore_execution_status['generated_at'] : '' ); ?></span>
 				</div>
-				<p><?php echo esc_html( $last_restore_execution['note'] ); ?></p>
+				<p><?php echo esc_html( isset( $restore_execution_status['note'] ) ? $restore_execution_status['note'] : '' ); ?></p>
 				<?php if ( ! empty( $last_restore_execution['backup_root'] ) ) : ?>
 					<p><strong><?php echo esc_html__( 'Backup Root:', 'zignites-sentinel' ); ?></strong> <?php echo esc_html( $last_restore_execution['backup_root'] ); ?></p>
 				<?php endif; ?>
@@ -1616,12 +1625,12 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<?php if ( ! empty( $last_restore_execution['health_verification'] ) ) : ?>
 					<h3><?php echo esc_html__( 'Post-Restore Health Verification', 'zignites-sentinel' ); ?></h3>
 					<div class="znts-readiness-row">
-						<span class="znts-pill znts-pill-<?php echo esc_attr( 'unhealthy' === $last_restore_execution['health_verification']['status'] ? 'critical' : ( 'degraded' === $last_restore_execution['health_verification']['status'] ? 'warning' : 'info' ) ); ?>">
-							<?php echo esc_html( ucfirst( $last_restore_execution['health_verification']['status'] ) ); ?>
+						<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $restore_execution_health_status['badge'] ) ? $restore_execution_health_status['badge'] : 'info' ); ?>">
+							<?php echo esc_html( isset( $restore_execution_health_status['status_label'] ) ? $restore_execution_health_status['status_label'] : '' ); ?>
 						</span>
-						<span><?php echo esc_html( $last_restore_execution['health_verification']['generated_at'] ); ?></span>
+						<span><?php echo esc_html( isset( $restore_execution_health_status['generated_at'] ) ? $restore_execution_health_status['generated_at'] : '' ); ?></span>
 					</div>
-					<p><?php echo esc_html( $last_restore_execution['health_verification']['note'] ); ?></p>
+					<p><?php echo esc_html( isset( $restore_execution_health_status['note'] ) ? $restore_execution_health_status['note'] : '' ); ?></p>
 					<table class="widefat striped">
 						<thead>
 							<tr>
@@ -1631,12 +1640,12 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $last_restore_execution['health_verification']['checks'] as $check ) : ?>
+							<?php foreach ( $restore_execution_health_check_rows as $check ) : ?>
 								<tr>
 									<td><?php echo esc_html( $check['label'] ); ?></td>
 									<td>
-										<span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === $check['status'] ? 'critical' : $check['status'] ); ?>">
-											<?php echo esc_html( ucfirst( $check['status'] ) ); ?>
+										<span class="znts-pill znts-pill-<?php echo esc_attr( $check['badge'] ); ?>">
+											<?php echo esc_html( $check['status_label'] ); ?>
 										</span>
 									</td>
 									<td><?php echo esc_html( $check['message'] ); ?></td>
@@ -1645,7 +1654,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $last_restore_execution['checks'] ) ) : ?>
+				<?php if ( ! empty( $restore_execution_check_rows ) ) : ?>
 					<table class="widefat striped">
 						<thead>
 							<tr>
@@ -1655,12 +1664,12 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $last_restore_execution['checks'] as $check ) : ?>
+							<?php foreach ( $restore_execution_check_rows as $check ) : ?>
 								<tr>
 									<td><?php echo esc_html( $check['label'] ); ?></td>
 									<td>
-										<span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === $check['status'] ? 'critical' : $check['status'] ); ?>">
-											<?php echo esc_html( ucfirst( $check['status'] ) ); ?>
+										<span class="znts-pill znts-pill-<?php echo esc_attr( $check['badge'] ); ?>">
+											<?php echo esc_html( $check['status_label'] ); ?>
 										</span>
 									</td>
 									<td><?php echo esc_html( $check['message'] ); ?></td>
@@ -1669,7 +1678,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $last_restore_execution['items'] ) ) : ?>
+				<?php if ( ! empty( $restore_execution_item_rows ) ) : ?>
 					<table class="widefat striped">
 						<thead>
 							<tr>
@@ -1680,13 +1689,13 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $last_restore_execution['items'] as $item ) : ?>
+							<?php foreach ( $restore_execution_item_rows as $item ) : ?>
 								<tr>
 									<td><?php echo esc_html( $item['label'] ); ?></td>
-									<td><?php echo esc_html( ucfirst( $item['action'] ) ); ?></td>
+									<td><?php echo esc_html( $item['action_label'] ); ?></td>
 									<td>
-										<span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === $item['status'] ? 'critical' : $item['status'] ); ?>">
-											<?php echo esc_html( ucfirst( $item['status'] ) ); ?>
+										<span class="znts-pill znts-pill-<?php echo esc_attr( $item['badge'] ); ?>">
+											<?php echo esc_html( $item['status_label'] ); ?>
 										</span>
 									</td>
 									<td><?php echo esc_html( $item['message'] ); ?></td>
@@ -1788,12 +1797,12 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			<section class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Restore Rollback Result', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
-					<span class="znts-pill znts-pill-<?php echo esc_attr( 'blocked' === $last_restore_rollback['status'] ? 'critical' : ( 'partial' === $last_restore_rollback['status'] ? 'warning' : 'info' ) ); ?>">
-						<?php echo esc_html( ucfirst( $last_restore_rollback['status'] ) ); ?>
+					<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $restore_rollback_status['badge'] ) ? $restore_rollback_status['badge'] : 'info' ); ?>">
+						<?php echo esc_html( isset( $restore_rollback_status['status_label'] ) ? $restore_rollback_status['status_label'] : '' ); ?>
 					</span>
-					<span><?php echo esc_html( $last_restore_rollback['generated_at'] ); ?></span>
+					<span><?php echo esc_html( isset( $restore_rollback_status['generated_at'] ) ? $restore_rollback_status['generated_at'] : '' ); ?></span>
 				</div>
-				<p><?php echo esc_html( $last_restore_rollback['note'] ); ?></p>
+				<p><?php echo esc_html( isset( $restore_rollback_status['note'] ) ? $restore_rollback_status['note'] : '' ); ?></p>
 				<?php if ( ! empty( $last_restore_rollback['run_id'] ) ) : ?>
 					<p>
 						<strong><?php echo esc_html__( 'Run ID:', 'zignites-sentinel' ); ?></strong>
@@ -1805,14 +1814,14 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<?php if ( ! empty( $last_restore_rollback['health_verification'] ) ) : ?>
 					<h3><?php echo esc_html__( 'Post-Rollback Health Verification', 'zignites-sentinel' ); ?></h3>
 					<div class="znts-readiness-row">
-						<span class="znts-pill znts-pill-<?php echo esc_attr( 'unhealthy' === $last_restore_rollback['health_verification']['status'] ? 'critical' : ( 'degraded' === $last_restore_rollback['health_verification']['status'] ? 'warning' : 'info' ) ); ?>">
-							<?php echo esc_html( ucfirst( $last_restore_rollback['health_verification']['status'] ) ); ?>
+						<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $restore_rollback_health_status['badge'] ) ? $restore_rollback_health_status['badge'] : 'info' ); ?>">
+							<?php echo esc_html( isset( $restore_rollback_health_status['status_label'] ) ? $restore_rollback_health_status['status_label'] : '' ); ?>
 						</span>
-						<span><?php echo esc_html( $last_restore_rollback['health_verification']['generated_at'] ); ?></span>
+						<span><?php echo esc_html( isset( $restore_rollback_health_status['generated_at'] ) ? $restore_rollback_health_status['generated_at'] : '' ); ?></span>
 					</div>
-					<p><?php echo esc_html( $last_restore_rollback['health_verification']['note'] ); ?></p>
+					<p><?php echo esc_html( isset( $restore_rollback_health_status['note'] ) ? $restore_rollback_health_status['note'] : '' ); ?></p>
 				<?php endif; ?>
-				<?php if ( ! empty( $last_restore_rollback['checks'] ) ) : ?>
+				<?php if ( ! empty( $restore_rollback_check_rows ) ) : ?>
 					<table class="widefat striped">
 						<thead>
 							<tr>
@@ -1822,12 +1831,12 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $last_restore_rollback['checks'] as $check ) : ?>
+							<?php foreach ( $restore_rollback_check_rows as $check ) : ?>
 								<tr>
 									<td><?php echo esc_html( $check['label'] ); ?></td>
 									<td>
-										<span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === $check['status'] ? 'critical' : $check['status'] ); ?>">
-											<?php echo esc_html( ucfirst( $check['status'] ) ); ?>
+										<span class="znts-pill znts-pill-<?php echo esc_attr( $check['badge'] ); ?>">
+											<?php echo esc_html( $check['status_label'] ); ?>
 										</span>
 									</td>
 									<td><?php echo esc_html( $check['message'] ); ?></td>
@@ -1836,7 +1845,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $last_restore_rollback['items'] ) ) : ?>
+				<?php if ( ! empty( $restore_rollback_item_rows ) ) : ?>
 					<table class="widefat striped">
 						<thead>
 							<tr>
@@ -1847,13 +1856,13 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $last_restore_rollback['items'] as $item ) : ?>
+							<?php foreach ( $restore_rollback_item_rows as $item ) : ?>
 								<tr>
 									<td><?php echo esc_html( $item['label'] ); ?></td>
-									<td><?php echo esc_html( ucfirst( $item['action'] ) ); ?></td>
+									<td><?php echo esc_html( $item['action_label'] ); ?></td>
 									<td>
-										<span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === $item['status'] ? 'critical' : $item['status'] ); ?>">
-											<?php echo esc_html( ucfirst( $item['status'] ) ); ?>
+										<span class="znts-pill znts-pill-<?php echo esc_attr( $item['badge'] ); ?>">
+											<?php echo esc_html( $item['status_label'] ); ?>
 										</span>
 									</td>
 									<td><?php echo esc_html( $item['message'] ); ?></td>
