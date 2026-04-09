@@ -86,6 +86,10 @@ class UpdateReadinessStateBuilder {
 		$view_data['selected_snapshot_status'] = $snapshot_id > 0 && isset( $snapshot_status_index[ $snapshot_id ] ) && is_array( $snapshot_status_index[ $snapshot_id ] ) ? $snapshot_status_index[ $snapshot_id ] : array();
 		$view_data['plan_validation'] = isset( $last_plan['validation'] ) && is_array( $last_plan['validation'] ) ? $last_plan['validation'] : array();
 		$view_data['restore_source_validation'] = isset( $last_restore_check['source_validation'] ) && is_array( $last_restore_check['source_validation'] ) ? $last_restore_check['source_validation'] : array();
+		$view_data['plan_validation_check_rows'] = $this->build_check_rows( $view_data['plan_validation'] );
+		$view_data['restore_source_validation_check_rows'] = $this->build_check_rows( $view_data['restore_source_validation'] );
+		$view_data['restore_source_missing_plugins'] = $this->build_missing_plugin_labels( $view_data['restore_source_validation'] );
+		$view_data['restore_source_missing_artifacts'] = $this->build_missing_artifact_labels( $view_data['restore_source_validation'] );
 		$view_data['component_manifest'] = is_array( $snapshot_detail ) && ! empty( $snapshot_detail['metadata_decoded']['component_manifest'] ) && is_array( $snapshot_detail['metadata_decoded']['component_manifest'] ) ? $snapshot_detail['metadata_decoded']['component_manifest'] : array();
 		$view_data['selected_snapshot_label'] = is_array( $snapshot_detail ) && ! empty( $snapshot_detail['label'] ) ? (string) $snapshot_detail['label'] : __( 'No snapshot selected', 'zignites-sentinel' );
 		$view_data['selected_snapshot_note'] = is_array( $snapshot_detail )
@@ -123,6 +127,73 @@ class UpdateReadinessStateBuilder {
 			: __( 'The workspace is showing the shortest safe path, not every technical detail at once.', 'zignites-sentinel' );
 
 		return $view_data;
+	}
+
+	/**
+	 * Build normalized rows for readiness-style validation checks.
+	 *
+	 * @param array $validation Validation payload.
+	 * @return array
+	 */
+	protected function build_check_rows( array $validation ) {
+		$checks = isset( $validation['checks'] ) && is_array( $validation['checks'] ) ? $validation['checks'] : array();
+		$rows   = array();
+
+		foreach ( $checks as $check ) {
+			$status = isset( $check['status'] ) ? (string) $check['status'] : '';
+
+			$rows[] = array(
+				'label'        => isset( $check['label'] ) ? (string) $check['label'] : '',
+				'status'       => $status,
+				'status_label' => ucfirst( $status ),
+				'badge'        => 'fail' === $status ? 'critical' : $status,
+				'message'      => isset( $check['message'] ) ? (string) $check['message'] : '',
+			);
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * Build labels for missing snapshot plugin sources.
+	 *
+	 * @param array $validation Validation payload.
+	 * @return array
+	 */
+	protected function build_missing_plugin_labels( array $validation ) {
+		$checks = isset( $validation['checks'] ) && is_array( $validation['checks'] ) ? $validation['checks'] : array();
+		$labels = array();
+
+		foreach ( $checks as $check ) {
+			$missing_plugins = isset( $check['details']['missing_plugins'] ) && is_array( $check['details']['missing_plugins'] ) ? $check['details']['missing_plugins'] : array();
+
+			foreach ( $missing_plugins as $plugin_state ) {
+				$labels[] = isset( $plugin_state['name'] ) && $plugin_state['name'] ? (string) $plugin_state['name'] : ( isset( $plugin_state['plugin'] ) ? (string) $plugin_state['plugin'] : '' );
+			}
+		}
+
+		return array_values( array_filter( $labels, 'strlen' ) );
+	}
+
+	/**
+	 * Build labels for missing stored rollback artifacts.
+	 *
+	 * @param array $validation Validation payload.
+	 * @return array
+	 */
+	protected function build_missing_artifact_labels( array $validation ) {
+		$checks = isset( $validation['checks'] ) && is_array( $validation['checks'] ) ? $validation['checks'] : array();
+		$labels = array();
+
+		foreach ( $checks as $check ) {
+			$missing_artifacts = isset( $check['details']['missing_artifacts'] ) && is_array( $check['details']['missing_artifacts'] ) ? $check['details']['missing_artifacts'] : array();
+
+			foreach ( $missing_artifacts as $artifact ) {
+				$labels[] = isset( $artifact['label'] ) ? (string) $artifact['label'] : '';
+			}
+		}
+
+		return array_values( array_filter( $labels, 'strlen' ) );
 	}
 
 	/**

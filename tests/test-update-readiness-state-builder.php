@@ -18,12 +18,42 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 				'status'     => 'ready',
 				'validation' => array(
 					'message' => 'Plan validated',
+					'checks'  => array(
+						array(
+							'label'   => 'Plugin package',
+							'status'  => 'pass',
+							'message' => 'Plugin package is available.',
+						),
+					),
 				),
 			),
 			'last_restore_check' => array(
 				'status'            => 'blocked',
 				'source_validation' => array(
 					'message' => 'Sources available',
+					'checks'  => array(
+						array(
+							'label'   => 'Snapshot source',
+							'status'  => 'fail',
+							'message' => 'Snapshot source is missing.',
+							'details' => array(
+								'missing_plugins' => array(
+									array(
+										'name'   => 'Missing Plugin',
+										'plugin' => 'missing-plugin/missing.php',
+									),
+									array(
+										'plugin' => 'fallback-plugin/fallback.php',
+									),
+								),
+								'missing_artifacts' => array(
+									array(
+										'label' => 'Rollback package',
+									),
+								),
+							),
+						),
+					),
 				),
 			),
 			'settings' => array(
@@ -173,7 +203,14 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 101, $state['snapshot_detail']['id'], 'Update Readiness state builder should preserve the selected snapshot detail.' );
 	znts_assert_same( 'Ready', $state['selected_snapshot_status']['status_badges'][0]['label'], 'Update Readiness state builder should derive selected snapshot status from the status index.' );
 	znts_assert_same( 'Plan validated', $state['plan_validation']['message'], 'Update Readiness state builder should derive update-plan validation state.' );
+	znts_assert_same( 'Plugin package', $state['plan_validation_check_rows'][0]['label'], 'Update Readiness state builder should derive plan validation check rows.' );
+	znts_assert_same( 'pass', $state['plan_validation_check_rows'][0]['badge'], 'Update Readiness state builder should preserve non-failing validation check badges.' );
 	znts_assert_same( 'Sources available', $state['restore_source_validation']['message'], 'Update Readiness state builder should derive restore source validation state.' );
+	znts_assert_same( 'critical', $state['restore_source_validation_check_rows'][0]['badge'], 'Update Readiness state builder should map failing restore source checks to critical badges.' );
+	znts_assert_same( 'Fail', $state['restore_source_validation_check_rows'][0]['status_label'], 'Update Readiness state builder should derive human-readable validation status labels.' );
+	znts_assert_same( 'Missing Plugin', $state['restore_source_missing_plugins'][0], 'Update Readiness state builder should prefer missing plugin names when available.' );
+	znts_assert_same( 'fallback-plugin/fallback.php', $state['restore_source_missing_plugins'][1], 'Update Readiness state builder should fall back to missing plugin paths.' );
+	znts_assert_same( 'Rollback package', $state['restore_source_missing_artifacts'][0], 'Update Readiness state builder should derive missing artifact labels.' );
 	znts_assert_same( '2026-04-09 10:00:01', $state['component_manifest']['generated_at'], 'Update Readiness state builder should derive component manifest state from the selected snapshot.' );
 	znts_assert_same( 'Release snapshot', $state['selected_snapshot_label'], 'Update Readiness state builder should derive the selected snapshot label.' );
 	znts_assert_same( 'Snapshot #101 captured on 2026-04-09 10:00:00 is the active restore workspace.', $state['selected_snapshot_note'], 'Update Readiness state builder should derive the selected snapshot workspace note.' );
@@ -208,6 +245,10 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( array(), $state['recent_snapshots'], 'Update Readiness state builder should default missing snapshot list rows to an empty array.' );
 	znts_assert_same( array(), $state['snapshot_status_index'], 'Update Readiness state builder should default missing status index payloads to an empty array.' );
 	znts_assert_same( array(), $state['snapshot_pagination'], 'Update Readiness state builder should default missing pagination payloads to an empty array.' );
+	znts_assert_same( array(), $state['plan_validation_check_rows'], 'Update Readiness state builder should default missing plan validation rows to an empty array.' );
+	znts_assert_same( array(), $state['restore_source_validation_check_rows'], 'Update Readiness state builder should default missing restore source rows to an empty array.' );
+	znts_assert_same( array(), $state['restore_source_missing_plugins'], 'Update Readiness state builder should default missing plugin labels to an empty array.' );
+	znts_assert_same( array(), $state['restore_source_missing_artifacts'], 'Update Readiness state builder should default missing artifact labels to an empty array.' );
 	znts_assert_same( '123', $state['snapshot_search'], 'Update Readiness state builder should normalize snapshot search as a string.' );
 	znts_assert_same( '', $state['snapshot_status_filter'], 'Update Readiness state builder should normalize a missing snapshot status filter to an empty string.' );
 	znts_assert_same( null, $state['snapshot_detail'], 'Update Readiness state builder should normalize missing snapshot detail to null.' );

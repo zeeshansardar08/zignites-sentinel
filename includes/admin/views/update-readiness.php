@@ -45,7 +45,11 @@ $snapshot_status_index   = isset( $view_data['snapshot_status_index'] ) && is_ar
 $snapshot_pagination     = isset( $view_data['snapshot_pagination'] ) && is_array( $view_data['snapshot_pagination'] ) ? $view_data['snapshot_pagination'] : array();
 $selected_snapshot_status  = isset( $view_data['selected_snapshot_status'] ) && is_array( $view_data['selected_snapshot_status'] ) ? $view_data['selected_snapshot_status'] : array();
 $plan_validation           = isset( $view_data['plan_validation'] ) && is_array( $view_data['plan_validation'] ) ? $view_data['plan_validation'] : array();
+$plan_validation_check_rows = isset( $view_data['plan_validation_check_rows'] ) && is_array( $view_data['plan_validation_check_rows'] ) ? $view_data['plan_validation_check_rows'] : array();
 $restore_source_validation = isset( $view_data['restore_source_validation'] ) && is_array( $view_data['restore_source_validation'] ) ? $view_data['restore_source_validation'] : array();
+$restore_source_validation_check_rows = isset( $view_data['restore_source_validation_check_rows'] ) && is_array( $view_data['restore_source_validation_check_rows'] ) ? $view_data['restore_source_validation_check_rows'] : array();
+$restore_source_missing_plugins = isset( $view_data['restore_source_missing_plugins'] ) && is_array( $view_data['restore_source_missing_plugins'] ) ? $view_data['restore_source_missing_plugins'] : array();
+$restore_source_missing_artifacts = isset( $view_data['restore_source_missing_artifacts'] ) && is_array( $view_data['restore_source_missing_artifacts'] ) ? $view_data['restore_source_missing_artifacts'] : array();
 $component_manifest        = isset( $view_data['component_manifest'] ) && is_array( $view_data['component_manifest'] ) ? $view_data['component_manifest'] : array();
 $selected_snapshot_label   = isset( $view_data['selected_snapshot_label'] ) ? (string) $view_data['selected_snapshot_label'] : '';
 $selected_snapshot_note    = isset( $view_data['selected_snapshot_note'] ) ? (string) $view_data['selected_snapshot_note'] : '';
@@ -723,12 +727,12 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $plan_validation['checks'] as $check ) : ?>
+							<?php foreach ( $plan_validation_check_rows as $check ) : ?>
 								<tr>
 									<td><?php echo esc_html( $check['label'] ); ?></td>
 									<td>
-										<span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === $check['status'] ? 'critical' : $check['status'] ); ?>">
-											<?php echo esc_html( ucfirst( $check['status'] ) ); ?>
+										<span class="znts-pill znts-pill-<?php echo esc_attr( $check['badge'] ); ?>">
+											<?php echo esc_html( $check['status_label'] ); ?>
 										</span>
 									</td>
 									<td><?php echo esc_html( $check['message'] ); ?></td>
@@ -1304,7 +1308,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<?php if ( ! empty( $restore_source_validation ) ) : ?>
 					<h3><?php echo esc_html__( 'Snapshot Source Validation', 'zignites-sentinel' ); ?></h3>
 					<p><?php echo esc_html( $restore_source_validation['message'] ); ?></p>
-					<?php if ( ! empty( $restore_source_validation['checks'] ) ) : ?>
+					<?php if ( ! empty( $restore_source_validation_check_rows ) ) : ?>
 						<table class="widefat striped">
 							<thead>
 								<tr>
@@ -1314,12 +1318,12 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 								</tr>
 							</thead>
 							<tbody>
-								<?php foreach ( $restore_source_validation['checks'] as $check ) : ?>
+								<?php foreach ( $restore_source_validation_check_rows as $check ) : ?>
 									<tr>
 										<td><?php echo esc_html( $check['label'] ); ?></td>
 										<td>
-											<span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === $check['status'] ? 'critical' : $check['status'] ); ?>">
-												<?php echo esc_html( ucfirst( $check['status'] ) ); ?>
+											<span class="znts-pill znts-pill-<?php echo esc_attr( $check['badge'] ); ?>">
+												<?php echo esc_html( $check['status_label'] ); ?>
 											</span>
 										</td>
 										<td><?php echo esc_html( $check['message'] ); ?></td>
@@ -1328,24 +1332,22 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							</tbody>
 						</table>
 					<?php endif; ?>
-					<?php foreach ( $restore_source_validation['checks'] as $check ) : ?>
-						<?php if ( ! empty( $check['details']['missing_plugins'] ) && is_array( $check['details']['missing_plugins'] ) ) : ?>
-							<h3><?php echo esc_html__( 'Unavailable Snapshot Plugin Sources', 'zignites-sentinel' ); ?></h3>
-							<ul class="znts-list">
-								<?php foreach ( $check['details']['missing_plugins'] as $plugin_state ) : ?>
-									<li><?php echo esc_html( isset( $plugin_state['name'] ) && $plugin_state['name'] ? $plugin_state['name'] : $plugin_state['plugin'] ); ?></li>
-								<?php endforeach; ?>
-							</ul>
-						<?php endif; ?>
-						<?php if ( ! empty( $check['details']['missing_artifacts'] ) && is_array( $check['details']['missing_artifacts'] ) ) : ?>
-							<h3><?php echo esc_html__( 'Unavailable Stored Artifacts', 'zignites-sentinel' ); ?></h3>
-							<ul class="znts-list">
-								<?php foreach ( $check['details']['missing_artifacts'] as $artifact ) : ?>
-									<li><?php echo esc_html( isset( $artifact['label'] ) ? $artifact['label'] : '' ); ?></li>
-								<?php endforeach; ?>
-							</ul>
-						<?php endif; ?>
-					<?php endforeach; ?>
+					<?php if ( ! empty( $restore_source_missing_plugins ) ) : ?>
+						<h3><?php echo esc_html__( 'Unavailable Snapshot Plugin Sources', 'zignites-sentinel' ); ?></h3>
+						<ul class="znts-list">
+							<?php foreach ( $restore_source_missing_plugins as $plugin_label ) : ?>
+								<li><?php echo esc_html( $plugin_label ); ?></li>
+							<?php endforeach; ?>
+						</ul>
+					<?php endif; ?>
+					<?php if ( ! empty( $restore_source_missing_artifacts ) ) : ?>
+						<h3><?php echo esc_html__( 'Unavailable Stored Artifacts', 'zignites-sentinel' ); ?></h3>
+						<ul class="znts-list">
+							<?php foreach ( $restore_source_missing_artifacts as $artifact_label ) : ?>
+								<li><?php echo esc_html( $artifact_label ); ?></li>
+							<?php endforeach; ?>
+						</ul>
+					<?php endif; ?>
 				<?php endif; ?>
 			</section>
 		<?php endif; ?>
