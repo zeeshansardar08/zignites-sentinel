@@ -62,10 +62,12 @@ $restore_execution_health_status = isset( $view_data['restore_execution_health_s
 $restore_execution_health_check_rows = isset( $view_data['restore_execution_health_check_rows'] ) && is_array( $view_data['restore_execution_health_check_rows'] ) ? $view_data['restore_execution_health_check_rows'] : array();
 $restore_execution_check_rows = isset( $view_data['restore_execution_check_rows'] ) && is_array( $view_data['restore_execution_check_rows'] ) ? $view_data['restore_execution_check_rows'] : array();
 $restore_execution_item_rows = isset( $view_data['restore_execution_item_rows'] ) && is_array( $view_data['restore_execution_item_rows'] ) ? $view_data['restore_execution_item_rows'] : array();
+$restore_execution_journal_rows = isset( $view_data['restore_execution_journal_rows'] ) && is_array( $view_data['restore_execution_journal_rows'] ) ? $view_data['restore_execution_journal_rows'] : array();
 $restore_rollback_status = isset( $view_data['restore_rollback_status'] ) && is_array( $view_data['restore_rollback_status'] ) ? $view_data['restore_rollback_status'] : array();
 $restore_rollback_health_status = isset( $view_data['restore_rollback_health_status'] ) && is_array( $view_data['restore_rollback_health_status'] ) ? $view_data['restore_rollback_health_status'] : array();
 $restore_rollback_check_rows = isset( $view_data['restore_rollback_check_rows'] ) && is_array( $view_data['restore_rollback_check_rows'] ) ? $view_data['restore_rollback_check_rows'] : array();
 $restore_rollback_item_rows = isset( $view_data['restore_rollback_item_rows'] ) && is_array( $view_data['restore_rollback_item_rows'] ) ? $view_data['restore_rollback_item_rows'] : array();
+$restore_rollback_journal_rows = isset( $view_data['restore_rollback_journal_rows'] ) && is_array( $view_data['restore_rollback_journal_rows'] ) ? $view_data['restore_rollback_journal_rows'] : array();
 $component_manifest        = isset( $view_data['component_manifest'] ) && is_array( $view_data['component_manifest'] ) ? $view_data['component_manifest'] : array();
 $selected_snapshot_label   = isset( $view_data['selected_snapshot_label'] ) ? (string) $view_data['selected_snapshot_label'] : '';
 $selected_snapshot_note    = isset( $view_data['selected_snapshot_note'] ) ? (string) $view_data['selected_snapshot_note'] : '';
@@ -1704,7 +1706,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $last_restore_execution['journal'] ) ) : ?>
+				<?php if ( ! empty( $restore_execution_journal_rows ) ) : ?>
 					<h3><?php echo esc_html__( 'Execution Journal', 'zignites-sentinel' ); ?></h3>
 					<table class="widefat striped">
 						<thead>
@@ -1718,18 +1720,18 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $last_restore_execution['journal'] as $entry ) : ?>
+							<?php foreach ( $restore_execution_journal_rows as $entry ) : ?>
 								<tr>
-									<td><?php echo esc_html( isset( $entry['timestamp'] ) ? $entry['timestamp'] : '' ); ?></td>
-									<td><?php echo esc_html( isset( $entry['scope'] ) ? $entry['scope'] : '' ); ?></td>
-									<td><?php echo esc_html( isset( $entry['label'] ) ? $entry['label'] : '' ); ?></td>
-									<td><?php echo esc_html( isset( $entry['phase'] ) ? $entry['phase'] : '' ); ?></td>
+									<td><?php echo esc_html( $entry['timestamp'] ); ?></td>
+									<td><?php echo esc_html( $entry['scope'] ); ?></td>
+									<td><?php echo esc_html( $entry['label'] ); ?></td>
+									<td><?php echo esc_html( $entry['phase'] ); ?></td>
 									<td>
-										<span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === $entry['status'] ? 'critical' : $entry['status'] ); ?>">
-											<?php echo esc_html( ucfirst( isset( $entry['status'] ) ? $entry['status'] : '' ) ); ?>
+										<span class="znts-pill znts-pill-<?php echo esc_attr( $entry['badge'] ); ?>">
+											<?php echo esc_html( $entry['status_label'] ); ?>
 										</span>
 									</td>
-									<td><?php echo esc_html( isset( $entry['message'] ) ? $entry['message'] : '' ); ?></td>
+									<td><?php echo esc_html( $entry['message'] ); ?></td>
 								</tr>
 							<?php endforeach; ?>
 						</tbody>
@@ -1871,7 +1873,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $last_restore_rollback['journal'] ) ) : ?>
+				<?php if ( ! empty( $restore_rollback_journal_rows ) ) : ?>
 					<h3><?php echo esc_html__( 'Rollback Journal', 'zignites-sentinel' ); ?></h3>
 					<table class="widefat striped">
 						<thead>
@@ -1885,18 +1887,18 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $last_restore_rollback['journal'] as $entry ) : ?>
+							<?php foreach ( $restore_rollback_journal_rows as $entry ) : ?>
 								<tr>
-									<td><?php echo esc_html( isset( $entry['timestamp'] ) ? $entry['timestamp'] : '' ); ?></td>
-									<td><?php echo esc_html( isset( $entry['scope'] ) ? $entry['scope'] : '' ); ?></td>
-									<td><?php echo esc_html( isset( $entry['label'] ) ? $entry['label'] : '' ); ?></td>
-									<td><?php echo esc_html( isset( $entry['phase'] ) ? $entry['phase'] : '' ); ?></td>
+									<td><?php echo esc_html( $entry['timestamp'] ); ?></td>
+									<td><?php echo esc_html( $entry['scope'] ); ?></td>
+									<td><?php echo esc_html( $entry['label'] ); ?></td>
+									<td><?php echo esc_html( $entry['phase'] ); ?></td>
 									<td>
-										<span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === $entry['status'] ? 'critical' : $entry['status'] ); ?>">
-											<?php echo esc_html( ucfirst( isset( $entry['status'] ) ? $entry['status'] : '' ) ); ?>
+										<span class="znts-pill znts-pill-<?php echo esc_attr( $entry['badge'] ); ?>">
+											<?php echo esc_html( $entry['status_label'] ); ?>
 										</span>
 									</td>
-									<td><?php echo esc_html( isset( $entry['message'] ) ? $entry['message'] : '' ); ?></td>
+									<td><?php echo esc_html( $entry['message'] ); ?></td>
 								</tr>
 							<?php endforeach; ?>
 						</tbody>

@@ -191,6 +191,16 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 						'message' => 'Write failed.',
 					),
 				),
+				'journal'      => array(
+					array(
+						'timestamp' => '2026-04-09 10:08:30',
+						'scope'     => 'plugin',
+						'label'     => 'Example Plugin',
+						'phase'     => 'write',
+						'status'    => 'fail',
+						'message'   => 'Write failed.',
+					),
+				),
 			),
 			'last_restore_rollback' => array(
 				'run_id'       => 'rollback-101',
@@ -215,6 +225,16 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 						'action'  => 'restore',
 						'status'  => 'pass',
 						'message' => 'Plugin restored.',
+					),
+				),
+				'journal'      => array(
+					array(
+						'timestamp' => '2026-04-09 10:10:30',
+						'scope'     => 'plugin',
+						'label'     => 'Example Plugin',
+						'phase'     => 'restore',
+						'status'    => 'pass',
+						'message'   => 'Plugin restored.',
 					),
 				),
 			),
@@ -333,11 +353,16 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'Backup', $state['restore_execution_check_rows'][0]['label'], 'Update Readiness state builder should derive execution check rows.' );
 	znts_assert_same( 'Replace', $state['restore_execution_item_rows'][0]['action_label'], 'Update Readiness state builder should derive execution item action labels.' );
 	znts_assert_same( 'critical', $state['restore_execution_item_rows'][0]['badge'], 'Update Readiness state builder should map failing execution items to critical badges.' );
+	znts_assert_same( '2026-04-09 10:08:30', $state['restore_execution_journal_rows'][0]['timestamp'], 'Update Readiness state builder should derive execution journal timestamps.' );
+	znts_assert_same( 'critical', $state['restore_execution_journal_rows'][0]['badge'], 'Update Readiness state builder should map failing execution journal entries to critical badges.' );
+	znts_assert_same( 'Fail', $state['restore_execution_journal_rows'][0]['status_label'], 'Update Readiness state builder should derive execution journal status labels.' );
 	znts_assert_same( 'critical', $state['restore_rollback_status']['badge'], 'Update Readiness state builder should derive blocked rollback result badges.' );
 	znts_assert_same( 'critical', $state['restore_rollback_health_status']['badge'], 'Update Readiness state builder should derive unhealthy rollback health badges.' );
 	znts_assert_same( 'Backup root', $state['restore_rollback_check_rows'][0]['label'], 'Update Readiness state builder should derive rollback check rows.' );
 	znts_assert_same( 'Restore', $state['restore_rollback_item_rows'][0]['action_label'], 'Update Readiness state builder should derive rollback item action labels.' );
 	znts_assert_same( 'pass', $state['restore_rollback_item_rows'][0]['badge'], 'Update Readiness state builder should preserve non-failing rollback item badges.' );
+	znts_assert_same( 'restore', $state['restore_rollback_journal_rows'][0]['phase'], 'Update Readiness state builder should derive rollback journal phases.' );
+	znts_assert_same( 'pass', $state['restore_rollback_journal_rows'][0]['badge'], 'Update Readiness state builder should preserve non-failing rollback journal badges.' );
 	znts_assert_same( 'restore-101', $state['last_restore_execution']['run_id'], 'Update Readiness state builder should preserve restore execution state.' );
 	znts_assert_same( true, $state['operator_checklist']['can_execute'], 'Update Readiness state builder should preserve operator checklist state.' );
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=101', $state['snapshot_activity_url'], 'Update Readiness state builder should preserve the activity URL.' );
@@ -370,8 +395,10 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( array(), $state['restore_execution_health_check_rows'], 'Update Readiness state builder should default missing execution health rows to an empty array.' );
 	znts_assert_same( array(), $state['restore_execution_check_rows'], 'Update Readiness state builder should default missing execution rows to an empty array.' );
 	znts_assert_same( array(), $state['restore_execution_item_rows'], 'Update Readiness state builder should default missing execution item rows to an empty array.' );
+	znts_assert_same( array(), $state['restore_execution_journal_rows'], 'Update Readiness state builder should default missing execution journal rows to an empty array.' );
 	znts_assert_same( array(), $state['restore_rollback_check_rows'], 'Update Readiness state builder should default missing rollback rows to an empty array.' );
 	znts_assert_same( array(), $state['restore_rollback_item_rows'], 'Update Readiness state builder should default missing rollback item rows to an empty array.' );
+	znts_assert_same( array(), $state['restore_rollback_journal_rows'], 'Update Readiness state builder should default missing rollback journal rows to an empty array.' );
 	znts_assert_same( 'info', $state['restore_execution_status']['badge'], 'Update Readiness state builder should default missing execution result badges to info.' );
 	znts_assert_same( 'info', $state['restore_rollback_status']['badge'], 'Update Readiness state builder should default missing rollback result badges to info.' );
 	znts_assert_same( '123', $state['snapshot_search'], 'Update Readiness state builder should normalize snapshot search as a string.' );
