@@ -62,6 +62,7 @@ class UpdateReadinessStateBuilder {
 		);
 
 		$view_data = $this->with_workspace_state( $view_data );
+		$view_data = $this->with_health_state( $view_data );
 		$view_data = $this->with_snapshot_detail_state( $view_data );
 		$view_data = $this->with_status_section_state( $view_data );
 		$view_data = $this->with_restore_result_state( $view_data );
@@ -158,6 +159,19 @@ class UpdateReadinessStateBuilder {
 		$view_data['missing_snapshot_plugin_labels'] = $this->build_plugin_state_labels( $this->array_value( $snapshot_comparison, 'missing_plugins' ) );
 		$view_data['new_current_plugin_labels'] = $this->build_plugin_state_labels( $this->array_value( $snapshot_comparison, 'new_plugins' ) );
 		$view_data['plugin_version_change_rows'] = $this->build_plugin_version_change_rows( $snapshot_comparison );
+
+		return $view_data;
+	}
+
+	/**
+	 * Add derived health baseline and comparison rows.
+	 *
+	 * @param array $view_data Normalized screen state.
+	 * @return array
+	 */
+	protected function with_health_state( array $view_data ) {
+		$view_data['snapshot_health_baseline_status'] = $this->build_snapshot_health_baseline_status( $this->array_value( $view_data, 'snapshot_health_baseline' ) );
+		$view_data['snapshot_health_comparison_rows'] = $this->build_snapshot_health_comparison_rows( $this->array_value( $view_data, 'snapshot_health_comparison' ) );
 
 		return $view_data;
 	}
@@ -658,6 +672,51 @@ class UpdateReadinessStateBuilder {
 				'name'             => isset( $change['name'] ) ? (string) $change['name'] : '',
 				'snapshot_version' => isset( $change['snapshot_version'] ) ? (string) $change['snapshot_version'] : '',
 				'current_version'  => isset( $change['current_version'] ) ? (string) $change['current_version'] : '',
+			);
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * Build normalized health baseline status.
+	 *
+	 * @param array $baseline Snapshot health baseline payload.
+	 * @return array
+	 */
+	protected function build_snapshot_health_baseline_status( array $baseline ) {
+		$status = isset( $baseline['status'] ) ? (string) $baseline['status'] : '';
+
+		return array(
+			'status'       => $status,
+			'status_label' => isset( $baseline['status_label'] ) ? (string) $baseline['status_label'] : $this->humanize_status( $status ),
+			'badge'        => isset( $baseline['status_pill'] ) ? (string) $baseline['status_pill'] : ( 'unhealthy' === $status ? 'critical' : ( 'degraded' === $status ? 'warning' : 'info' ) ),
+			'generated_at' => isset( $baseline['generated_at'] ) ? (string) $baseline['generated_at'] : '',
+			'note'         => isset( $baseline['note'] ) ? (string) $baseline['note'] : '',
+		);
+	}
+
+	/**
+	 * Build normalized health comparison rows.
+	 *
+	 * @param array $comparison_rows Raw health comparison rows.
+	 * @return array
+	 */
+	protected function build_snapshot_health_comparison_rows( array $comparison_rows ) {
+		$rows = array();
+
+		foreach ( $comparison_rows as $row ) {
+			$summary = isset( $row['summary'] ) && is_array( $row['summary'] ) ? $row['summary'] : array();
+
+			$rows[] = array(
+				'label'        => isset( $row['label'] ) ? (string) $row['label'] : '',
+				'status_label' => isset( $row['status_label'] ) ? (string) $row['status_label'] : '',
+				'badge'        => isset( $row['status_pill'] ) ? (string) $row['status_pill'] : 'info',
+				'generated_at' => isset( $row['generated_at'] ) ? (string) $row['generated_at'] : '',
+				'pass_count'   => isset( $summary['pass'] ) ? (string) $summary['pass'] : '0',
+				'warning_count' => isset( $summary['warning'] ) ? (string) $summary['warning'] : '0',
+				'fail_count'   => isset( $summary['fail'] ) ? (string) $summary['fail'] : '0',
+				'delta'        => isset( $row['delta'] ) ? (string) $row['delta'] : '',
 			);
 		}
 

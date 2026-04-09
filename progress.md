@@ -256,6 +256,7 @@
   - Update Readiness restore/rollback form and resume presentation state
   - Update Readiness operator checklist, audit verification, preflight, update candidate, and update-plan presentation state
   - Update Readiness snapshot detail, artifact, artifact-diff, active-plugin, and comparison presentation state
+  - Update Readiness health baseline and health comparison presentation state
   - event log presentation payloads
   - shared cross-screen status presentation
 - Main is now current through the merged read-only presentation cleanup for:
@@ -313,11 +314,15 @@
   - preflight status and check rows prepared before rendering
   - update candidate and last update-plan target rows normalized before rendering
   - focused regression coverage for status-section rows, badges, labels, and empty defaults
-- Current branch extends the Update Readiness snapshot detail presentation-state cleanup with:
+- Main is now current through the merged Update Readiness snapshot detail presentation-state cleanup for:
   - snapshot basics and stored metadata rows prepared by `UpdateReadinessStateBuilder`
   - component manifest, rollback package, artifact diff, and active plugin rows prepared before rendering
   - snapshot comparison rows and plugin comparison lists prepared before rendering
   - focused regression coverage for snapshot detail rows, artifact rows, comparison rows, and empty defaults
+- Current branch extends the Update Readiness health-baseline presentation-state cleanup with:
+  - snapshot health baseline status state prepared by `UpdateReadinessStateBuilder`
+  - health comparison rows normalized before rendering
+  - focused regression coverage for baseline status, comparison counts, deltas, and empty defaults
 - Live authenticated admin smoke validation has now been run successfully against a real wp-admin session for:
   - Sentinel Dashboard
   - Update Readiness
@@ -422,9 +427,9 @@
 ### Immediate Next Steps
 1. Continue the read-only presentation extraction work now that manual/admin validation is current
 - Likely candidates:
-  - remaining health-baseline fallback/status formatting still embedded in the Update Readiness view
   - remaining Restore Readiness Assessment status/check row formatting still embedded in the Update Readiness view
-- Reason: controller-level, workspace-level, validation-row, restore validation/planning, execution/rollback result, journal row, checkpoint summary, form/resume, status-section, and snapshot-detail state are now extracted, so the next highest-value work is reducing remaining baseline and restore-assessment formatting still concentrated in the view
+  - remaining snapshot activity table fallback formatting still embedded in the Update Readiness view
+- Reason: controller-level, workspace-level, validation-row, restore validation/planning, execution/rollback result, journal row, checkpoint summary, form/resume, status-section, snapshot-detail, and health-baseline state are now extracted, so the next highest-value work is reducing remaining restore-assessment and activity formatting still concentrated in the view
 
 2. Keep the manual/admin validation current after each read-only extraction
 - Re-run the authenticated smoke helper and the targeted manual path for:
@@ -495,10 +500,10 @@
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
 - Current branch prepared for merge:
-  - `feature/update-readiness-snapshot-detail-state`
+  - `feature/update-readiness-health-baseline-state`
 - Next likely restart task after this branch merges:
   - start from `includes/admin/views/update-readiness.php`
-  - extract the next health-baseline or Restore Readiness Assessment presentation-state seam into the Update Readiness state builder or a focused presenter
+  - extract the next Restore Readiness Assessment or snapshot activity presentation-state seam into the Update Readiness state builder or a focused presenter
   - avoid new restore behavior; keep this track to presentation-state cleanup and regression coverage
 
 
