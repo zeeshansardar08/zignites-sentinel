@@ -31,7 +31,6 @@ $snapshot_health_baseline = isset( $view_data['snapshot_health_baseline'] ) && i
 $snapshot_health_comparison = isset( $view_data['snapshot_health_comparison'] ) && is_array( $view_data['snapshot_health_comparison'] ) ? $view_data['snapshot_health_comparison'] : array();
 $snapshot_summary       = isset( $view_data['snapshot_summary'] ) && is_array( $view_data['snapshot_summary'] ) ? $view_data['snapshot_summary'] : array();
 $operator_checklist      = isset( $view_data['operator_checklist'] ) && is_array( $view_data['operator_checklist'] ) ? $view_data['operator_checklist'] : array();
-$restore_impact_summary  = isset( $view_data['restore_impact_summary'] ) && is_array( $view_data['restore_impact_summary'] ) ? $view_data['restore_impact_summary'] : array();
 $audit_report_verification = isset( $view_data['audit_report_verification'] ) && is_array( $view_data['audit_report_verification'] ) ? $view_data['audit_report_verification'] : array();
 $snapshot_activity_url   = isset( $view_data['snapshot_activity_url'] ) ? (string) $view_data['snapshot_activity_url'] : '';
 $snapshot_search         = isset( $view_data['snapshot_search'] ) ? (string) $view_data['snapshot_search'] : '';
@@ -69,13 +68,16 @@ $restore_stage_check_rows = isset( $view_data['restore_stage_check_rows'] ) && i
 $restore_plan_status     = isset( $view_data['restore_plan_status'] ) && is_array( $view_data['restore_plan_status'] ) ? $view_data['restore_plan_status'] : array();
 $restore_plan_check_rows = isset( $view_data['restore_plan_check_rows'] ) && is_array( $view_data['restore_plan_check_rows'] ) ? $view_data['restore_plan_check_rows'] : array();
 $restore_plan_item_rows  = isset( $view_data['restore_plan_item_rows'] ) && is_array( $view_data['restore_plan_item_rows'] ) ? $view_data['restore_plan_item_rows'] : array();
+$restore_impact_summary_state = isset( $view_data['restore_impact_summary_state'] ) && is_array( $view_data['restore_impact_summary_state'] ) ? $view_data['restore_impact_summary_state'] : array();
 $restore_execution_status = isset( $view_data['restore_execution_status'] ) && is_array( $view_data['restore_execution_status'] ) ? $view_data['restore_execution_status'] : array();
+$restore_execution_meta   = isset( $view_data['restore_execution_meta'] ) && is_array( $view_data['restore_execution_meta'] ) ? $view_data['restore_execution_meta'] : array();
 $restore_execution_health_status = isset( $view_data['restore_execution_health_status'] ) && is_array( $view_data['restore_execution_health_status'] ) ? $view_data['restore_execution_health_status'] : array();
 $restore_execution_health_check_rows = isset( $view_data['restore_execution_health_check_rows'] ) && is_array( $view_data['restore_execution_health_check_rows'] ) ? $view_data['restore_execution_health_check_rows'] : array();
 $restore_execution_check_rows = isset( $view_data['restore_execution_check_rows'] ) && is_array( $view_data['restore_execution_check_rows'] ) ? $view_data['restore_execution_check_rows'] : array();
 $restore_execution_item_rows = isset( $view_data['restore_execution_item_rows'] ) && is_array( $view_data['restore_execution_item_rows'] ) ? $view_data['restore_execution_item_rows'] : array();
 $restore_execution_journal_rows = isset( $view_data['restore_execution_journal_rows'] ) && is_array( $view_data['restore_execution_journal_rows'] ) ? $view_data['restore_execution_journal_rows'] : array();
 $restore_rollback_status = isset( $view_data['restore_rollback_status'] ) && is_array( $view_data['restore_rollback_status'] ) ? $view_data['restore_rollback_status'] : array();
+$restore_rollback_meta   = isset( $view_data['restore_rollback_meta'] ) && is_array( $view_data['restore_rollback_meta'] ) ? $view_data['restore_rollback_meta'] : array();
 $restore_rollback_health_status = isset( $view_data['restore_rollback_health_status'] ) && is_array( $view_data['restore_rollback_health_status'] ) ? $view_data['restore_rollback_health_status'] : array();
 $restore_rollback_check_rows = isset( $view_data['restore_rollback_check_rows'] ) && is_array( $view_data['restore_rollback_check_rows'] ) ? $view_data['restore_rollback_check_rows'] : array();
 $restore_rollback_item_rows = isset( $view_data['restore_rollback_item_rows'] ) && is_array( $view_data['restore_rollback_item_rows'] ) ? $view_data['restore_rollback_item_rows'] : array();
@@ -1344,42 +1346,31 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $restore_impact_summary ) ) : ?>
+				<?php if ( ! empty( $restore_impact_summary_state['is_visible'] ) ) : ?>
 					<h3><?php echo esc_html__( 'Restore Impact Summary', 'zignites-sentinel' ); ?></h3>
 					<div class="znts-readiness-row">
-						<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $restore_impact_summary['status'] ) ? $restore_impact_summary['status'] : 'info' ); ?>">
-							<?php echo esc_html( isset( $restore_impact_summary['title'] ) ? $restore_impact_summary['title'] : '' ); ?>
+						<span class="znts-pill znts-pill-<?php echo esc_attr( $restore_impact_summary_state['status'] ); ?>">
+							<?php echo esc_html( $restore_impact_summary_state['title'] ); ?>
 						</span>
 					</div>
-					<p><?php echo esc_html( isset( $restore_impact_summary['message'] ) ? $restore_impact_summary['message'] : '' ); ?></p>
-					<?php if ( ! empty( $restore_impact_summary['rows'] ) ) : ?>
+					<p><?php echo esc_html( $restore_impact_summary_state['message'] ); ?></p>
+					<?php if ( ! empty( $restore_impact_summary_state['rows'] ) ) : ?>
 						<table class="widefat striped">
 							<tbody>
-								<?php foreach ( $restore_impact_summary['rows'] as $impact_row ) : ?>
+								<?php foreach ( $restore_impact_summary_state['rows'] as $impact_row ) : ?>
 									<tr>
-										<th scope="row"><?php echo esc_html( isset( $impact_row['label'] ) ? $impact_row['label'] : '' ); ?></th>
-										<td><?php echo esc_html( isset( $impact_row['value'] ) ? $impact_row['value'] : '' ); ?></td>
+										<th scope="row"><?php echo esc_html( $impact_row['label'] ); ?></th>
+										<td><?php echo esc_html( $impact_row['value'] ); ?></td>
 									</tr>
 								<?php endforeach; ?>
 							</tbody>
 						</table>
 					<?php endif; ?>
-					<?php if ( ! empty( $restore_impact_summary['blockers'] ) ) : ?>
+					<?php if ( ! empty( $restore_impact_summary_state['blockers'] ) ) : ?>
 						<h4><?php echo esc_html__( 'Execution blockers', 'zignites-sentinel' ); ?></h4>
 						<ul class="znts-list">
-							<?php foreach ( $restore_impact_summary['blockers'] as $blocker ) : ?>
-								<li>
-									<?php
-									echo esc_html(
-										sprintf(
-											/* translators: 1: blocker label, 2: blocker message */
-											__( '%1$s: %2$s', 'zignites-sentinel' ),
-											isset( $blocker['label'] ) ? (string) $blocker['label'] : __( 'Requirement', 'zignites-sentinel' ),
-											isset( $blocker['message'] ) ? (string) $blocker['message'] : ''
-										)
-									);
-									?>
-								</li>
+							<?php foreach ( $restore_impact_summary_state['blockers'] as $blocker ) : ?>
+								<li><?php echo esc_html( $blocker['display'] ); ?></li>
 							<?php endforeach; ?>
 						</ul>
 					<?php endif; ?>
@@ -1443,19 +1434,19 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<span><?php echo esc_html( isset( $restore_execution_status['generated_at'] ) ? $restore_execution_status['generated_at'] : '' ); ?></span>
 				</div>
 				<p><?php echo esc_html( isset( $restore_execution_status['note'] ) ? $restore_execution_status['note'] : '' ); ?></p>
-				<?php if ( ! empty( $last_restore_execution['backup_root'] ) ) : ?>
-					<p><strong><?php echo esc_html__( 'Backup Root:', 'zignites-sentinel' ); ?></strong> <?php echo esc_html( $last_restore_execution['backup_root'] ); ?></p>
+				<?php if ( ! empty( $restore_execution_meta['has_backup_root'] ) ) : ?>
+					<p><strong><?php echo esc_html__( 'Backup Root:', 'zignites-sentinel' ); ?></strong> <?php echo esc_html( $restore_execution_meta['backup_root'] ); ?></p>
 				<?php endif; ?>
-				<?php if ( ! empty( $last_restore_execution['run_id'] ) ) : ?>
+				<?php if ( ! empty( $restore_execution_meta['run_id'] ) ) : ?>
 					<p>
 						<strong><?php echo esc_html__( 'Run ID:', 'zignites-sentinel' ); ?></strong>
-						<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs', 'source' => 'restore-execution-journal', 'run_id' => $last_restore_execution['run_id'] ), admin_url( 'admin.php' ) ) ); ?>">
-							<?php echo esc_html( $last_restore_execution['run_id'] ); ?>
+						<a href="<?php echo esc_url( $restore_execution_meta['run_url'] ); ?>">
+							<?php echo esc_html( $restore_execution_meta['run_id'] ); ?>
 						</a>
 					</p>
 				<?php endif; ?>
-				<?php if ( ! empty( $last_restore_execution['resumed_run'] ) ) : ?>
-					<p><?php echo esc_html__( 'This execution reused persisted journal state from a prior run.', 'zignites-sentinel' ); ?></p>
+				<?php if ( ! empty( $restore_execution_meta['resumed_message'] ) ) : ?>
+					<p><?php echo esc_html( $restore_execution_meta['resumed_message'] ); ?></p>
 				<?php endif; ?>
 				<?php if ( ! empty( $last_restore_execution['health_verification'] ) ) : ?>
 					<h3><?php echo esc_html__( 'Post-Restore Health Verification', 'zignites-sentinel' ); ?></h3>
@@ -1570,7 +1561,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $last_restore_execution['backup_root'] ) ) : ?>
+				<?php if ( ! empty( $restore_execution_meta['has_backup_root'] ) ) : ?>
 					<h3><?php echo esc_html__( 'Rollback From Backup', 'zignites-sentinel' ); ?></h3>
 					<p><?php echo esc_html__( 'This restores the previously live payloads from the backup root created during restore execution.', 'zignites-sentinel' ); ?></p>
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -1616,11 +1607,11 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<span><?php echo esc_html( isset( $restore_rollback_status['generated_at'] ) ? $restore_rollback_status['generated_at'] : '' ); ?></span>
 				</div>
 				<p><?php echo esc_html( isset( $restore_rollback_status['note'] ) ? $restore_rollback_status['note'] : '' ); ?></p>
-				<?php if ( ! empty( $last_restore_rollback['run_id'] ) ) : ?>
+				<?php if ( ! empty( $restore_rollback_meta['run_id'] ) ) : ?>
 					<p>
 						<strong><?php echo esc_html__( 'Run ID:', 'zignites-sentinel' ); ?></strong>
-						<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs', 'source' => 'restore-rollback-journal', 'run_id' => $last_restore_rollback['run_id'] ), admin_url( 'admin.php' ) ) ); ?>">
-							<?php echo esc_html( $last_restore_rollback['run_id'] ); ?>
+						<a href="<?php echo esc_url( $restore_rollback_meta['run_url'] ); ?>">
+							<?php echo esc_html( $restore_rollback_meta['run_id'] ); ?>
 						</a>
 					</p>
 				<?php endif; ?>

@@ -442,7 +442,21 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 				),
 			),
 			'restore_impact_summary' => array(
-				'planned_total' => 2,
+				'status'  => 'warning',
+				'title'   => 'Review required',
+				'message' => 'Restore has blockers.',
+				'rows'    => array(
+					array(
+						'label' => 'Planned items',
+						'value' => 2,
+					),
+				),
+				'blockers' => array(
+					array(
+						'label'   => 'Stage gate',
+						'message' => 'Stage validation is stale.',
+					),
+				),
 			),
 			'audit_report_verification' => array(
 				'status'       => 'caution',
@@ -568,8 +582,16 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'Plugin', $state['restore_plan_item_rows'][0]['type_label'], 'Update Readiness state builder should derive restore plan item type labels.' );
 	znts_assert_same( 'Replace', $state['restore_plan_item_rows'][0]['action_label'], 'Update Readiness state builder should derive restore plan item action labels.' );
 	znts_assert_same( '2', $state['restore_plan_item_rows'][0]['conflict_count'], 'Update Readiness state builder should normalize restore plan item conflict counts as strings.' );
+	znts_assert_same( true, $state['restore_impact_summary_state']['is_visible'], 'Update Readiness state builder should expose restore impact summary visibility.' );
+	znts_assert_same( 'warning', $state['restore_impact_summary_state']['status'], 'Update Readiness state builder should derive restore impact summary status.' );
+	znts_assert_same( 'Review required', $state['restore_impact_summary_state']['title'], 'Update Readiness state builder should derive restore impact summary titles.' );
+	znts_assert_same( '2', $state['restore_impact_summary_state']['rows'][0]['value'], 'Update Readiness state builder should normalize restore impact summary row values.' );
+	znts_assert_same( 'Stage gate: Stage validation is stale.', $state['restore_impact_summary_state']['blockers'][0]['display'], 'Update Readiness state builder should derive restore impact blocker display text.' );
 	znts_assert_same( 'warning', $state['restore_execution_status']['badge'], 'Update Readiness state builder should derive partial execution result badges.' );
 	znts_assert_same( 'Partial', $state['restore_execution_status']['status_label'], 'Update Readiness state builder should derive execution status labels.' );
+	znts_assert_same( '/tmp/zignites-restore-backup', $state['restore_execution_meta']['backup_root'], 'Update Readiness state builder should derive restore execution backup roots.' );
+	znts_assert_same( 'restore-101', $state['restore_execution_meta']['run_id'], 'Update Readiness state builder should derive restore execution run ids.' );
+	znts_assert_true( false !== strpos( $state['restore_execution_meta']['run_url'], 'source=restore-execution-journal' ), 'Update Readiness state builder should derive restore execution run URLs.' );
 	znts_assert_same( 'warning', $state['restore_execution_health_status']['badge'], 'Update Readiness state builder should derive degraded execution health badges.' );
 	znts_assert_same( 'REST API', $state['restore_execution_health_check_rows'][0]['label'], 'Update Readiness state builder should derive execution health check rows.' );
 	znts_assert_same( 'Backup', $state['restore_execution_check_rows'][0]['label'], 'Update Readiness state builder should derive execution check rows.' );
@@ -588,6 +610,8 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( '/tmp/zignites-restore-backup', $state['rollback_checkpoint_summary_rows'][2]['value'], 'Update Readiness state builder should derive rollback checkpoint backup roots.' );
 	znts_assert_same( 'restore backup (2)', $state['rollback_checkpoint_summary_rows'][6]['value'], 'Update Readiness state builder should format rollback checkpoint phase counts.' );
 	znts_assert_same( 'critical', $state['restore_rollback_status']['badge'], 'Update Readiness state builder should derive blocked rollback result badges.' );
+	znts_assert_same( 'rollback-101', $state['restore_rollback_meta']['run_id'], 'Update Readiness state builder should derive restore rollback run ids.' );
+	znts_assert_true( false !== strpos( $state['restore_rollback_meta']['run_url'], 'source=restore-rollback-journal' ), 'Update Readiness state builder should derive restore rollback run URLs.' );
 	znts_assert_same( 'critical', $state['restore_rollback_health_status']['badge'], 'Update Readiness state builder should derive unhealthy rollback health badges.' );
 	znts_assert_same( 'Backup root', $state['restore_rollback_check_rows'][0]['label'], 'Update Readiness state builder should derive rollback check rows.' );
 	znts_assert_same( 'Restore', $state['restore_rollback_item_rows'][0]['action_label'], 'Update Readiness state builder should derive rollback item action labels.' );
@@ -680,6 +704,9 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( array(), $state['restore_stage_check_rows'], 'Update Readiness state builder should default missing stage check rows to an empty array.' );
 	znts_assert_same( array(), $state['restore_plan_check_rows'], 'Update Readiness state builder should default missing plan check rows to an empty array.' );
 	znts_assert_same( array(), $state['restore_plan_item_rows'], 'Update Readiness state builder should default missing plan item rows to an empty array.' );
+	znts_assert_same( false, $state['restore_impact_summary_state']['is_visible'], 'Update Readiness state builder should default missing restore impact summary state to hidden.' );
+	znts_assert_same( array(), $state['restore_impact_summary_state']['rows'], 'Update Readiness state builder should default missing restore impact summary rows to an empty array.' );
+	znts_assert_same( array(), $state['restore_impact_summary_state']['blockers'], 'Update Readiness state builder should default missing restore impact blockers to an empty array.' );
 	znts_assert_same( 'info', $state['restore_dry_run_status']['badge'], 'Update Readiness state builder should default missing restore result badges to info.' );
 	znts_assert_same( array(), $state['restore_execution_health_check_rows'], 'Update Readiness state builder should default missing execution health rows to an empty array.' );
 	znts_assert_same( array(), $state['restore_execution_check_rows'], 'Update Readiness state builder should default missing execution rows to an empty array.' );
@@ -691,7 +718,10 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( array(), $state['execution_checkpoint_summary_rows'], 'Update Readiness state builder should default missing execution checkpoint rows to an empty array.' );
 	znts_assert_same( array(), $state['rollback_checkpoint_summary_rows'], 'Update Readiness state builder should default missing rollback checkpoint rows to an empty array.' );
 	znts_assert_same( 'info', $state['restore_execution_status']['badge'], 'Update Readiness state builder should default missing execution result badges to info.' );
+	znts_assert_same( '', $state['restore_execution_meta']['run_url'], 'Update Readiness state builder should default missing execution run URLs to an empty string.' );
+	znts_assert_same( false, $state['restore_execution_meta']['has_backup_root'], 'Update Readiness state builder should default missing execution backup-root visibility to false.' );
 	znts_assert_same( 'info', $state['restore_rollback_status']['badge'], 'Update Readiness state builder should default missing rollback result badges to info.' );
+	znts_assert_same( '', $state['restore_rollback_meta']['run_url'], 'Update Readiness state builder should default missing rollback run URLs to an empty string.' );
 	znts_assert_same( '', $state['restore_form_state']['restore_confirmation_phrase'], 'Update Readiness state builder should default missing restore confirmation phrases to an empty string.' );
 	znts_assert_same( '', $state['restore_form_state']['rollback_confirmation_phrase'], 'Update Readiness state builder should default missing rollback confirmation phrases to an empty string.' );
 	znts_assert_same( 'A resumable execution journal exists with 0 completed items across 0 persisted entries.', $state['restore_form_state']['restore_resume_message'], 'Update Readiness state builder should default missing restore resume counts to zero.' );

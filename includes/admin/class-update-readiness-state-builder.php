@@ -288,13 +288,16 @@ class UpdateReadinessStateBuilder {
 		$view_data['restore_plan_status'] = $this->build_restore_result_status( $last_restore_plan );
 		$view_data['restore_plan_check_rows'] = $this->build_check_rows( $last_restore_plan );
 		$view_data['restore_plan_item_rows'] = $this->build_restore_plan_item_rows( $last_restore_plan );
+		$view_data['restore_impact_summary_state'] = $this->build_restore_impact_summary_state( $this->array_value( $view_data, 'restore_impact_summary' ) );
 		$view_data['restore_execution_status'] = $this->build_execution_result_status( $last_restore_execution );
+		$view_data['restore_execution_meta'] = $this->build_restore_run_meta( $last_restore_execution, 'restore-execution-journal' );
 		$view_data['restore_execution_health_status'] = $this->build_health_verification_status( $this->array_value( $last_restore_execution, 'health_verification' ) );
 		$view_data['restore_execution_health_check_rows'] = $this->build_check_rows( $this->array_value( $last_restore_execution, 'health_verification' ) );
 		$view_data['restore_execution_check_rows'] = $this->build_check_rows( $last_restore_execution );
 		$view_data['restore_execution_item_rows'] = $this->build_execution_item_rows( $last_restore_execution );
 		$view_data['restore_execution_journal_rows'] = $this->build_journal_rows( $last_restore_execution );
 		$view_data['restore_rollback_status'] = $this->build_execution_result_status( $last_restore_rollback );
+		$view_data['restore_rollback_meta'] = $this->build_restore_run_meta( $last_restore_rollback, 'restore-rollback-journal' );
 		$view_data['restore_rollback_health_status'] = $this->build_health_verification_status( $this->array_value( $last_restore_rollback, 'health_verification' ) );
 		$view_data['restore_rollback_check_rows'] = $this->build_check_rows( $last_restore_rollback );
 		$view_data['restore_rollback_item_rows'] = $this->build_execution_item_rows( $last_restore_rollback );
@@ -1190,6 +1193,76 @@ class UpdateReadinessStateBuilder {
 		}
 
 		return $rows;
+	}
+
+	/**
+	 * Build normalized restore impact summary state.
+	 *
+	 * @param array $summary Restore impact summary payload.
+	 * @return array
+	 */
+	protected function build_restore_impact_summary_state( array $summary ) {
+		$rows     = array();
+		$blockers = array();
+
+		foreach ( isset( $summary['rows'] ) && is_array( $summary['rows'] ) ? $summary['rows'] : array() as $row ) {
+			$rows[] = array(
+				'label' => isset( $row['label'] ) ? (string) $row['label'] : '',
+				'value' => isset( $row['value'] ) ? (string) $row['value'] : '',
+			);
+		}
+
+		foreach ( isset( $summary['blockers'] ) && is_array( $summary['blockers'] ) ? $summary['blockers'] : array() as $blocker ) {
+			$label   = isset( $blocker['label'] ) ? (string) $blocker['label'] : __( 'Requirement', 'zignites-sentinel' );
+			$message = isset( $blocker['message'] ) ? (string) $blocker['message'] : '';
+
+			$blockers[] = array(
+				'label'   => $label,
+				'message' => $message,
+				'display' => sprintf(
+					/* translators: 1: blocker label, 2: blocker message */
+					__( '%1$s: %2$s', 'zignites-sentinel' ),
+					$label,
+					$message
+				),
+			);
+		}
+
+		return array(
+			'is_visible' => ! empty( $summary ),
+			'status'     => isset( $summary['status'] ) ? (string) $summary['status'] : 'info',
+			'title'      => isset( $summary['title'] ) ? (string) $summary['title'] : '',
+			'message'    => isset( $summary['message'] ) ? (string) $summary['message'] : '',
+			'rows'       => $rows,
+			'blockers'   => $blockers,
+		);
+	}
+
+	/**
+	 * Build restore execution or rollback run metadata.
+	 *
+	 * @param array  $payload Restore execution or rollback payload.
+	 * @param string $source  Event Log source filter for the run.
+	 * @return array
+	 */
+	protected function build_restore_run_meta( array $payload, $source ) {
+		$run_id      = isset( $payload['run_id'] ) ? (string) $payload['run_id'] : '';
+		$backup_root = isset( $payload['backup_root'] ) ? (string) $payload['backup_root'] : '';
+
+		return array(
+			'run_id'          => $run_id,
+			'run_url'         => '' !== $run_id ? add_query_arg(
+				array(
+					'page'   => 'zignites-sentinel-event-logs',
+					'source' => (string) $source,
+					'run_id' => $run_id,
+				),
+				admin_url( 'admin.php' )
+			) : '',
+			'backup_root'     => $backup_root,
+			'has_backup_root' => '' !== $backup_root,
+			'resumed_message' => ! empty( $payload['resumed_run'] ) ? __( 'This execution reused persisted journal state from a prior run.', 'zignites-sentinel' ) : '',
+		);
 	}
 
 	/**
