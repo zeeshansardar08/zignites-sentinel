@@ -54,6 +54,8 @@ $last_update_plan_target_rows = isset( $view_data['last_update_plan_target_rows'
 $plan_validation           = isset( $view_data['plan_validation'] ) && is_array( $view_data['plan_validation'] ) ? $view_data['plan_validation'] : array();
 $plan_validation_check_rows = isset( $view_data['plan_validation_check_rows'] ) && is_array( $view_data['plan_validation_check_rows'] ) ? $view_data['plan_validation_check_rows'] : array();
 $restore_source_validation = isset( $view_data['restore_source_validation'] ) && is_array( $view_data['restore_source_validation'] ) ? $view_data['restore_source_validation'] : array();
+$restore_readiness_status = isset( $view_data['restore_readiness_status'] ) && is_array( $view_data['restore_readiness_status'] ) ? $view_data['restore_readiness_status'] : array();
+$restore_readiness_check_rows = isset( $view_data['restore_readiness_check_rows'] ) && is_array( $view_data['restore_readiness_check_rows'] ) ? $view_data['restore_readiness_check_rows'] : array();
 $restore_source_validation_check_rows = isset( $view_data['restore_source_validation_check_rows'] ) && is_array( $view_data['restore_source_validation_check_rows'] ) ? $view_data['restore_source_validation_check_rows'] : array();
 $restore_source_missing_plugins = isset( $view_data['restore_source_missing_plugins'] ) && is_array( $view_data['restore_source_missing_plugins'] ) ? $view_data['restore_source_missing_plugins'] : array();
 $restore_source_missing_artifacts = isset( $view_data['restore_source_missing_artifacts'] ) && is_array( $view_data['restore_source_missing_artifacts'] ) ? $view_data['restore_source_missing_artifacts'] : array();
@@ -1201,12 +1203,12 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			<section class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Restore Readiness Assessment', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
-					<span class="znts-pill znts-pill-<?php echo esc_attr( 'blocked' === $last_restore_check['status'] ? 'critical' : ( 'caution' === $last_restore_check['status'] ? 'warning' : 'info' ) ); ?>">
-						<?php echo esc_html( ucfirst( $last_restore_check['status'] ) ); ?>
+					<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $restore_readiness_status['badge'] ) ? $restore_readiness_status['badge'] : 'info' ); ?>">
+						<?php echo esc_html( isset( $restore_readiness_status['status_label'] ) ? $restore_readiness_status['status_label'] : '' ); ?>
 					</span>
-					<span><?php echo esc_html( $last_restore_check['generated_at'] ); ?></span>
+					<span><?php echo esc_html( isset( $restore_readiness_status['generated_at'] ) ? $restore_readiness_status['generated_at'] : '' ); ?></span>
 				</div>
-				<p><?php echo esc_html( $last_restore_check['note'] ); ?></p>
+				<p><?php echo esc_html( isset( $restore_readiness_status['note'] ) ? $restore_readiness_status['note'] : '' ); ?></p>
 				<table class="widefat striped">
 					<thead>
 						<tr>
@@ -1216,12 +1218,12 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tr>
 					</thead>
 					<tbody>
-						<?php foreach ( $last_restore_check['checks'] as $check ) : ?>
+						<?php foreach ( $restore_readiness_check_rows as $check ) : ?>
 							<tr>
 								<td><?php echo esc_html( $check['label'] ); ?></td>
 								<td>
-									<span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === $check['status'] ? 'critical' : $check['status'] ); ?>">
-										<?php echo esc_html( ucfirst( $check['status'] ) ); ?>
+									<span class="znts-pill znts-pill-<?php echo esc_attr( $check['badge'] ); ?>">
+										<?php echo esc_html( $check['status_label'] ); ?>
 									</span>
 								</td>
 								<td><?php echo esc_html( $check['message'] ); ?></td>
