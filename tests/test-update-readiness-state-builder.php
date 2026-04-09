@@ -121,22 +121,79 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 				'id'               => 101,
 				'label'            => 'Release snapshot',
 				'created_at'       => '2026-04-09 10:00:00',
+				'theme_stylesheet' => 'twentytwentysix',
+				'core_version'     => '6.8.0',
+				'php_version'      => '8.1.10',
 				'metadata_decoded' => array(
+					'site_url'           => 'https://example.test',
 					'component_manifest' => array(
 						'generated_at' => '2026-04-09 10:00:01',
+						'theme'        => array(
+							'source_path' => '/themes/twentytwentysix',
+						),
+						'plugins'      => array(
+							'example/example.php' => array(
+								'source_path' => '/plugins/example',
+							),
+						),
+					),
+				),
+				'active_plugins_decoded' => array(
+					array(
+						'plugin'  => 'example/example.php',
+						'name'    => 'Example Plugin',
+						'version' => '1.0.0',
 					),
 				),
 			),
 			'snapshot_comparison' => array(
-				'status' => 'match',
+				'status'               => 'drift',
+				'snapshot_theme'       => 'twentytwentysix',
+				'current_theme'        => 'custom-theme',
+				'snapshot_core_version' => '6.8.0',
+				'current_core_version' => '6.8.1',
+				'snapshot_php_version' => '8.1.10',
+				'current_php_version'  => '8.2.0',
+				'missing_plugins'      => array(
+					array(
+						'name'   => 'Missing Plugin',
+						'plugin' => 'missing/missing.php',
+					),
+				),
+				'new_plugins'          => array(
+					array(
+						'plugin' => 'new/current.php',
+					),
+				),
+				'version_changes'      => array(
+					array(
+						'name'             => 'Example Plugin',
+						'snapshot_version' => '1.0.0',
+						'current_version'  => '1.1.0',
+					),
+				),
 			),
 			'snapshot_artifacts' => array(
 				array(
-					'type' => 'json',
+					'artifact_type' => 'plugin',
+					'label'         => 'Example Plugin',
+					'artifact_key'  => 'example/example.php',
+					'version'       => '1.0.0',
+					'source_path'   => '/plugins/example',
 				),
 			),
 			'artifact_diff' => array(
-				'missing' => array(),
+				'message' => 'Artifact drift detected.',
+				'items'   => array(
+					array(
+						'type'            => 'plugin',
+						'label'           => 'Example Plugin',
+						'stored_version'  => '1.0.0',
+						'current_version' => '1.1.0',
+						'status'          => 'fail',
+						'message'         => 'Version changed.',
+					),
+				),
 			),
 			'last_restore_dry_run' => array(
 				'status'       => 'caution',
@@ -409,6 +466,22 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'fallback-plugin/fallback.php', $state['restore_source_missing_plugins'][1], 'Update Readiness state builder should fall back to missing plugin paths.' );
 	znts_assert_same( 'Rollback package', $state['restore_source_missing_artifacts'][0], 'Update Readiness state builder should derive missing artifact labels.' );
 	znts_assert_same( '2026-04-09 10:00:01', $state['component_manifest']['generated_at'], 'Update Readiness state builder should derive component manifest state from the selected snapshot.' );
+	znts_assert_same( 'Label', $state['snapshot_basic_rows'][0]['label'], 'Update Readiness state builder should derive snapshot basics labels.' );
+	znts_assert_same( 'Release snapshot', $state['snapshot_basic_rows'][0]['value'], 'Update Readiness state builder should derive snapshot basics values.' );
+	znts_assert_same( 'Site Url', $state['snapshot_metadata_rows'][0]['label'], 'Update Readiness state builder should humanize snapshot metadata keys.' );
+	znts_assert_same( 'https://example.test', $state['snapshot_metadata_rows'][0]['value'], 'Update Readiness state builder should derive scalar snapshot metadata values.' );
+	znts_assert_same( 'Theme Source', $state['component_manifest_rows'][1]['label'], 'Update Readiness state builder should derive component manifest labels.' );
+	znts_assert_same( '/themes/twentytwentysix', $state['component_manifest_rows'][1]['value'], 'Update Readiness state builder should derive component manifest values.' );
+	znts_assert_same( 'Plugin', $state['snapshot_artifact_rows'][0]['type_label'], 'Update Readiness state builder should derive snapshot artifact type labels.' );
+	znts_assert_same( 'example/example.php', $state['snapshot_artifact_rows'][0]['key'], 'Update Readiness state builder should preserve snapshot artifact keys.' );
+	znts_assert_same( 'Artifact drift detected.', $state['artifact_diff_state']['message'], 'Update Readiness state builder should derive artifact diff messages.' );
+	znts_assert_same( 'critical', $state['artifact_diff_state']['rows'][0]['badge'], 'Update Readiness state builder should map failing artifact diff rows to critical.' );
+	znts_assert_same( 'example/example.php', $state['active_plugin_rows'][0]['plugin'], 'Update Readiness state builder should derive active plugin rows.' );
+	znts_assert_same( 'Snapshot Theme', $state['snapshot_comparison_rows'][0]['label'], 'Update Readiness state builder should derive snapshot comparison labels.' );
+	znts_assert_same( 'twentytwentysix', $state['snapshot_comparison_rows'][0]['value'], 'Update Readiness state builder should derive snapshot comparison values.' );
+	znts_assert_same( 'Missing Plugin', $state['missing_snapshot_plugin_labels'][0], 'Update Readiness state builder should prefer missing comparison plugin names.' );
+	znts_assert_same( 'new/current.php', $state['new_current_plugin_labels'][0], 'Update Readiness state builder should fall back to new plugin paths.' );
+	znts_assert_same( 'Example Plugin', $state['plugin_version_change_rows'][0]['name'], 'Update Readiness state builder should derive plugin version change rows.' );
 	znts_assert_same( 'Release snapshot', $state['selected_snapshot_label'], 'Update Readiness state builder should derive the selected snapshot label.' );
 	znts_assert_same( 'Snapshot #101 captured on 2026-04-09 10:00:00 is the active restore workspace.', $state['selected_snapshot_note'], 'Update Readiness state builder should derive the selected snapshot workspace note.' );
 	znts_assert_same( 1, $state['snapshot_match_count'], 'Update Readiness state builder should derive snapshot match count from pagination.' );
@@ -495,6 +568,17 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( array(), $state['recent_snapshots'], 'Update Readiness state builder should default missing snapshot list rows to an empty array.' );
 	znts_assert_same( array(), $state['snapshot_status_index'], 'Update Readiness state builder should default missing status index payloads to an empty array.' );
 	znts_assert_same( array(), $state['snapshot_pagination'], 'Update Readiness state builder should default missing pagination payloads to an empty array.' );
+	znts_assert_same( array(), $state['snapshot_basic_rows'], 'Update Readiness state builder should default missing snapshot basics to an empty array.' );
+	znts_assert_same( array(), $state['snapshot_metadata_rows'], 'Update Readiness state builder should default missing snapshot metadata rows to an empty array.' );
+	znts_assert_same( array(), $state['component_manifest_rows'], 'Update Readiness state builder should default missing component manifest rows to an empty array.' );
+	znts_assert_same( array(), $state['snapshot_artifact_rows'], 'Update Readiness state builder should default missing snapshot artifact rows to an empty array.' );
+	znts_assert_same( '', $state['artifact_diff_state']['message'], 'Update Readiness state builder should default missing artifact diff messages to an empty string.' );
+	znts_assert_same( array(), $state['artifact_diff_state']['rows'], 'Update Readiness state builder should default missing artifact diff rows to an empty array.' );
+	znts_assert_same( array(), $state['active_plugin_rows'], 'Update Readiness state builder should default missing active plugin rows to an empty array.' );
+	znts_assert_same( array(), $state['snapshot_comparison_rows'], 'Update Readiness state builder should default missing snapshot comparison rows to an empty array.' );
+	znts_assert_same( array(), $state['missing_snapshot_plugin_labels'], 'Update Readiness state builder should default missing comparison missing-plugin labels to an empty array.' );
+	znts_assert_same( array(), $state['new_current_plugin_labels'], 'Update Readiness state builder should default missing comparison new-plugin labels to an empty array.' );
+	znts_assert_same( array(), $state['plugin_version_change_rows'], 'Update Readiness state builder should default missing plugin version-change rows to an empty array.' );
 	znts_assert_same( 'info', $state['preflight_status']['badge'], 'Update Readiness state builder should default missing preflight badges to info.' );
 	znts_assert_same( array(), $state['preflight_check_rows'], 'Update Readiness state builder should default missing preflight check rows to an empty array.' );
 	znts_assert_same( array(), $state['update_candidate_rows'], 'Update Readiness state builder should default missing update candidate rows to an empty array.' );

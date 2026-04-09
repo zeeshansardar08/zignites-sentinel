@@ -62,6 +62,7 @@ class UpdateReadinessStateBuilder {
 		);
 
 		$view_data = $this->with_workspace_state( $view_data );
+		$view_data = $this->with_snapshot_detail_state( $view_data );
 		$view_data = $this->with_status_section_state( $view_data );
 		$view_data = $this->with_restore_result_state( $view_data );
 		$view_data = $this->with_checkpoint_summary_state( $view_data );
@@ -131,6 +132,32 @@ class UpdateReadinessStateBuilder {
 		$view_data['workspace_confidence'] = ! empty( $operator_checklist['can_execute'] )
 			? __( 'Checklist gates are currently satisfied for this snapshot.', 'zignites-sentinel' )
 			: __( 'The workspace is showing the shortest safe path, not every technical detail at once.', 'zignites-sentinel' );
+
+		return $view_data;
+	}
+
+	/**
+	 * Add derived snapshot detail, artifact, and comparison rows.
+	 *
+	 * @param array $view_data Normalized screen state.
+	 * @return array
+	 */
+	protected function with_snapshot_detail_state( array $view_data ) {
+		$snapshot_detail     = $this->nullable_array_value( $view_data, 'snapshot_detail' );
+		$snapshot_artifacts  = $this->array_value( $view_data, 'snapshot_artifacts' );
+		$artifact_diff       = $this->array_value( $view_data, 'artifact_diff' );
+		$snapshot_comparison = $this->array_value( $view_data, 'snapshot_comparison' );
+
+		$view_data['snapshot_basic_rows'] = $this->build_snapshot_basic_rows( $snapshot_detail );
+		$view_data['snapshot_metadata_rows'] = $this->build_snapshot_metadata_rows( $snapshot_detail );
+		$view_data['component_manifest_rows'] = $this->build_component_manifest_rows( $this->array_value( $view_data, 'component_manifest' ) );
+		$view_data['snapshot_artifact_rows'] = $this->build_snapshot_artifact_rows( $snapshot_artifacts );
+		$view_data['artifact_diff_state'] = $this->build_artifact_diff_state( $artifact_diff );
+		$view_data['active_plugin_rows'] = $this->build_active_plugin_rows( $snapshot_detail );
+		$view_data['snapshot_comparison_rows'] = $this->build_snapshot_comparison_rows( $snapshot_comparison );
+		$view_data['missing_snapshot_plugin_labels'] = $this->build_plugin_state_labels( $this->array_value( $snapshot_comparison, 'missing_plugins' ) );
+		$view_data['new_current_plugin_labels'] = $this->build_plugin_state_labels( $this->array_value( $snapshot_comparison, 'new_plugins' ) );
+		$view_data['plugin_version_change_rows'] = $this->build_plugin_version_change_rows( $snapshot_comparison );
 
 		return $view_data;
 	}
@@ -397,6 +424,240 @@ class UpdateReadinessStateBuilder {
 				'label'           => isset( $target['label'] ) ? (string) $target['label'] : '',
 				'current_version' => isset( $target['current_version'] ) ? (string) $target['current_version'] : '',
 				'new_version'     => isset( $target['new_version'] ) ? (string) $target['new_version'] : '',
+			);
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * Build snapshot basics rows.
+	 *
+	 * @param array|null $snapshot_detail Snapshot detail payload.
+	 * @return array
+	 */
+	protected function build_snapshot_basic_rows( $snapshot_detail ) {
+		if ( ! is_array( $snapshot_detail ) ) {
+			return array();
+		}
+
+		return array(
+			array(
+				'label' => __( 'Label', 'zignites-sentinel' ),
+				'value' => isset( $snapshot_detail['label'] ) ? (string) $snapshot_detail['label'] : '',
+			),
+			array(
+				'label' => __( 'Created', 'zignites-sentinel' ),
+				'value' => isset( $snapshot_detail['created_at'] ) ? (string) $snapshot_detail['created_at'] : '',
+			),
+			array(
+				'label' => __( 'Theme', 'zignites-sentinel' ),
+				'value' => isset( $snapshot_detail['theme_stylesheet'] ) ? (string) $snapshot_detail['theme_stylesheet'] : '',
+			),
+			array(
+				'label' => __( 'Core Version', 'zignites-sentinel' ),
+				'value' => isset( $snapshot_detail['core_version'] ) ? (string) $snapshot_detail['core_version'] : '',
+			),
+			array(
+				'label' => __( 'PHP Version', 'zignites-sentinel' ),
+				'value' => isset( $snapshot_detail['php_version'] ) ? (string) $snapshot_detail['php_version'] : '',
+			),
+		);
+	}
+
+	/**
+	 * Build stored snapshot metadata rows.
+	 *
+	 * @param array|null $snapshot_detail Snapshot detail payload.
+	 * @return array
+	 */
+	protected function build_snapshot_metadata_rows( $snapshot_detail ) {
+		$metadata = is_array( $snapshot_detail ) && isset( $snapshot_detail['metadata_decoded'] ) && is_array( $snapshot_detail['metadata_decoded'] ) ? $snapshot_detail['metadata_decoded'] : array();
+		$rows     = array();
+
+		foreach ( $metadata as $meta_key => $meta_value ) {
+			$rows[] = array(
+				'label' => ucwords( str_replace( '_', ' ', (string) $meta_key ) ),
+				'value' => is_scalar( $meta_value ) ? (string) $meta_value : wp_json_encode( $meta_value ),
+			);
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * Build component manifest rows.
+	 *
+	 * @param array $component_manifest Component manifest payload.
+	 * @return array
+	 */
+	protected function build_component_manifest_rows( array $component_manifest ) {
+		if ( empty( $component_manifest ) ) {
+			return array();
+		}
+
+		return array(
+			array(
+				'label' => __( 'Generated', 'zignites-sentinel' ),
+				'value' => isset( $component_manifest['generated_at'] ) ? (string) $component_manifest['generated_at'] : '',
+			),
+			array(
+				'label' => __( 'Theme Source', 'zignites-sentinel' ),
+				'value' => isset( $component_manifest['theme']['source_path'] ) ? (string) $component_manifest['theme']['source_path'] : '',
+			),
+			array(
+				'label' => __( 'Plugin Entries', 'zignites-sentinel' ),
+				'value' => isset( $component_manifest['plugins'] ) && is_array( $component_manifest['plugins'] ) ? (string) count( $component_manifest['plugins'] ) : '0',
+			),
+		);
+	}
+
+	/**
+	 * Build rollback package artifact rows.
+	 *
+	 * @param array $snapshot_artifacts Snapshot artifact rows.
+	 * @return array
+	 */
+	protected function build_snapshot_artifact_rows( array $snapshot_artifacts ) {
+		$rows = array();
+
+		foreach ( $snapshot_artifacts as $artifact ) {
+			$type = isset( $artifact['artifact_type'] ) ? (string) $artifact['artifact_type'] : '';
+
+			$rows[] = array(
+				'type_label'  => ucfirst( $type ),
+				'label'       => isset( $artifact['label'] ) ? (string) $artifact['label'] : '',
+				'key'         => isset( $artifact['artifact_key'] ) ? (string) $artifact['artifact_key'] : '',
+				'version'     => isset( $artifact['version'] ) ? (string) $artifact['version'] : '',
+				'source_path' => isset( $artifact['source_path'] ) ? (string) $artifact['source_path'] : '',
+			);
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * Build artifact diff display state.
+	 *
+	 * @param array $artifact_diff Artifact diff payload.
+	 * @return array
+	 */
+	protected function build_artifact_diff_state( array $artifact_diff ) {
+		$items = isset( $artifact_diff['items'] ) && is_array( $artifact_diff['items'] ) ? $artifact_diff['items'] : array();
+		$rows  = array();
+
+		foreach ( $items as $item ) {
+			$status = isset( $item['status'] ) ? (string) $item['status'] : '';
+
+			$rows[] = array(
+				'type_label'      => ucfirst( isset( $item['type'] ) ? (string) $item['type'] : '' ),
+				'label'           => isset( $item['label'] ) ? (string) $item['label'] : '',
+				'stored_version'  => isset( $item['stored_version'] ) ? (string) $item['stored_version'] : '',
+				'current_version' => isset( $item['current_version'] ) ? (string) $item['current_version'] : '',
+				'status'          => $status,
+				'status_label'    => $this->humanize_status( $status ),
+				'badge'           => 'fail' === $status ? 'critical' : $status,
+				'message'         => isset( $item['message'] ) ? (string) $item['message'] : '',
+			);
+		}
+
+		return array(
+			'message' => isset( $artifact_diff['message'] ) ? (string) $artifact_diff['message'] : '',
+			'rows'    => $rows,
+		);
+	}
+
+	/**
+	 * Build active plugin rows from the selected snapshot.
+	 *
+	 * @param array|null $snapshot_detail Snapshot detail payload.
+	 * @return array
+	 */
+	protected function build_active_plugin_rows( $snapshot_detail ) {
+		$plugins = is_array( $snapshot_detail ) && isset( $snapshot_detail['active_plugins_decoded'] ) && is_array( $snapshot_detail['active_plugins_decoded'] ) ? $snapshot_detail['active_plugins_decoded'] : array();
+		$rows    = array();
+
+		foreach ( $plugins as $plugin_state ) {
+			$rows[] = array(
+				'plugin'  => isset( $plugin_state['plugin'] ) ? (string) $plugin_state['plugin'] : '',
+				'name'    => isset( $plugin_state['name'] ) ? (string) $plugin_state['name'] : '',
+				'version' => isset( $plugin_state['version'] ) ? (string) $plugin_state['version'] : '',
+			);
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * Build snapshot comparison rows.
+	 *
+	 * @param array $snapshot_comparison Snapshot comparison payload.
+	 * @return array
+	 */
+	protected function build_snapshot_comparison_rows( array $snapshot_comparison ) {
+		if ( empty( $snapshot_comparison ) ) {
+			return array();
+		}
+
+		return array(
+			array(
+				'label' => __( 'Snapshot Theme', 'zignites-sentinel' ),
+				'value' => isset( $snapshot_comparison['snapshot_theme'] ) ? (string) $snapshot_comparison['snapshot_theme'] : '',
+			),
+			array(
+				'label' => __( 'Current Theme', 'zignites-sentinel' ),
+				'value' => isset( $snapshot_comparison['current_theme'] ) ? (string) $snapshot_comparison['current_theme'] : '',
+			),
+			array(
+				'label' => __( 'Snapshot Core', 'zignites-sentinel' ),
+				'value' => isset( $snapshot_comparison['snapshot_core_version'] ) ? (string) $snapshot_comparison['snapshot_core_version'] : '',
+			),
+			array(
+				'label' => __( 'Current Core', 'zignites-sentinel' ),
+				'value' => isset( $snapshot_comparison['current_core_version'] ) ? (string) $snapshot_comparison['current_core_version'] : '',
+			),
+			array(
+				'label' => __( 'Snapshot PHP', 'zignites-sentinel' ),
+				'value' => isset( $snapshot_comparison['snapshot_php_version'] ) ? (string) $snapshot_comparison['snapshot_php_version'] : '',
+			),
+			array(
+				'label' => __( 'Current PHP', 'zignites-sentinel' ),
+				'value' => isset( $snapshot_comparison['current_php_version'] ) ? (string) $snapshot_comparison['current_php_version'] : '',
+			),
+		);
+	}
+
+	/**
+	 * Build compact labels from plugin state rows.
+	 *
+	 * @param array $plugin_states Plugin state rows.
+	 * @return array
+	 */
+	protected function build_plugin_state_labels( array $plugin_states ) {
+		$labels = array();
+
+		foreach ( $plugin_states as $plugin_state ) {
+			$labels[] = isset( $plugin_state['name'] ) && $plugin_state['name'] ? (string) $plugin_state['name'] : ( isset( $plugin_state['plugin'] ) ? (string) $plugin_state['plugin'] : '' );
+		}
+
+		return array_values( array_filter( $labels, 'strlen' ) );
+	}
+
+	/**
+	 * Build plugin version-change rows from snapshot comparison.
+	 *
+	 * @param array $snapshot_comparison Snapshot comparison payload.
+	 * @return array
+	 */
+	protected function build_plugin_version_change_rows( array $snapshot_comparison ) {
+		$changes = isset( $snapshot_comparison['version_changes'] ) && is_array( $snapshot_comparison['version_changes'] ) ? $snapshot_comparison['version_changes'] : array();
+		$rows    = array();
+
+		foreach ( $changes as $change ) {
+			$rows[] = array(
+				'name'             => isset( $change['name'] ) ? (string) $change['name'] : '',
+				'snapshot_version' => isset( $change['snapshot_version'] ) ? (string) $change['snapshot_version'] : '',
+				'current_version'  => isset( $change['current_version'] ) ? (string) $change['current_version'] : '',
 			);
 		}
 

@@ -87,6 +87,16 @@ $snapshot_primary_risk     = isset( $view_data['snapshot_primary_risk'] ) ? (str
 $snapshot_primary_step     = isset( $view_data['snapshot_primary_step'] ) ? (string) $view_data['snapshot_primary_step'] : '';
 $health_attention_state    = isset( $view_data['health_attention_state'] ) ? (string) $view_data['health_attention_state'] : 'info';
 $health_attention_message  = isset( $view_data['health_attention_message'] ) ? (string) $view_data['health_attention_message'] : '';
+$snapshot_basic_rows       = isset( $view_data['snapshot_basic_rows'] ) && is_array( $view_data['snapshot_basic_rows'] ) ? $view_data['snapshot_basic_rows'] : array();
+$snapshot_metadata_rows    = isset( $view_data['snapshot_metadata_rows'] ) && is_array( $view_data['snapshot_metadata_rows'] ) ? $view_data['snapshot_metadata_rows'] : array();
+$component_manifest_rows   = isset( $view_data['component_manifest_rows'] ) && is_array( $view_data['component_manifest_rows'] ) ? $view_data['component_manifest_rows'] : array();
+$snapshot_artifact_rows    = isset( $view_data['snapshot_artifact_rows'] ) && is_array( $view_data['snapshot_artifact_rows'] ) ? $view_data['snapshot_artifact_rows'] : array();
+$artifact_diff_state       = isset( $view_data['artifact_diff_state'] ) && is_array( $view_data['artifact_diff_state'] ) ? $view_data['artifact_diff_state'] : array();
+$active_plugin_rows        = isset( $view_data['active_plugin_rows'] ) && is_array( $view_data['active_plugin_rows'] ) ? $view_data['active_plugin_rows'] : array();
+$snapshot_comparison_rows  = isset( $view_data['snapshot_comparison_rows'] ) && is_array( $view_data['snapshot_comparison_rows'] ) ? $view_data['snapshot_comparison_rows'] : array();
+$missing_snapshot_plugin_labels = isset( $view_data['missing_snapshot_plugin_labels'] ) && is_array( $view_data['missing_snapshot_plugin_labels'] ) ? $view_data['missing_snapshot_plugin_labels'] : array();
+$new_current_plugin_labels = isset( $view_data['new_current_plugin_labels'] ) && is_array( $view_data['new_current_plugin_labels'] ) ? $view_data['new_current_plugin_labels'] : array();
+$plugin_version_change_rows = isset( $view_data['plugin_version_change_rows'] ) && is_array( $view_data['plugin_version_change_rows'] ) ? $view_data['plugin_version_change_rows'] : array();
 $open_health_validation    = ! empty( $view_data['open_health_validation'] );
 $workspace_flow_message    = isset( $view_data['workspace_flow_message'] ) ? (string) $view_data['workspace_flow_message'] : '';
 $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (string) $view_data['workspace_confidence'] : '';
@@ -981,40 +991,26 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<div class="znts-disclosure-body">
 						<table class="widefat striped">
 							<tbody>
-								<tr>
-									<th scope="row"><?php echo esc_html__( 'Label', 'zignites-sentinel' ); ?></th>
-									<td><?php echo esc_html( $snapshot_detail['label'] ); ?></td>
-								</tr>
-								<tr>
-									<th scope="row"><?php echo esc_html__( 'Created', 'zignites-sentinel' ); ?></th>
-									<td><?php echo esc_html( $snapshot_detail['created_at'] ); ?></td>
-								</tr>
-								<tr>
-									<th scope="row"><?php echo esc_html__( 'Theme', 'zignites-sentinel' ); ?></th>
-									<td><?php echo esc_html( $snapshot_detail['theme_stylesheet'] ); ?></td>
-								</tr>
-								<tr>
-									<th scope="row"><?php echo esc_html__( 'Core Version', 'zignites-sentinel' ); ?></th>
-									<td><?php echo esc_html( $snapshot_detail['core_version'] ); ?></td>
-								</tr>
-								<tr>
-									<th scope="row"><?php echo esc_html__( 'PHP Version', 'zignites-sentinel' ); ?></th>
-									<td><?php echo esc_html( $snapshot_detail['php_version'] ); ?></td>
-								</tr>
+								<?php foreach ( $snapshot_basic_rows as $row ) : ?>
+									<tr>
+										<th scope="row"><?php echo esc_html( $row['label'] ); ?></th>
+										<td><?php echo esc_html( $row['value'] ); ?></td>
+									</tr>
+								<?php endforeach; ?>
 							</tbody>
 						</table>
 					</div>
 				</details>
-				<?php if ( ! empty( $snapshot_detail['metadata_decoded'] ) ) : ?>
+				<?php if ( ! empty( $snapshot_metadata_rows ) ) : ?>
 					<details class="znts-disclosure">
 						<summary><?php echo esc_html__( 'Stored Snapshot Data', 'zignites-sentinel' ); ?></summary>
 						<div class="znts-disclosure-body">
 							<table class="widefat striped">
 								<tbody>
-									<?php foreach ( $snapshot_detail['metadata_decoded'] as $meta_key => $meta_value ) : ?>
+									<?php foreach ( $snapshot_metadata_rows as $row ) : ?>
 										<tr>
-											<th scope="row"><?php echo esc_html( ucwords( str_replace( '_', ' ', (string) $meta_key ) ) ); ?></th>
-											<td><?php echo esc_html( is_scalar( $meta_value ) ? (string) $meta_value : wp_json_encode( $meta_value ) ); ?></td>
+											<th scope="row"><?php echo esc_html( $row['label'] ); ?></th>
+											<td><?php echo esc_html( $row['value'] ); ?></td>
 										</tr>
 									<?php endforeach; ?>
 								</tbody>
@@ -1022,30 +1018,24 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</div>
 					</details>
 				<?php endif; ?>
-				<?php if ( ! empty( $component_manifest ) ) : ?>
+				<?php if ( ! empty( $component_manifest_rows ) ) : ?>
 					<details class="znts-disclosure">
 						<summary><?php echo esc_html__( 'Component Sources At Snapshot Time', 'zignites-sentinel' ); ?></summary>
 						<div class="znts-disclosure-body">
 							<table class="widefat striped">
 								<tbody>
-									<tr>
-										<th scope="row"><?php echo esc_html__( 'Generated', 'zignites-sentinel' ); ?></th>
-										<td><?php echo esc_html( isset( $component_manifest['generated_at'] ) ? $component_manifest['generated_at'] : '' ); ?></td>
-									</tr>
-									<tr>
-										<th scope="row"><?php echo esc_html__( 'Theme Source', 'zignites-sentinel' ); ?></th>
-										<td><?php echo esc_html( isset( $component_manifest['theme']['source_path'] ) ? $component_manifest['theme']['source_path'] : '' ); ?></td>
-									</tr>
-									<tr>
-										<th scope="row"><?php echo esc_html__( 'Plugin Entries', 'zignites-sentinel' ); ?></th>
-										<td><?php echo esc_html( isset( $component_manifest['plugins'] ) && is_array( $component_manifest['plugins'] ) ? (string) count( $component_manifest['plugins'] ) : '0' ); ?></td>
-									</tr>
+									<?php foreach ( $component_manifest_rows as $row ) : ?>
+										<tr>
+											<th scope="row"><?php echo esc_html( $row['label'] ); ?></th>
+											<td><?php echo esc_html( $row['value'] ); ?></td>
+										</tr>
+									<?php endforeach; ?>
 								</tbody>
 							</table>
 						</div>
 					</details>
 				<?php endif; ?>
-				<?php if ( ! empty( $snapshot_artifacts ) ) : ?>
+				<?php if ( ! empty( $snapshot_artifact_rows ) ) : ?>
 					<details class="znts-disclosure">
 						<summary><?php echo esc_html__( 'Rollback Package Contents', 'zignites-sentinel' ); ?></summary>
 						<div class="znts-disclosure-body">
@@ -1060,13 +1050,13 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 									</tr>
 								</thead>
 								<tbody>
-									<?php foreach ( $snapshot_artifacts as $artifact ) : ?>
+									<?php foreach ( $snapshot_artifact_rows as $artifact ) : ?>
 										<tr>
-											<td><?php echo esc_html( ucfirst( isset( $artifact['artifact_type'] ) ? $artifact['artifact_type'] : '' ) ); ?></td>
-											<td><?php echo esc_html( isset( $artifact['label'] ) ? $artifact['label'] : '' ); ?></td>
-											<td><?php echo esc_html( isset( $artifact['artifact_key'] ) ? $artifact['artifact_key'] : '' ); ?></td>
-											<td><?php echo esc_html( isset( $artifact['version'] ) ? $artifact['version'] : '' ); ?></td>
-											<td><?php echo esc_html( isset( $artifact['source_path'] ) ? $artifact['source_path'] : '' ); ?></td>
+											<td><?php echo esc_html( $artifact['type_label'] ); ?></td>
+											<td><?php echo esc_html( $artifact['label'] ); ?></td>
+											<td><?php echo esc_html( $artifact['key'] ); ?></td>
+											<td><?php echo esc_html( $artifact['version'] ); ?></td>
+											<td><?php echo esc_html( $artifact['source_path'] ); ?></td>
 										</tr>
 									<?php endforeach; ?>
 								</tbody>
@@ -1078,7 +1068,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<details class="znts-disclosure">
 						<summary><?php echo esc_html__( 'Artifact Mismatch Review', 'zignites-sentinel' ); ?></summary>
 						<div class="znts-disclosure-body">
-							<p><?php echo esc_html( isset( $artifact_diff['message'] ) ? $artifact_diff['message'] : '' ); ?></p>
+							<p><?php echo esc_html( isset( $artifact_diff_state['message'] ) ? $artifact_diff_state['message'] : '' ); ?></p>
 							<table class="widefat striped">
 								<thead>
 									<tr>
@@ -1091,18 +1081,18 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 									</tr>
 								</thead>
 								<tbody>
-									<?php foreach ( $artifact_diff['items'] as $item ) : ?>
+									<?php foreach ( isset( $artifact_diff_state['rows'] ) && is_array( $artifact_diff_state['rows'] ) ? $artifact_diff_state['rows'] : array() as $item ) : ?>
 										<tr>
-											<td><?php echo esc_html( ucfirst( isset( $item['type'] ) ? $item['type'] : '' ) ); ?></td>
-											<td><?php echo esc_html( isset( $item['label'] ) ? $item['label'] : '' ); ?></td>
-											<td><?php echo esc_html( isset( $item['stored_version'] ) ? $item['stored_version'] : '' ); ?></td>
-											<td><?php echo esc_html( isset( $item['current_version'] ) ? $item['current_version'] : '' ); ?></td>
+											<td><?php echo esc_html( $item['type_label'] ); ?></td>
+											<td><?php echo esc_html( $item['label'] ); ?></td>
+											<td><?php echo esc_html( $item['stored_version'] ); ?></td>
+											<td><?php echo esc_html( $item['current_version'] ); ?></td>
 											<td>
-												<span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === $item['status'] ? 'critical' : $item['status'] ); ?>">
-													<?php echo esc_html( ucfirst( $item['status'] ) ); ?>
+												<span class="znts-pill znts-pill-<?php echo esc_attr( $item['badge'] ); ?>">
+													<?php echo esc_html( $item['status_label'] ); ?>
 												</span>
 											</td>
-											<td><?php echo esc_html( isset( $item['message'] ) ? $item['message'] : '' ); ?></td>
+											<td><?php echo esc_html( $item['message'] ); ?></td>
 										</tr>
 									<?php endforeach; ?>
 								</tbody>
@@ -1110,7 +1100,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</div>
 					</details>
 				<?php endif; ?>
-				<?php if ( ! empty( $snapshot_detail['active_plugins_decoded'] ) ) : ?>
+				<?php if ( ! empty( $active_plugin_rows ) ) : ?>
 					<details class="znts-disclosure">
 						<summary><?php echo esc_html__( 'Plugins Active At Snapshot Time', 'zignites-sentinel' ); ?></summary>
 						<div class="znts-disclosure-body">
@@ -1123,11 +1113,11 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 									</tr>
 								</thead>
 								<tbody>
-									<?php foreach ( $snapshot_detail['active_plugins_decoded'] as $plugin_state ) : ?>
+									<?php foreach ( $active_plugin_rows as $plugin_state ) : ?>
 										<tr>
-											<td><?php echo esc_html( isset( $plugin_state['plugin'] ) ? $plugin_state['plugin'] : '' ); ?></td>
-											<td><?php echo esc_html( isset( $plugin_state['name'] ) ? $plugin_state['name'] : '' ); ?></td>
-											<td><?php echo esc_html( isset( $plugin_state['version'] ) ? $plugin_state['version'] : '' ); ?></td>
+											<td><?php echo esc_html( $plugin_state['plugin'] ); ?></td>
+											<td><?php echo esc_html( $plugin_state['name'] ); ?></td>
+											<td><?php echo esc_html( $plugin_state['version'] ); ?></td>
 										</tr>
 									<?php endforeach; ?>
 								</tbody>
@@ -1143,60 +1133,42 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<h2><?php echo esc_html__( 'Snapshot Comparison', 'zignites-sentinel' ); ?></h2>
 				<table class="widefat striped">
 					<tbody>
-						<tr>
-							<th scope="row"><?php echo esc_html__( 'Snapshot Theme', 'zignites-sentinel' ); ?></th>
-							<td><?php echo esc_html( $snapshot_comparison['snapshot_theme'] ); ?></td>
-						</tr>
-						<tr>
-							<th scope="row"><?php echo esc_html__( 'Current Theme', 'zignites-sentinel' ); ?></th>
-							<td><?php echo esc_html( $snapshot_comparison['current_theme'] ); ?></td>
-						</tr>
-						<tr>
-							<th scope="row"><?php echo esc_html__( 'Snapshot Core', 'zignites-sentinel' ); ?></th>
-							<td><?php echo esc_html( $snapshot_comparison['snapshot_core_version'] ); ?></td>
-						</tr>
-						<tr>
-							<th scope="row"><?php echo esc_html__( 'Current Core', 'zignites-sentinel' ); ?></th>
-							<td><?php echo esc_html( $snapshot_comparison['current_core_version'] ); ?></td>
-						</tr>
-						<tr>
-							<th scope="row"><?php echo esc_html__( 'Snapshot PHP', 'zignites-sentinel' ); ?></th>
-							<td><?php echo esc_html( $snapshot_comparison['snapshot_php_version'] ); ?></td>
-						</tr>
-						<tr>
-							<th scope="row"><?php echo esc_html__( 'Current PHP', 'zignites-sentinel' ); ?></th>
-							<td><?php echo esc_html( $snapshot_comparison['current_php_version'] ); ?></td>
-						</tr>
+						<?php foreach ( $snapshot_comparison_rows as $row ) : ?>
+							<tr>
+								<th scope="row"><?php echo esc_html( $row['label'] ); ?></th>
+								<td><?php echo esc_html( $row['value'] ); ?></td>
+							</tr>
+						<?php endforeach; ?>
 					</tbody>
 				</table>
 				<div class="znts-admin-grid znts-subgrid">
 					<section class="znts-card znts-card-soft">
 						<h3><?php echo esc_html__( 'Missing Snapshot Plugins', 'zignites-sentinel' ); ?></h3>
-						<?php if ( empty( $snapshot_comparison['missing_plugins'] ) ) : ?>
+						<?php if ( empty( $missing_snapshot_plugin_labels ) ) : ?>
 							<p><?php echo esc_html__( 'None.', 'zignites-sentinel' ); ?></p>
 						<?php else : ?>
 							<ul class="znts-list">
-								<?php foreach ( $snapshot_comparison['missing_plugins'] as $plugin_state ) : ?>
-									<li><?php echo esc_html( isset( $plugin_state['name'] ) && $plugin_state['name'] ? $plugin_state['name'] : $plugin_state['plugin'] ); ?></li>
+								<?php foreach ( $missing_snapshot_plugin_labels as $plugin_label ) : ?>
+									<li><?php echo esc_html( $plugin_label ); ?></li>
 								<?php endforeach; ?>
 							</ul>
 						<?php endif; ?>
 					</section>
 					<section class="znts-card znts-card-soft">
 						<h3><?php echo esc_html__( 'New Current Plugins', 'zignites-sentinel' ); ?></h3>
-						<?php if ( empty( $snapshot_comparison['new_plugins'] ) ) : ?>
+						<?php if ( empty( $new_current_plugin_labels ) ) : ?>
 							<p><?php echo esc_html__( 'None.', 'zignites-sentinel' ); ?></p>
 						<?php else : ?>
 							<ul class="znts-list">
-								<?php foreach ( $snapshot_comparison['new_plugins'] as $plugin_state ) : ?>
-									<li><?php echo esc_html( isset( $plugin_state['name'] ) && $plugin_state['name'] ? $plugin_state['name'] : $plugin_state['plugin'] ); ?></li>
+								<?php foreach ( $new_current_plugin_labels as $plugin_label ) : ?>
+									<li><?php echo esc_html( $plugin_label ); ?></li>
 								<?php endforeach; ?>
 							</ul>
 						<?php endif; ?>
 					</section>
 					<section class="znts-card znts-card-soft">
 						<h3><?php echo esc_html__( 'Changed Plugin Versions', 'zignites-sentinel' ); ?></h3>
-						<?php if ( empty( $snapshot_comparison['version_changes'] ) ) : ?>
+						<?php if ( empty( $plugin_version_change_rows ) ) : ?>
 							<p><?php echo esc_html__( 'None.', 'zignites-sentinel' ); ?></p>
 						<?php else : ?>
 							<table class="widefat striped">
@@ -1208,7 +1180,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 									</tr>
 								</thead>
 								<tbody>
-									<?php foreach ( $snapshot_comparison['version_changes'] as $change ) : ?>
+									<?php foreach ( $plugin_version_change_rows as $change ) : ?>
 										<tr>
 											<td><?php echo esc_html( $change['name'] ); ?></td>
 											<td><?php echo esc_html( $change['snapshot_version'] ); ?></td>
