@@ -271,10 +271,14 @@
   - restore operator checklist state extraction
   - snapshot health-comparison state extraction
   - focused regression coverage for those state seams
-- Current branch extends that read-only state-builder cleanup with:
+- Main is now current through the merged Update Readiness screen state-builder cleanup for:
   - top-level Update Readiness screen view-state extraction
   - `render_update_readiness()` now delegates payload assembly through `UpdateReadinessStateBuilder`
   - focused regression coverage for Update Readiness screen-state normalization and empty-default handling
+- Current branch extends the Update Readiness state-builder cleanup with:
+  - workspace/hero derived state extraction from `includes/admin/views/update-readiness.php`
+  - selected snapshot status, validation subsets, component manifest, and health attention state now prepared by `UpdateReadinessStateBuilder`
+  - focused regression coverage for ready and empty workspace states
 - Live authenticated admin smoke validation has now been run successfully against a real wp-admin session for:
   - Sentinel Dashboard
   - Update Readiness
@@ -379,9 +383,9 @@
 ### Immediate Next Steps
 1. Continue the read-only presentation extraction work now that manual/admin validation is current
 - Likely candidates:
-  - remaining Update Readiness workspace/hero state still derived at the top of `includes/admin/views/update-readiness.php`
-  - remaining Update Readiness formatter helpers outside snapshot-list state, snapshot-summary state, dashboard-summary state, checkpoint payloads, restore-impact state, operator-checklist state, and health-comparison state
-- Reason: the controller-level Update Readiness payload is now extracted, so the next highest-value work is reducing derived presentation logic still concentrated in the view
+  - remaining Update Readiness detail-section/table formatting still embedded in `includes/admin/views/update-readiness.php`
+  - remaining Update Readiness formatter helpers outside snapshot-list state, snapshot-summary state, dashboard-summary state, checkpoint payloads, restore-impact state, operator-checklist state, health-comparison state, and workspace state
+- Reason: controller-level and workspace-level Update Readiness state are now extracted, so the next highest-value work is reducing lower-level presentation formatting still concentrated in the view
 
 2. Keep the manual/admin validation current after each read-only extraction
 - Re-run the authenticated smoke helper and the targeted manual path for:
@@ -452,10 +456,10 @@
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
 - Current branch prepared for merge:
-  - `feature/update-readiness-screen-state-builder-extraction`
+  - `feature/update-readiness-workspace-state-extraction`
 - Next likely restart task after this branch merges:
   - start from `includes/admin/views/update-readiness.php`
-  - extract the remaining workspace/hero derived state into a focused read-only helper
+  - extract the next detail-section/table formatting seam into the Update Readiness state builder or a focused presenter
   - avoid new restore behavior; keep this track to presentation-state cleanup and regression coverage
 
 
