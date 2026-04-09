@@ -15,10 +15,16 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 				'status' => 'warning',
 			),
 			'last_update_plan' => array(
-				'status' => 'ready',
+				'status'     => 'ready',
+				'validation' => array(
+					'message' => 'Plan validated',
+				),
 			),
 			'last_restore_check' => array(
-				'status' => 'blocked',
+				'status'            => 'blocked',
+				'source_validation' => array(
+					'message' => 'Sources available',
+				),
 			),
 			'settings' => array(
 				'retention' => 5,
@@ -38,6 +44,12 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 				'status_index' => array(
 					101 => array(
 						'restore_ready' => true,
+						'status_badges' => array(
+							array(
+								'label' => 'Ready',
+								'badge' => 'info',
+							),
+						),
 					),
 				),
 				'pagination' => array(
@@ -51,7 +63,14 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 				'ready' => 'Ready',
 			),
 			'snapshot_detail' => array(
-				'id' => 101,
+				'id'               => 101,
+				'label'            => 'Release snapshot',
+				'created_at'       => '2026-04-09 10:00:00',
+				'metadata_decoded' => array(
+					'component_manifest' => array(
+						'generated_at' => '2026-04-09 10:00:01',
+					),
+				),
 			),
 			'snapshot_comparison' => array(
 				'status' => 'match',
@@ -109,7 +128,8 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 				),
 			),
 			'snapshot_health_baseline' => array(
-				'status' => 'healthy',
+				'status'      => 'healthy',
+				'status_pill' => 'warning',
 			),
 			'snapshot_health_comparison' => array(
 				array(
@@ -119,6 +139,9 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 			'snapshot_summary' => array(
 				'risks' => array(
 					'No active blockers',
+				),
+				'next_steps' => array(
+					'Review restore impact',
 				),
 			),
 			'operator_checklist' => array(
@@ -148,6 +171,23 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( true, $state['snapshot_status_index'][101]['restore_ready'], 'Update Readiness state builder should expose the snapshot status index from list state.' );
 	znts_assert_same( 1, $state['snapshot_pagination']['total_items'], 'Update Readiness state builder should expose snapshot pagination from list state.' );
 	znts_assert_same( 101, $state['snapshot_detail']['id'], 'Update Readiness state builder should preserve the selected snapshot detail.' );
+	znts_assert_same( 'Ready', $state['selected_snapshot_status']['status_badges'][0]['label'], 'Update Readiness state builder should derive selected snapshot status from the status index.' );
+	znts_assert_same( 'Plan validated', $state['plan_validation']['message'], 'Update Readiness state builder should derive update-plan validation state.' );
+	znts_assert_same( 'Sources available', $state['restore_source_validation']['message'], 'Update Readiness state builder should derive restore source validation state.' );
+	znts_assert_same( '2026-04-09 10:00:01', $state['component_manifest']['generated_at'], 'Update Readiness state builder should derive component manifest state from the selected snapshot.' );
+	znts_assert_same( 'Release snapshot', $state['selected_snapshot_label'], 'Update Readiness state builder should derive the selected snapshot label.' );
+	znts_assert_same( 'Snapshot #101 captured on 2026-04-09 10:00:00 is the active restore workspace.', $state['selected_snapshot_note'], 'Update Readiness state builder should derive the selected snapshot workspace note.' );
+	znts_assert_same( 1, $state['snapshot_match_count'], 'Update Readiness state builder should derive snapshot match count from pagination.' );
+	znts_assert_same( 'Restore ready', $state['workspace_status_label'], 'Update Readiness state builder should derive the workspace status label from checklist readiness.' );
+	znts_assert_same( 'info', $state['workspace_status_badge'], 'Update Readiness state builder should derive the workspace status badge from checklist readiness.' );
+	znts_assert_same( 'Review the impact summary, then continue with guarded restore only if the plan still matches your intent.', $state['workspace_next_action'], 'Update Readiness state builder should derive ready-state workspace guidance.' );
+	znts_assert_same( 'No active blockers', $state['snapshot_primary_risk'], 'Update Readiness state builder should derive the primary snapshot risk.' );
+	znts_assert_same( 'Review restore impact', $state['snapshot_primary_step'], 'Update Readiness state builder should derive the primary snapshot next step.' );
+	znts_assert_same( 'warning', $state['health_attention_state'], 'Update Readiness state builder should derive the health attention state from baseline status pill.' );
+	znts_assert_same( 'Restore preparation needs attention: the current health baseline is degraded.', $state['health_attention_message'], 'Update Readiness state builder should derive the health attention message.' );
+	znts_assert_same( false, $state['open_health_validation'], 'Update Readiness state builder should close health validation details when checklist gates can execute.' );
+	znts_assert_same( 'Next: confirm the impact summary, verify the checklist is still current, and only then move into guarded restore review.', $state['workspace_flow_message'], 'Update Readiness state builder should derive ready-state workflow guidance.' );
+	znts_assert_same( 'Checklist gates are currently satisfied for this snapshot.', $state['workspace_confidence'], 'Update Readiness state builder should derive ready-state workspace confidence.' );
 	znts_assert_same( 'restore-101', $state['last_restore_execution']['run_id'], 'Update Readiness state builder should preserve restore execution state.' );
 	znts_assert_same( true, $state['operator_checklist']['can_execute'], 'Update Readiness state builder should preserve operator checklist state.' );
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=101', $state['snapshot_activity_url'], 'Update Readiness state builder should preserve the activity URL.' );
@@ -172,4 +212,9 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( '', $state['snapshot_status_filter'], 'Update Readiness state builder should normalize a missing snapshot status filter to an empty string.' );
 	znts_assert_same( null, $state['snapshot_detail'], 'Update Readiness state builder should normalize missing snapshot detail to null.' );
 	znts_assert_same( '', $state['snapshot_activity_url'], 'Update Readiness state builder should default missing activity URL to an empty string.' );
+	znts_assert_same( 'No snapshot selected', $state['selected_snapshot_label'], 'Update Readiness state builder should derive the empty selected snapshot label.' );
+	znts_assert_same( 'Awaiting snapshot', $state['workspace_status_label'], 'Update Readiness state builder should derive awaiting-snapshot workspace status.' );
+	znts_assert_same( 'critical', $state['workspace_status_badge'], 'Update Readiness state builder should derive the awaiting-snapshot workspace badge.' );
+	znts_assert_same( 'critical', $state['health_attention_state'], 'Update Readiness state builder should derive critical health attention state without a baseline.' );
+	znts_assert_same( true, $state['open_health_validation'], 'Update Readiness state builder should open health validation details when checklist gates are incomplete.' );
 }

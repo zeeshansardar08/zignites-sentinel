@@ -20,7 +20,7 @@ class UpdateReadinessStateBuilder {
 	public function build_screen_state( array $state ) {
 		$snapshot_list_state = $this->array_value( $state, 'snapshot_list_state' );
 
-		return array(
+		$view_data = array(
 			'last_preflight'          => $this->array_value( $state, 'last_preflight' ),
 			'last_update_plan'        => $this->array_value( $state, 'last_update_plan' ),
 			'last_restore_check'      => $this->array_value( $state, 'last_restore_check' ),
@@ -60,6 +60,69 @@ class UpdateReadinessStateBuilder {
 			'snapshot_activity_url'   => isset( $state['snapshot_activity_url'] ) ? (string) $state['snapshot_activity_url'] : '',
 			'notice'                  => $this->array_value( $state, 'notice' ),
 		);
+
+		return $this->with_workspace_state( $view_data );
+	}
+
+	/**
+	 * Add derived workspace and hero state used by the Update Readiness view.
+	 *
+	 * @param array $view_data Normalized screen state.
+	 * @return array
+	 */
+	protected function with_workspace_state( array $view_data ) {
+		$snapshot_detail          = $this->nullable_array_value( $view_data, 'snapshot_detail' );
+		$snapshot_status_index    = $this->array_value( $view_data, 'snapshot_status_index' );
+		$last_plan                = $this->array_value( $view_data, 'last_update_plan' );
+		$last_restore_check       = $this->array_value( $view_data, 'last_restore_check' );
+		$snapshot_pagination      = $this->array_value( $view_data, 'snapshot_pagination' );
+		$recent_snapshots         = $this->array_value( $view_data, 'recent_snapshots' );
+		$operator_checklist       = $this->array_value( $view_data, 'operator_checklist' );
+		$snapshot_summary         = $this->array_value( $view_data, 'snapshot_summary' );
+		$snapshot_health_baseline = $this->array_value( $view_data, 'snapshot_health_baseline' );
+		$snapshot_id              = is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) ? (int) $snapshot_detail['id'] : 0;
+		$health_attention_state   = empty( $snapshot_health_baseline ) ? 'critical' : ( isset( $snapshot_health_baseline['status_pill'] ) ? (string) $snapshot_health_baseline['status_pill'] : 'info' );
+
+		$view_data['selected_snapshot_status'] = $snapshot_id > 0 && isset( $snapshot_status_index[ $snapshot_id ] ) && is_array( $snapshot_status_index[ $snapshot_id ] ) ? $snapshot_status_index[ $snapshot_id ] : array();
+		$view_data['plan_validation'] = isset( $last_plan['validation'] ) && is_array( $last_plan['validation'] ) ? $last_plan['validation'] : array();
+		$view_data['restore_source_validation'] = isset( $last_restore_check['source_validation'] ) && is_array( $last_restore_check['source_validation'] ) ? $last_restore_check['source_validation'] : array();
+		$view_data['component_manifest'] = is_array( $snapshot_detail ) && ! empty( $snapshot_detail['metadata_decoded']['component_manifest'] ) && is_array( $snapshot_detail['metadata_decoded']['component_manifest'] ) ? $snapshot_detail['metadata_decoded']['component_manifest'] : array();
+		$view_data['selected_snapshot_label'] = is_array( $snapshot_detail ) && ! empty( $snapshot_detail['label'] ) ? (string) $snapshot_detail['label'] : __( 'No snapshot selected', 'zignites-sentinel' );
+		$view_data['selected_snapshot_note'] = is_array( $snapshot_detail )
+			? sprintf(
+				/* translators: 1: snapshot id, 2: created at */
+				__( 'Snapshot #%1$d captured on %2$s is the active restore workspace.', 'zignites-sentinel' ),
+				$snapshot_id,
+				isset( $snapshot_detail['created_at'] ) ? (string) $snapshot_detail['created_at'] : ''
+			)
+			: __( 'Choose a snapshot from the list below to inspect readiness, planning, and restore controls.', 'zignites-sentinel' );
+		$view_data['snapshot_match_count'] = isset( $snapshot_pagination['total_items'] ) ? (int) $snapshot_pagination['total_items'] : count( $recent_snapshots );
+		$view_data['workspace_status_label'] = ! empty( $operator_checklist['can_execute'] ) ? __( 'Restore ready', 'zignites-sentinel' ) : ( is_array( $snapshot_detail ) ? __( 'Needs attention', 'zignites-sentinel' ) : __( 'Awaiting snapshot', 'zignites-sentinel' ) );
+		$view_data['workspace_status_badge'] = ! empty( $operator_checklist['can_execute'] ) ? 'info' : ( is_array( $snapshot_detail ) ? 'warning' : 'critical' );
+		$view_data['workspace_next_action'] = ! empty( $operator_checklist['can_execute'] )
+			? __( 'Review the impact summary, then continue with guarded restore only if the plan still matches your intent.', 'zignites-sentinel' )
+			: ( is_array( $snapshot_detail ) ? __( 'Complete the missing checklist items or refresh restore gates before continuing.', 'zignites-sentinel' ) : __( 'Run a preflight scan or create a snapshot to begin update-readiness work.', 'zignites-sentinel' ) );
+		$view_data['snapshot_primary_risk'] = ! empty( $snapshot_summary['risks'][0] ) ? (string) $snapshot_summary['risks'][0] : __( 'No active risk callouts are currently highlighted for this snapshot.', 'zignites-sentinel' );
+		$view_data['snapshot_primary_step'] = ! empty( $snapshot_summary['next_steps'][0] ) ? (string) $snapshot_summary['next_steps'][0] : __( 'No immediate follow-up step is currently required.', 'zignites-sentinel' );
+		$view_data['health_attention_state'] = $health_attention_state;
+		$view_data['health_attention_message'] = empty( $snapshot_health_baseline )
+			? __( 'Restore not safe yet: capture a baseline before any guarded restore work.', 'zignites-sentinel' )
+			: ( 'critical' === $health_attention_state
+				? __( 'Restore not safe yet: the current health baseline is unhealthy and should be reviewed before any restore decision.', 'zignites-sentinel' )
+				: ( 'warning' === $health_attention_state
+					? __( 'Restore preparation needs attention: the current health baseline is degraded.', 'zignites-sentinel' )
+					: __( 'Baseline status is recorded for this snapshot.', 'zignites-sentinel' ) ) );
+		$view_data['open_health_validation'] = empty( $operator_checklist['can_execute'] );
+		$view_data['workspace_flow_message'] = ! empty( $operator_checklist['can_execute'] )
+			? __( 'Next: confirm the impact summary, verify the checklist is still current, and only then move into guarded restore review.', 'zignites-sentinel' )
+			: ( is_array( $snapshot_detail )
+				? __( 'Next: focus on the highlighted risk and next-step guidance below, then open detail panels only where you need deeper proof.', 'zignites-sentinel' )
+				: __( 'Next: run a scan or choose a snapshot, then let the summary below guide the next safe step.', 'zignites-sentinel' ) );
+		$view_data['workspace_confidence'] = ! empty( $operator_checklist['can_execute'] )
+			? __( 'Checklist gates are currently satisfied for this snapshot.', 'zignites-sentinel' )
+			: __( 'The workspace is showing the shortest safe path, not every technical detail at once.', 'zignites-sentinel' );
+
+		return $view_data;
 	}
 
 	/**
