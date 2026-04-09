@@ -63,6 +63,7 @@ class UpdateReadinessStateBuilder {
 
 		$view_data = $this->with_workspace_state( $view_data );
 		$view_data = $this->with_snapshot_list_state( $view_data );
+		$view_data = $this->with_settings_form_state( $view_data );
 		$view_data = $this->with_health_state( $view_data );
 		$view_data = $this->with_snapshot_detail_state( $view_data );
 		$view_data = $this->with_activity_navigation_state( $view_data );
@@ -102,6 +103,18 @@ class UpdateReadinessStateBuilder {
 			$snapshot_search,
 			$snapshot_status_filter
 		);
+
+		return $view_data;
+	}
+
+	/**
+	 * Add derived settings form state.
+	 *
+	 * @param array $view_data Normalized screen state.
+	 * @return array
+	 */
+	protected function with_settings_form_state( array $view_data ) {
+		$view_data['settings_form_state'] = $this->build_settings_form_state( $this->array_value( $view_data, 'settings' ) );
 
 		return $view_data;
 	}
@@ -984,6 +997,22 @@ class UpdateReadinessStateBuilder {
 				'snapshot_id' => (int) $snapshot_id,
 			),
 			admin_url( 'admin.php' )
+		);
+	}
+
+	/**
+	 * Build normalized settings form state.
+	 *
+	 * @param array $settings Current settings payload.
+	 * @return array
+	 */
+	protected function build_settings_form_state( array $settings ) {
+		return array(
+			'logging_enabled'                  => array_key_exists( 'logging_enabled', $settings ) ? ! empty( $settings['logging_enabled'] ) : true,
+			'delete_data_on_uninstall'         => array_key_exists( 'delete_data_on_uninstall', $settings ) ? ! empty( $settings['delete_data_on_uninstall'] ) : true,
+			'auto_snapshot_on_plan'            => array_key_exists( 'auto_snapshot_on_plan', $settings ) ? ! empty( $settings['auto_snapshot_on_plan'] ) : true,
+			'snapshot_retention_days'          => isset( $settings['snapshot_retention_days'] ) ? (string) max( 1, (int) $settings['snapshot_retention_days'] ) : '30',
+			'restore_checkpoint_max_age_hours' => isset( $settings['restore_checkpoint_max_age_hours'] ) ? (string) max( 1, (int) $settings['restore_checkpoint_max_age_hours'] ) : '24',
 		);
 	}
 
