@@ -62,6 +62,7 @@ class UpdateReadinessStateBuilder {
 		);
 
 		$view_data = $this->with_workspace_state( $view_data );
+		$view_data = $this->with_snapshot_list_state( $view_data );
 		$view_data = $this->with_health_state( $view_data );
 		$view_data = $this->with_snapshot_detail_state( $view_data );
 		$view_data = $this->with_activity_navigation_state( $view_data );
@@ -69,6 +70,38 @@ class UpdateReadinessStateBuilder {
 		$view_data = $this->with_restore_result_state( $view_data );
 		$view_data = $this->with_checkpoint_summary_state( $view_data );
 		$view_data = $this->with_form_state( $view_data );
+
+		return $view_data;
+	}
+
+	/**
+	 * Add derived snapshot list and pagination state.
+	 *
+	 * @param array $view_data Normalized screen state.
+	 * @return array
+	 */
+	protected function with_snapshot_list_state( array $view_data ) {
+		$snapshot_detail        = $this->nullable_array_value( $view_data, 'snapshot_detail' );
+		$snapshot_search        = isset( $view_data['snapshot_search'] ) ? (string) $view_data['snapshot_search'] : '';
+		$snapshot_status_filter = isset( $view_data['snapshot_status_filter'] ) ? (string) $view_data['snapshot_status_filter'] : '';
+		$snapshot_pagination    = $this->array_value( $view_data, 'snapshot_pagination' );
+
+		$view_data['recent_snapshot_rows'] = $this->build_recent_snapshot_rows(
+			$this->array_value( $view_data, 'recent_snapshots' ),
+			$this->array_value( $view_data, 'snapshot_status_index' )
+		);
+		$view_data['snapshot_empty_message'] = '' !== $snapshot_search || '' !== $snapshot_status_filter
+			? __( 'No snapshots matched the current filters.', 'zignites-sentinel' )
+			: __( 'No snapshot metadata has been recorded yet.', 'zignites-sentinel' );
+		$view_data['snapshot_pagination_summary'] = $this->build_snapshot_pagination_summary( $snapshot_pagination );
+		$view_data['show_snapshot_filter_clear'] = '' !== $snapshot_search || '' !== $snapshot_status_filter;
+		$view_data['snapshot_filter_clear_url'] = $this->build_snapshot_filter_clear_url( $snapshot_detail );
+		$view_data['snapshot_pagination_links_args'] = $this->build_snapshot_pagination_links_args(
+			$snapshot_pagination,
+			$snapshot_detail,
+			$snapshot_search,
+			$snapshot_status_filter
+		);
 
 		return $view_data;
 	}
@@ -805,6 +838,153 @@ class UpdateReadinessStateBuilder {
 		}
 
 		return $rows;
+	}
+
+	/**
+	 * Build normalized snapshot list rows.
+	 *
+	 * @param array $recent_snapshots Snapshot list items.
+	 * @param array $status_index     Snapshot status index keyed by snapshot ID.
+	 * @return array
+	 */
+	protected function build_recent_snapshot_rows( array $recent_snapshots, array $status_index ) {
+		$rows = array();
+
+		foreach ( $recent_snapshots as $snapshot ) {
+			$snapshot_id     = isset( $snapshot['id'] ) ? (int) $snapshot['id'] : 0;
+			$snapshot_status = isset( $status_index[ $snapshot_id ] ) && is_array( $status_index[ $snapshot_id ] ) ? $status_index[ $snapshot_id ] : array();
+
+			$rows[] = array(
+				'id'            => $snapshot_id,
+				'created_at'    => isset( $snapshot['created_at'] ) ? (string) $snapshot['created_at'] : '',
+				'label'         => isset( $snapshot['label'] ) ? (string) $snapshot['label'] : '',
+				'detail_url'    => $this->build_snapshot_detail_url( $snapshot_id ),
+				'status_badges' => $this->build_snapshot_status_badge_rows( $snapshot_status ),
+				'core_version'  => isset( $snapshot['core_version'] ) ? (string) $snapshot['core_version'] : '',
+				'php_version'   => isset( $snapshot['php_version'] ) ? (string) $snapshot['php_version'] : '',
+			);
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * Build normalized snapshot status badge rows.
+	 *
+	 * @param array $snapshot_status Snapshot status payload.
+	 * @return array
+	 */
+	protected function build_snapshot_status_badge_rows( array $snapshot_status ) {
+		$badges = array();
+		$rows   = isset( $snapshot_status['status_badges'] ) && is_array( $snapshot_status['status_badges'] ) ? $snapshot_status['status_badges'] : array();
+
+		foreach ( $rows as $badge ) {
+			$badges[] = array(
+				'badge' => isset( $badge['badge'] ) ? (string) $badge['badge'] : 'info',
+				'label' => isset( $badge['label'] ) ? (string) $badge['label'] : '',
+			);
+		}
+
+		return $badges;
+	}
+
+	/**
+	 * Build snapshot pagination summary copy.
+	 *
+	 * @param array $snapshot_pagination Snapshot pagination payload.
+	 * @return string
+	 */
+	protected function build_snapshot_pagination_summary( array $snapshot_pagination ) {
+		$total_items = isset( $snapshot_pagination['total_items'] ) ? (int) $snapshot_pagination['total_items'] : 0;
+
+		if ( $total_items <= 0 ) {
+			return '';
+		}
+
+		return sprintf(
+			/* translators: 1: current page, 2: total pages, 3: total items */
+			__( 'Page %1$d of %2$d, %3$d snapshots matched.', 'zignites-sentinel' ),
+			isset( $snapshot_pagination['current_page'] ) ? max( 1, (int) $snapshot_pagination['current_page'] ) : 1,
+			isset( $snapshot_pagination['total_pages'] ) ? max( 1, (int) $snapshot_pagination['total_pages'] ) : 1,
+			$total_items
+		);
+	}
+
+	/**
+	 * Build snapshot list clear-filter URL.
+	 *
+	 * @param array|null $snapshot_detail Selected snapshot detail.
+	 * @return string
+	 */
+	protected function build_snapshot_filter_clear_url( $snapshot_detail ) {
+		$args = array(
+			'page' => 'zignites-sentinel-update-readiness',
+		);
+
+		if ( is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) ) {
+			$args['snapshot_id'] = (int) $snapshot_detail['id'];
+		}
+
+		return add_query_arg( $args, admin_url( 'admin.php' ) );
+	}
+
+	/**
+	 * Build snapshot pagination link arguments.
+	 *
+	 * @param array      $snapshot_pagination    Snapshot pagination payload.
+	 * @param array|null $snapshot_detail        Selected snapshot detail.
+	 * @param string     $snapshot_search        Snapshot search filter.
+	 * @param string     $snapshot_status_filter Snapshot status filter.
+	 * @return array
+	 */
+	protected function build_snapshot_pagination_links_args( array $snapshot_pagination, $snapshot_detail, $snapshot_search, $snapshot_status_filter ) {
+		$total_pages = isset( $snapshot_pagination['total_pages'] ) ? max( 1, (int) $snapshot_pagination['total_pages'] ) : 1;
+
+		if ( $total_pages <= 1 ) {
+			return array();
+		}
+
+		$base_args = array(
+			'page' => 'zignites-sentinel-update-readiness',
+		);
+
+		if ( is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) ) {
+			$base_args['snapshot_id'] = (int) $snapshot_detail['id'];
+		}
+
+		if ( '' !== $snapshot_search ) {
+			$base_args['snapshot_search'] = (string) $snapshot_search;
+		}
+
+		if ( '' !== $snapshot_status_filter ) {
+			$base_args['snapshot_status_filter'] = (string) $snapshot_status_filter;
+		}
+
+		return array(
+			'base'      => add_query_arg( $base_args + array( 'snapshot_paged' => '%#%' ), admin_url( 'admin.php' ) ),
+			'format'    => '',
+			'current'   => isset( $snapshot_pagination['current_page'] ) ? max( 1, (int) $snapshot_pagination['current_page'] ) : 1,
+			'total'     => $total_pages,
+			'type'      => 'plain',
+			'prev_text' => __( '&laquo;', 'zignites-sentinel' ),
+			'next_text' => __( '&raquo;', 'zignites-sentinel' ),
+		);
+	}
+
+	/**
+	 * Build snapshot detail URL.
+	 *
+	 * @param int $snapshot_id Snapshot ID.
+	 * @return string
+	 */
+	protected function build_snapshot_detail_url( $snapshot_id ) {
+		return add_query_arg(
+			array(
+				'page'        => 'zignites-sentinel-update-readiness',
+				'snapshot_id' => (int) $snapshot_id,
+			),
+			admin_url( 'admin.php' )
+		);
 	}
 
 	/**

@@ -101,8 +101,11 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 			'snapshot_list_state' => array(
 				'items' => array(
 					array(
-						'id'    => 101,
-						'label' => 'Release snapshot',
+						'id'           => 101,
+						'created_at'   => '2026-04-09 10:00:00',
+						'label'        => 'Release snapshot',
+						'core_version' => '6.8.0',
+						'php_version'  => '8.1.10',
 					),
 				),
 				'status_index' => array(
@@ -118,7 +121,8 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 				),
 				'pagination' => array(
 					'current_page' => 1,
-					'total_items'  => 1,
+					'total_items'  => 25,
+					'total_pages'  => 2,
 				),
 			),
 			'snapshot_search' => 'Release',
@@ -481,7 +485,17 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'Plugin', $state['last_update_plan_target_rows'][0]['type_label'], 'Update Readiness state builder should derive update plan target type labels.' );
 	znts_assert_same( 'Release snapshot', $state['recent_snapshots'][0]['label'], 'Update Readiness state builder should expose snapshot list items as recent snapshots.' );
 	znts_assert_same( true, $state['snapshot_status_index'][101]['restore_ready'], 'Update Readiness state builder should expose the snapshot status index from list state.' );
-	znts_assert_same( 1, $state['snapshot_pagination']['total_items'], 'Update Readiness state builder should expose snapshot pagination from list state.' );
+	znts_assert_same( 25, $state['snapshot_pagination']['total_items'], 'Update Readiness state builder should expose snapshot pagination from list state.' );
+	znts_assert_same( 'Release snapshot', $state['recent_snapshot_rows'][0]['label'], 'Update Readiness state builder should derive recent snapshot row labels.' );
+	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness&snapshot_id=101', $state['recent_snapshot_rows'][0]['detail_url'], 'Update Readiness state builder should derive recent snapshot detail URLs.' );
+	znts_assert_same( 'Ready', $state['recent_snapshot_rows'][0]['status_badges'][0]['label'], 'Update Readiness state builder should derive recent snapshot status badge labels.' );
+	znts_assert_same( 'Page 1 of 2, 25 snapshots matched.', $state['snapshot_pagination_summary'], 'Update Readiness state builder should derive snapshot pagination summary copy.' );
+	znts_assert_same( true, $state['show_snapshot_filter_clear'], 'Update Readiness state builder should expose snapshot filter reset visibility.' );
+	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness&snapshot_id=101', $state['snapshot_filter_clear_url'], 'Update Readiness state builder should derive snapshot filter reset URLs.' );
+	znts_assert_same( 1, $state['snapshot_pagination_links_args']['current'], 'Update Readiness state builder should derive snapshot pagination current page.' );
+	znts_assert_same( 2, $state['snapshot_pagination_links_args']['total'], 'Update Readiness state builder should derive snapshot pagination total pages.' );
+	znts_assert_true( false !== strpos( $state['snapshot_pagination_links_args']['base'], 'snapshot_search=Release' ), 'Update Readiness state builder should preserve snapshot search in pagination links.' );
+	znts_assert_true( false !== strpos( $state['snapshot_pagination_links_args']['base'], 'snapshot_status_filter=ready' ), 'Update Readiness state builder should preserve snapshot status filters in pagination links.' );
 	znts_assert_same( 101, $state['snapshot_detail']['id'], 'Update Readiness state builder should preserve the selected snapshot detail.' );
 	znts_assert_same( 'Ready', $state['selected_snapshot_status']['status_badges'][0]['label'], 'Update Readiness state builder should derive selected snapshot status from the status index.' );
 	znts_assert_same( 'Plan validated', $state['plan_validation']['message'], 'Update Readiness state builder should derive update-plan validation state.' );
@@ -517,7 +531,7 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'Example Plugin', $state['plugin_version_change_rows'][0]['name'], 'Update Readiness state builder should derive plugin version change rows.' );
 	znts_assert_same( 'Release snapshot', $state['selected_snapshot_label'], 'Update Readiness state builder should derive the selected snapshot label.' );
 	znts_assert_same( 'Snapshot #101 captured on 2026-04-09 10:00:00 is the active restore workspace.', $state['selected_snapshot_note'], 'Update Readiness state builder should derive the selected snapshot workspace note.' );
-	znts_assert_same( 1, $state['snapshot_match_count'], 'Update Readiness state builder should derive snapshot match count from pagination.' );
+	znts_assert_same( 25, $state['snapshot_match_count'], 'Update Readiness state builder should derive snapshot match count from pagination.' );
 	znts_assert_same( 'Restore ready', $state['workspace_status_label'], 'Update Readiness state builder should derive the workspace status label from checklist readiness.' );
 	znts_assert_same( 'info', $state['workspace_status_badge'], 'Update Readiness state builder should derive the workspace status badge from checklist readiness.' );
 	znts_assert_same( 'Review the impact summary, then continue with guarded restore only if the plan still matches your intent.', $state['workspace_next_action'], 'Update Readiness state builder should derive ready-state workspace guidance.' );
@@ -612,6 +626,12 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( array(), $state['recent_snapshots'], 'Update Readiness state builder should default missing snapshot list rows to an empty array.' );
 	znts_assert_same( array(), $state['snapshot_status_index'], 'Update Readiness state builder should default missing status index payloads to an empty array.' );
 	znts_assert_same( array(), $state['snapshot_pagination'], 'Update Readiness state builder should default missing pagination payloads to an empty array.' );
+	znts_assert_same( array(), $state['recent_snapshot_rows'], 'Update Readiness state builder should default missing recent snapshot rows to an empty array.' );
+	znts_assert_same( 'No snapshots matched the current filters.', $state['snapshot_empty_message'], 'Update Readiness state builder should derive filtered snapshot empty-state copy.' );
+	znts_assert_same( '', $state['snapshot_pagination_summary'], 'Update Readiness state builder should default missing snapshot pagination summary to an empty string.' );
+	znts_assert_same( true, $state['show_snapshot_filter_clear'], 'Update Readiness state builder should expose snapshot filter reset visibility for non-empty filters.' );
+	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness', $state['snapshot_filter_clear_url'], 'Update Readiness state builder should default snapshot filter reset URLs to the screen URL.' );
+	znts_assert_same( array(), $state['snapshot_pagination_links_args'], 'Update Readiness state builder should default missing snapshot pagination link args to an empty array.' );
 	znts_assert_same( array(), $state['snapshot_basic_rows'], 'Update Readiness state builder should default missing snapshot basics to an empty array.' );
 	znts_assert_same( array(), $state['snapshot_metadata_rows'], 'Update Readiness state builder should default missing snapshot metadata rows to an empty array.' );
 	znts_assert_same( array(), $state['component_manifest_rows'], 'Update Readiness state builder should default missing component manifest rows to an empty array.' );

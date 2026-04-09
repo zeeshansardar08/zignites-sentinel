@@ -38,8 +38,12 @@ $snapshot_activity_url   = isset( $view_data['snapshot_activity_url'] ) ? (strin
 $snapshot_search         = isset( $view_data['snapshot_search'] ) ? (string) $view_data['snapshot_search'] : '';
 $snapshot_status_filter  = isset( $view_data['snapshot_status_filter'] ) ? (string) $view_data['snapshot_status_filter'] : '';
 $snapshot_status_filter_options = isset( $view_data['snapshot_status_filter_options'] ) && is_array( $view_data['snapshot_status_filter_options'] ) ? $view_data['snapshot_status_filter_options'] : array();
-$snapshot_status_index   = isset( $view_data['snapshot_status_index'] ) && is_array( $view_data['snapshot_status_index'] ) ? $view_data['snapshot_status_index'] : array();
-$snapshot_pagination     = isset( $view_data['snapshot_pagination'] ) && is_array( $view_data['snapshot_pagination'] ) ? $view_data['snapshot_pagination'] : array();
+$recent_snapshot_rows       = isset( $view_data['recent_snapshot_rows'] ) && is_array( $view_data['recent_snapshot_rows'] ) ? $view_data['recent_snapshot_rows'] : array();
+$snapshot_empty_message     = isset( $view_data['snapshot_empty_message'] ) ? (string) $view_data['snapshot_empty_message'] : '';
+$snapshot_pagination_summary = isset( $view_data['snapshot_pagination_summary'] ) ? (string) $view_data['snapshot_pagination_summary'] : '';
+$show_snapshot_filter_clear = ! empty( $view_data['show_snapshot_filter_clear'] );
+$snapshot_filter_clear_url  = isset( $view_data['snapshot_filter_clear_url'] ) ? (string) $view_data['snapshot_filter_clear_url'] : '';
+$snapshot_pagination_links_args = isset( $view_data['snapshot_pagination_links_args'] ) && is_array( $view_data['snapshot_pagination_links_args'] ) ? $view_data['snapshot_pagination_links_args'] : array();
 $selected_snapshot_status  = isset( $view_data['selected_snapshot_status'] ) && is_array( $view_data['selected_snapshot_status'] ) ? $view_data['selected_snapshot_status'] : array();
 $operator_checklist_status = isset( $view_data['operator_checklist_status'] ) && is_array( $view_data['operator_checklist_status'] ) ? $view_data['operator_checklist_status'] : array();
 $operator_checklist_check_rows = isset( $view_data['operator_checklist_check_rows'] ) && is_array( $view_data['operator_checklist_check_rows'] ) ? $view_data['operator_checklist_check_rows'] : array();
@@ -744,28 +748,16 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				</p>
 				<p class="znts-filter-actions">
 					<?php submit_button( __( 'Filter Snapshots', 'zignites-sentinel' ), 'secondary', '', false ); ?>
-					<?php if ( '' !== $snapshot_search || '' !== $snapshot_status_filter ) : ?>
-						<a class="button" href="<?php echo esc_url( add_query_arg( array_filter( array( 'page' => 'zignites-sentinel-update-readiness', 'snapshot_id' => $snapshot_detail && ! empty( $snapshot_detail['id'] ) ? (int) $snapshot_detail['id'] : 0 ) ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html__( 'Clear', 'zignites-sentinel' ); ?></a>
+					<?php if ( $show_snapshot_filter_clear ) : ?>
+						<a class="button" href="<?php echo esc_url( $snapshot_filter_clear_url ); ?>"><?php echo esc_html__( 'Clear', 'zignites-sentinel' ); ?></a>
 					<?php endif; ?>
 				</p>
 			</form>
-			<?php if ( empty( $view_data['recent_snapshots'] ) ) : ?>
-				<p><?php echo esc_html( '' !== $snapshot_search || '' !== $snapshot_status_filter ? __( 'No snapshots matched the current filters.', 'zignites-sentinel' ) : __( 'No snapshot metadata has been recorded yet.', 'zignites-sentinel' ) ); ?></p>
+			<?php if ( empty( $recent_snapshot_rows ) ) : ?>
+				<p><?php echo esc_html( $snapshot_empty_message ); ?></p>
 			<?php else : ?>
-				<?php if ( ! empty( $snapshot_pagination['total_items'] ) ) : ?>
-					<p class="description">
-						<?php
-						echo esc_html(
-							sprintf(
-								/* translators: 1: current page, 2: total pages, 3: total items */
-								__( 'Page %1$d of %2$d, %3$d snapshots matched.', 'zignites-sentinel' ),
-								isset( $snapshot_pagination['current_page'] ) ? (int) $snapshot_pagination['current_page'] : 1,
-								isset( $snapshot_pagination['total_pages'] ) ? (int) $snapshot_pagination['total_pages'] : 1,
-								isset( $snapshot_pagination['total_items'] ) ? (int) $snapshot_pagination['total_items'] : 0
-							)
-						);
-						?>
-					</p>
+				<?php if ( '' !== $snapshot_pagination_summary ) : ?>
+					<p class="description"><?php echo esc_html( $snapshot_pagination_summary ); ?></p>
 				<?php endif; ?>
 				<table class="widefat striped">
 					<thead>
@@ -778,20 +770,19 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tr>
 					</thead>
 					<tbody>
-						<?php foreach ( $view_data['recent_snapshots'] as $snapshot ) : ?>
-							<?php $snapshot_status = isset( $snapshot_status_index[ (int) $snapshot['id'] ] ) ? $snapshot_status_index[ (int) $snapshot['id'] ] : array(); ?>
+						<?php foreach ( $recent_snapshot_rows as $snapshot ) : ?>
 							<tr>
 								<td><?php echo esc_html( $snapshot['created_at'] ); ?></td>
 								<td>
-									<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-update-readiness', 'snapshot_id' => (int) $snapshot['id'] ), admin_url( 'admin.php' ) ) ); ?>">
+									<a href="<?php echo esc_url( $snapshot['detail_url'] ); ?>">
 										<?php echo esc_html( $snapshot['label'] ); ?>
 									</a>
 								</td>
 								<td>
 									<div class="znts-badge-row">
-										<?php foreach ( isset( $snapshot_status['status_badges'] ) && is_array( $snapshot_status['status_badges'] ) ? $snapshot_status['status_badges'] : array() as $badge ) : ?>
-											<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $badge['badge'] ) ? $badge['badge'] : 'info' ); ?>">
-												<?php echo esc_html( isset( $badge['label'] ) ? $badge['label'] : '' ); ?>
+										<?php foreach ( $snapshot['status_badges'] as $badge ) : ?>
+											<span class="znts-pill znts-pill-<?php echo esc_attr( $badge['badge'] ); ?>">
+												<?php echo esc_html( $badge['label'] ); ?>
 											</span>
 										<?php endforeach; ?>
 									</div>
@@ -802,39 +793,12 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						<?php endforeach; ?>
 					</tbody>
 				</table>
-				<?php if ( ! empty( $snapshot_pagination['total_pages'] ) && (int) $snapshot_pagination['total_pages'] > 1 ) : ?>
-					<?php
-					$pagination_base_args = array(
-						'page' => 'zignites-sentinel-update-readiness',
-					);
-
-					if ( $snapshot_detail && ! empty( $snapshot_detail['id'] ) ) {
-						$pagination_base_args['snapshot_id'] = (int) $snapshot_detail['id'];
-					}
-
-					if ( '' !== $snapshot_search ) {
-						$pagination_base_args['snapshot_search'] = $snapshot_search;
-					}
-
-					if ( '' !== $snapshot_status_filter ) {
-						$pagination_base_args['snapshot_status_filter'] = $snapshot_status_filter;
-					}
-					?>
+				<?php if ( ! empty( $snapshot_pagination_links_args ) ) : ?>
 					<div class="tablenav">
 						<div class="tablenav-pages">
 							<?php
 							echo wp_kses_post(
-								paginate_links(
-									array(
-										'base'      => add_query_arg( $pagination_base_args + array( 'snapshot_paged' => '%#%' ), admin_url( 'admin.php' ) ),
-										'format'    => '',
-										'current'   => isset( $snapshot_pagination['current_page'] ) ? (int) $snapshot_pagination['current_page'] : 1,
-										'total'     => isset( $snapshot_pagination['total_pages'] ) ? (int) $snapshot_pagination['total_pages'] : 1,
-										'type'      => 'plain',
-										'prev_text' => __( '&laquo;', 'zignites-sentinel' ),
-										'next_text' => __( '&raquo;', 'zignites-sentinel' ),
-									)
-								)
+								paginate_links( $snapshot_pagination_links_args )
 							);
 							?>
 						</div>
