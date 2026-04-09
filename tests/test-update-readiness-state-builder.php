@@ -12,11 +12,32 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	$state   = $builder->build_screen_state(
 		array(
 			'last_preflight' => array(
-				'status' => 'warning',
+				'status'       => 'warning',
+				'readiness'    => 'caution',
+				'generated_at' => '2026-04-09 09:55:00',
+				'note'         => 'Preflight needs review.',
+				'checks'       => array(
+					array(
+						'label'   => 'Filesystem',
+						'status'  => 'fail',
+						'message' => 'Filesystem is not writable.',
+					),
+				),
 			),
 			'last_update_plan' => array(
-				'status'     => 'ready',
-				'validation' => array(
+				'status'      => 'blocked_for_review',
+				'created_at'  => '2026-04-09 09:58:00',
+				'note'        => 'Plan needs review.',
+				'snapshot_id' => 101,
+				'targets'     => array(
+					array(
+						'type'            => 'plugin',
+						'label'           => 'Example Plugin',
+						'current_version' => '1.0.0',
+						'new_version'     => '1.1.0',
+					),
+				),
+				'validation'  => array(
 					'message' => 'Plan validated',
 					'checks'  => array(
 						array(
@@ -61,7 +82,11 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 			),
 			'update_candidates' => array(
 				array(
-					'type' => 'plugin',
+					'key'             => 'plugin:example/example.php',
+					'type'            => 'plugin',
+					'label'           => 'Example Plugin',
+					'current_version' => '1.0.0',
+					'new_version'     => '1.1.0',
 				),
 			),
 			'snapshot_list_state' => array(
@@ -321,12 +346,29 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 			),
 			'operator_checklist' => array(
 				'can_execute' => true,
+				'max_age_hours' => 12,
+				'checks'      => array(
+					array(
+						'label'   => 'Baseline',
+						'status'  => 'pass',
+						'message' => 'Baseline is available.',
+					),
+				),
 			),
 			'restore_impact_summary' => array(
 				'planned_total' => 2,
 			),
 			'audit_report_verification' => array(
-				'status' => 'verified',
+				'status'       => 'caution',
+				'generated_at' => '2026-04-09 10:12:00',
+				'note'         => 'Audit report needs review.',
+				'checks'       => array(
+					array(
+						'label'   => 'Payload hash',
+						'status'  => 'fail',
+						'message' => 'Payload hash does not match.',
+					),
+				),
 			),
 			'snapshot_activity' => array(
 				array(
@@ -342,6 +384,16 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	);
 
 	znts_assert_same( 'warning', $state['last_preflight']['status'], 'Update Readiness state builder should preserve preflight state.' );
+	znts_assert_same( 'warning', $state['preflight_status']['badge'], 'Update Readiness state builder should derive preflight status badges.' );
+	znts_assert_same( 'Caution', $state['preflight_status']['status_label'], 'Update Readiness state builder should derive preflight status labels.' );
+	znts_assert_same( '2026-04-09 09:55:00', $state['preflight_status']['generated_at'], 'Update Readiness state builder should derive preflight timestamps.' );
+	znts_assert_same( 'Filesystem', $state['preflight_check_rows'][0]['label'], 'Update Readiness state builder should derive preflight check rows.' );
+	znts_assert_same( 'critical', $state['preflight_check_rows'][0]['badge'], 'Update Readiness state builder should map failing preflight checks to critical.' );
+	znts_assert_same( 'Plugin', $state['update_candidate_rows'][0]['type_label'], 'Update Readiness state builder should derive update candidate type labels.' );
+	znts_assert_same( 'plugin:example/example.php', $state['update_candidate_rows'][0]['key'], 'Update Readiness state builder should preserve update candidate keys.' );
+	znts_assert_same( 'critical', $state['last_update_plan_status']['badge'], 'Update Readiness state builder should derive blocked update plan badges.' );
+	znts_assert_same( 'Blocked for review', $state['last_update_plan_status']['status_label'], 'Update Readiness state builder should humanize update plan status labels.' );
+	znts_assert_same( 'Plugin', $state['last_update_plan_target_rows'][0]['type_label'], 'Update Readiness state builder should derive update plan target type labels.' );
 	znts_assert_same( 'Release snapshot', $state['recent_snapshots'][0]['label'], 'Update Readiness state builder should expose snapshot list items as recent snapshots.' );
 	znts_assert_same( true, $state['snapshot_status_index'][101]['restore_ready'], 'Update Readiness state builder should expose the snapshot status index from list state.' );
 	znts_assert_same( 1, $state['snapshot_pagination']['total_items'], 'Update Readiness state builder should expose snapshot pagination from list state.' );
@@ -417,6 +469,14 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( true, $state['restore_form_state']['has_execution_checkpoint'], 'Update Readiness state builder should expose whether an execution checkpoint can be discarded.' );
 	znts_assert_same( 'restore-101', $state['last_restore_execution']['run_id'], 'Update Readiness state builder should preserve restore execution state.' );
 	znts_assert_same( true, $state['operator_checklist']['can_execute'], 'Update Readiness state builder should preserve operator checklist state.' );
+	znts_assert_same( 'info', $state['operator_checklist_status']['badge'], 'Update Readiness state builder should derive operator checklist status badges.' );
+	znts_assert_same( 'Ready', $state['operator_checklist_status']['label'], 'Update Readiness state builder should derive operator checklist status labels.' );
+	znts_assert_same( '1 checks', $state['operator_checklist_status']['check_count_label'], 'Update Readiness state builder should derive operator checklist count labels.' );
+	znts_assert_same( 'Live restore is offered only when all checklist gates pass and checkpoints are no older than 12 hours.', $state['operator_checklist_status']['message'], 'Update Readiness state builder should derive operator checklist age guidance.' );
+	znts_assert_same( 'Baseline', $state['operator_checklist_check_rows'][0]['label'], 'Update Readiness state builder should derive operator checklist check rows.' );
+	znts_assert_same( 'warning', $state['audit_report_verification_status']['badge'], 'Update Readiness state builder should derive audit verification badges.' );
+	znts_assert_same( 'Payload hash', $state['audit_report_verification_check_rows'][0]['label'], 'Update Readiness state builder should derive audit verification check rows.' );
+	znts_assert_same( 'critical', $state['audit_report_verification_check_rows'][0]['badge'], 'Update Readiness state builder should map failing audit verification checks to critical.' );
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=101', $state['snapshot_activity_url'], 'Update Readiness state builder should preserve the activity URL.' );
 	znts_assert_same( 'success', $state['notice']['type'], 'Update Readiness state builder should preserve notice state.' );
 }
@@ -435,6 +495,17 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( array(), $state['recent_snapshots'], 'Update Readiness state builder should default missing snapshot list rows to an empty array.' );
 	znts_assert_same( array(), $state['snapshot_status_index'], 'Update Readiness state builder should default missing status index payloads to an empty array.' );
 	znts_assert_same( array(), $state['snapshot_pagination'], 'Update Readiness state builder should default missing pagination payloads to an empty array.' );
+	znts_assert_same( 'info', $state['preflight_status']['badge'], 'Update Readiness state builder should default missing preflight badges to info.' );
+	znts_assert_same( array(), $state['preflight_check_rows'], 'Update Readiness state builder should default missing preflight check rows to an empty array.' );
+	znts_assert_same( array(), $state['update_candidate_rows'], 'Update Readiness state builder should default missing update candidate rows to an empty array.' );
+	znts_assert_same( 'info', $state['last_update_plan_status']['badge'], 'Update Readiness state builder should default missing update-plan badges to info.' );
+	znts_assert_same( array(), $state['last_update_plan_target_rows'], 'Update Readiness state builder should default missing update-plan target rows to an empty array.' );
+	znts_assert_same( 'critical', $state['operator_checklist_status']['badge'], 'Update Readiness state builder should default missing operator checklist state to blocked.' );
+	znts_assert_same( 'Not started', $state['operator_checklist_status']['check_count_label'], 'Update Readiness state builder should default missing operator checklist count labels to not started.' );
+	znts_assert_same( 'Live restore is offered only when all checklist gates pass and checkpoints are no older than 24 hours.', $state['operator_checklist_status']['message'], 'Update Readiness state builder should default missing checklist max age to 24 hours.' );
+	znts_assert_same( array(), $state['operator_checklist_check_rows'], 'Update Readiness state builder should default missing operator checklist check rows to an empty array.' );
+	znts_assert_same( 'info', $state['audit_report_verification_status']['badge'], 'Update Readiness state builder should default missing audit verification badges to info.' );
+	znts_assert_same( array(), $state['audit_report_verification_check_rows'], 'Update Readiness state builder should default missing audit verification check rows to an empty array.' );
 	znts_assert_same( array(), $state['plan_validation_check_rows'], 'Update Readiness state builder should default missing plan validation rows to an empty array.' );
 	znts_assert_same( array(), $state['restore_source_validation_check_rows'], 'Update Readiness state builder should default missing restore source rows to an empty array.' );
 	znts_assert_same( array(), $state['restore_source_missing_plugins'], 'Update Readiness state builder should default missing plugin labels to an empty array.' );
