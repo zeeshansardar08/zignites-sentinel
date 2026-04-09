@@ -64,6 +64,7 @@ class UpdateReadinessStateBuilder {
 		$view_data = $this->with_workspace_state( $view_data );
 		$view_data = $this->with_health_state( $view_data );
 		$view_data = $this->with_snapshot_detail_state( $view_data );
+		$view_data = $this->with_activity_navigation_state( $view_data );
 		$view_data = $this->with_status_section_state( $view_data );
 		$view_data = $this->with_restore_result_state( $view_data );
 		$view_data = $this->with_checkpoint_summary_state( $view_data );
@@ -174,6 +175,23 @@ class UpdateReadinessStateBuilder {
 	protected function with_health_state( array $view_data ) {
 		$view_data['snapshot_health_baseline_status'] = $this->build_snapshot_health_baseline_status( $this->array_value( $view_data, 'snapshot_health_baseline' ) );
 		$view_data['snapshot_health_comparison_rows'] = $this->build_snapshot_health_comparison_rows( $this->array_value( $view_data, 'snapshot_health_comparison' ) );
+
+		return $view_data;
+	}
+
+	/**
+	 * Add derived snapshot activity and restore action navigation state.
+	 *
+	 * @param array $view_data Normalized screen state.
+	 * @return array
+	 */
+	protected function with_activity_navigation_state( array $view_data ) {
+		$view_data['restore_action_jump_links'] = $this->build_restore_action_jump_links(
+			$this->array_value( $view_data, 'last_restore_dry_run' ),
+			$this->array_value( $view_data, 'last_restore_stage' ),
+			$this->array_value( $view_data, 'last_restore_plan' )
+		);
+		$view_data['snapshot_activity_rows'] = $this->build_snapshot_activity_rows( $this->array_value( $view_data, 'snapshot_activity' ) );
 
 		return $view_data;
 	}
@@ -719,6 +737,70 @@ class UpdateReadinessStateBuilder {
 				'warning_count' => isset( $summary['warning'] ) ? (string) $summary['warning'] : '0',
 				'fail_count'   => isset( $summary['fail'] ) ? (string) $summary['fail'] : '0',
 				'delta'        => isset( $row['delta'] ) ? (string) $row['delta'] : '',
+			);
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * Build restore action jump-link rows.
+	 *
+	 * @param array $last_restore_dry_run Latest dry-run payload.
+	 * @param array $last_restore_stage   Latest staged validation payload.
+	 * @param array $last_restore_plan    Latest restore plan payload.
+	 * @return array
+	 */
+	protected function build_restore_action_jump_links( array $last_restore_dry_run, array $last_restore_stage, array $last_restore_plan ) {
+		$links = array();
+
+		if ( ! empty( $last_restore_dry_run ) ) {
+			$links[] = array(
+				'href'  => '#znts-restore-dry-run',
+				'label' => __( 'Dry-Run', 'zignites-sentinel' ),
+			);
+		}
+
+		if ( ! empty( $last_restore_stage ) ) {
+			$links[] = array(
+				'href'  => '#znts-restore-stage',
+				'label' => __( 'Staged Validation', 'zignites-sentinel' ),
+			);
+		}
+
+		if ( ! empty( $last_restore_plan ) ) {
+			$links[] = array(
+				'href'  => '#znts-restore-plan',
+				'label' => __( 'Restore Plan', 'zignites-sentinel' ),
+			);
+		}
+
+		return $links;
+	}
+
+	/**
+	 * Build normalized snapshot activity rows.
+	 *
+	 * @param array $snapshot_activity Snapshot activity payload.
+	 * @return array
+	 */
+	protected function build_snapshot_activity_rows( array $snapshot_activity ) {
+		$rows = array();
+
+		foreach ( $snapshot_activity as $activity ) {
+			$severity = isset( $activity['severity'] ) ? (string) $activity['severity'] : 'info';
+
+			$rows[] = array(
+				'created_at'     => isset( $activity['created_at'] ) ? (string) $activity['created_at'] : '',
+				'detail_url'     => isset( $activity['detail_url'] ) ? (string) $activity['detail_url'] : '',
+				'severity'       => $severity,
+				'severity_label' => $this->humanize_status( $severity ),
+				'severity_badge' => 'fail' === $severity ? 'critical' : $severity,
+				'source'         => isset( $activity['source'] ) ? (string) $activity['source'] : '',
+				'event_type'     => isset( $activity['event_type'] ) ? (string) $activity['event_type'] : '',
+				'message'        => isset( $activity['message'] ) ? (string) $activity['message'] : '',
+				'journal_url'    => isset( $activity['journal_url'] ) ? (string) $activity['journal_url'] : '',
+				'journal_label'  => isset( $activity['journal_label'] ) ? (string) $activity['journal_label'] : __( 'Event detail', 'zignites-sentinel' ),
 			);
 		}
 

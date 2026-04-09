@@ -34,7 +34,6 @@ $snapshot_summary       = isset( $view_data['snapshot_summary'] ) && is_array( $
 $operator_checklist      = isset( $view_data['operator_checklist'] ) && is_array( $view_data['operator_checklist'] ) ? $view_data['operator_checklist'] : array();
 $restore_impact_summary  = isset( $view_data['restore_impact_summary'] ) && is_array( $view_data['restore_impact_summary'] ) ? $view_data['restore_impact_summary'] : array();
 $audit_report_verification = isset( $view_data['audit_report_verification'] ) && is_array( $view_data['audit_report_verification'] ) ? $view_data['audit_report_verification'] : array();
-$snapshot_activity       = isset( $view_data['snapshot_activity'] ) && is_array( $view_data['snapshot_activity'] ) ? $view_data['snapshot_activity'] : array();
 $snapshot_activity_url   = isset( $view_data['snapshot_activity_url'] ) ? (string) $view_data['snapshot_activity_url'] : '';
 $snapshot_search         = isset( $view_data['snapshot_search'] ) ? (string) $view_data['snapshot_search'] : '';
 $snapshot_status_filter  = isset( $view_data['snapshot_status_filter'] ) ? (string) $view_data['snapshot_status_filter'] : '';
@@ -91,6 +90,8 @@ $health_attention_state    = isset( $view_data['health_attention_state'] ) ? (st
 $health_attention_message  = isset( $view_data['health_attention_message'] ) ? (string) $view_data['health_attention_message'] : '';
 $snapshot_health_baseline_status = isset( $view_data['snapshot_health_baseline_status'] ) && is_array( $view_data['snapshot_health_baseline_status'] ) ? $view_data['snapshot_health_baseline_status'] : array();
 $snapshot_health_comparison_rows = isset( $view_data['snapshot_health_comparison_rows'] ) && is_array( $view_data['snapshot_health_comparison_rows'] ) ? $view_data['snapshot_health_comparison_rows'] : array();
+$restore_action_jump_links = isset( $view_data['restore_action_jump_links'] ) && is_array( $view_data['restore_action_jump_links'] ) ? $view_data['restore_action_jump_links'] : array();
+$snapshot_activity_rows    = isset( $view_data['snapshot_activity_rows'] ) && is_array( $view_data['snapshot_activity_rows'] ) ? $view_data['snapshot_activity_rows'] : array();
 $snapshot_basic_rows       = isset( $view_data['snapshot_basic_rows'] ) && is_array( $view_data['snapshot_basic_rows'] ) ? $view_data['snapshot_basic_rows'] : array();
 $snapshot_metadata_rows    = isset( $view_data['snapshot_metadata_rows'] ) && is_array( $view_data['snapshot_metadata_rows'] ) ? $view_data['snapshot_metadata_rows'] : array();
 $component_manifest_rows   = isset( $view_data['component_manifest_rows'] ) && is_array( $view_data['component_manifest_rows'] ) ? $view_data['component_manifest_rows'] : array();
@@ -856,7 +857,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<details class="znts-disclosure">
 					<summary><?php echo esc_html__( 'View activity details', 'zignites-sentinel' ); ?></summary>
 					<div class="znts-disclosure-body">
-				<?php if ( empty( $snapshot_activity ) ) : ?>
+				<?php if ( empty( $snapshot_activity_rows ) ) : ?>
 					<p><?php echo esc_html__( 'No snapshot-scoped events have been recorded yet.', 'zignites-sentinel' ); ?></p>
 				<?php else : ?>
 					<table class="widefat striped">
@@ -871,33 +872,33 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $snapshot_activity as $activity ) : ?>
+							<?php foreach ( $snapshot_activity_rows as $activity ) : ?>
 								<tr>
 									<td>
-										<a href="<?php echo esc_url( isset( $activity['detail_url'] ) ? $activity['detail_url'] : '' ); ?>">
-											<?php echo esc_html( isset( $activity['created_at'] ) ? $activity['created_at'] : '' ); ?>
+										<a href="<?php echo esc_url( $activity['detail_url'] ); ?>">
+											<?php echo esc_html( $activity['created_at'] ); ?>
 										</a>
 									</td>
 									<td>
-										<span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === ( isset( $activity['severity'] ) ? $activity['severity'] : '' ) ? 'critical' : ( isset( $activity['severity'] ) ? $activity['severity'] : 'info' ) ); ?>">
-											<?php echo esc_html( ucfirst( isset( $activity['severity'] ) ? $activity['severity'] : 'info' ) ); ?>
+										<span class="znts-pill znts-pill-<?php echo esc_attr( $activity['severity_badge'] ); ?>">
+											<?php echo esc_html( $activity['severity_label'] ); ?>
 										</span>
 									</td>
-									<td><?php echo esc_html( isset( $activity['source'] ) ? $activity['source'] : '' ); ?></td>
-									<td><?php echo esc_html( isset( $activity['event_type'] ) ? $activity['event_type'] : '' ); ?></td>
+									<td><?php echo esc_html( $activity['source'] ); ?></td>
+									<td><?php echo esc_html( $activity['event_type'] ); ?></td>
 									<td>
 										<details class="znts-disclosure znts-disclosure-inline znts-log-message">
-											<summary><span class="znts-message-preview"><?php echo esc_html( isset( $activity['message'] ) ? $activity['message'] : '' ); ?></span></summary>
+											<summary><span class="znts-message-preview"><?php echo esc_html( $activity['message'] ); ?></span></summary>
 											<div class="znts-disclosure-body">
-												<p class="znts-message-full"><?php echo esc_html( isset( $activity['message'] ) ? $activity['message'] : '' ); ?></p>
+												<p class="znts-message-full"><?php echo esc_html( $activity['message'] ); ?></p>
 											</div>
 										</details>
 									</td>
 									<td>
 										<?php if ( ! empty( $activity['journal_url'] ) ) : ?>
-											<a href="<?php echo esc_url( $activity['journal_url'] ); ?>"><?php echo esc_html( isset( $activity['journal_label'] ) ? $activity['journal_label'] : '' ); ?></a>
+											<a href="<?php echo esc_url( $activity['journal_url'] ); ?>"><?php echo esc_html( $activity['journal_label'] ); ?></a>
 										<?php else : ?>
-											<span class="description"><?php echo esc_html__( 'Event detail', 'zignites-sentinel' ); ?></span>
+											<span class="description"><?php echo esc_html( $activity['journal_label'] ); ?></span>
 										<?php endif; ?>
 									</td>
 								</tr>
@@ -951,42 +952,13 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				</div>
 				<p class="znts-inline-note">
 					<?php echo esc_html__( 'Each validation action saves its latest result for this snapshot and shows it below on this page.', 'zignites-sentinel' ); ?>
-					<?php if ( ! empty( $last_restore_dry_run ) || ! empty( $last_restore_stage ) || ! empty( $last_restore_plan ) ) : ?>
+					<?php if ( ! empty( $restore_action_jump_links ) ) : ?>
 						<span>
 							<?php echo esc_html__( 'Jump to:', 'zignites-sentinel' ); ?>
-							<?php
-							$jump_links = array();
-
-							if ( ! empty( $last_restore_dry_run ) ) {
-								$jump_links[] = sprintf(
-									'<a href="#znts-restore-dry-run">%s</a>',
-									esc_html__( 'Dry-Run', 'zignites-sentinel' )
-								);
-							}
-
-							if ( ! empty( $last_restore_stage ) ) {
-								$jump_links[] = sprintf(
-									'<a href="#znts-restore-stage">%s</a>',
-									esc_html__( 'Staged Validation', 'zignites-sentinel' )
-								);
-							}
-
-							if ( ! empty( $last_restore_plan ) ) {
-								$jump_links[] = sprintf(
-									'<a href="#znts-restore-plan">%s</a>',
-									esc_html__( 'Restore Plan', 'zignites-sentinel' )
-								);
-							}
-
-							echo wp_kses(
-								implode( ', ', $jump_links ),
-								array(
-									'a' => array(
-										'href' => array(),
-									),
-								)
-							);
-							?>
+							<?php foreach ( $restore_action_jump_links as $index => $jump_link ) : ?>
+								<?php echo 0 === (int) $index ? '' : ', '; ?>
+								<a href="<?php echo esc_attr( $jump_link['href'] ); ?>"><?php echo esc_html( $jump_link['label'] ); ?></a>
+							<?php endforeach; ?>
 						</span>
 					<?php endif; ?>
 				</p>
