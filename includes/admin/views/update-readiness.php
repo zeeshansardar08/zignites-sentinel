@@ -23,10 +23,8 @@ $last_restore_execution   = isset( $view_data['last_restore_execution'] ) && is_
 $last_restore_rollback    = isset( $view_data['last_restore_rollback'] ) && is_array( $view_data['last_restore_rollback'] ) ? $view_data['last_restore_rollback'] : array();
 $stage_checkpoint         = isset( $view_data['stage_checkpoint'] ) && is_array( $view_data['stage_checkpoint'] ) ? $view_data['stage_checkpoint'] : array();
 $plan_checkpoint          = isset( $view_data['plan_checkpoint'] ) && is_array( $view_data['plan_checkpoint'] ) ? $view_data['plan_checkpoint'] : array();
-$execution_checkpoint     = isset( $view_data['execution_checkpoint'] ) && is_array( $view_data['execution_checkpoint'] ) ? $view_data['execution_checkpoint'] : array();
-$execution_checkpoint_summary = isset( $view_data['execution_checkpoint_summary'] ) && is_array( $view_data['execution_checkpoint_summary'] ) ? $view_data['execution_checkpoint_summary'] : array();
-$rollback_checkpoint      = isset( $view_data['rollback_checkpoint'] ) && is_array( $view_data['rollback_checkpoint'] ) ? $view_data['rollback_checkpoint'] : array();
-$rollback_checkpoint_summary = isset( $view_data['rollback_checkpoint_summary'] ) && is_array( $view_data['rollback_checkpoint_summary'] ) ? $view_data['rollback_checkpoint_summary'] : array();
+$execution_checkpoint_summary_rows = isset( $view_data['execution_checkpoint_summary_rows'] ) && is_array( $view_data['execution_checkpoint_summary_rows'] ) ? $view_data['execution_checkpoint_summary_rows'] : array();
+$rollback_checkpoint_summary_rows = isset( $view_data['rollback_checkpoint_summary_rows'] ) && is_array( $view_data['rollback_checkpoint_summary_rows'] ) ? $view_data['rollback_checkpoint_summary_rows'] : array();
 $restore_run_cards        = isset( $view_data['restore_run_cards'] ) && is_array( $view_data['restore_run_cards'] ) ? $view_data['restore_run_cards'] : array();
 $restore_resume_context   = isset( $view_data['restore_resume_context'] ) && is_array( $view_data['restore_resume_context'] ) ? $view_data['restore_resume_context'] : array();
 $restore_rollback_resume_context = isset( $view_data['restore_rollback_resume_context'] ) && is_array( $view_data['restore_rollback_resume_context'] ) ? $view_data['restore_rollback_resume_context'] : array();
@@ -68,6 +66,7 @@ $restore_rollback_health_status = isset( $view_data['restore_rollback_health_sta
 $restore_rollback_check_rows = isset( $view_data['restore_rollback_check_rows'] ) && is_array( $view_data['restore_rollback_check_rows'] ) ? $view_data['restore_rollback_check_rows'] : array();
 $restore_rollback_item_rows = isset( $view_data['restore_rollback_item_rows'] ) && is_array( $view_data['restore_rollback_item_rows'] ) ? $view_data['restore_rollback_item_rows'] : array();
 $restore_rollback_journal_rows = isset( $view_data['restore_rollback_journal_rows'] ) && is_array( $view_data['restore_rollback_journal_rows'] ) ? $view_data['restore_rollback_journal_rows'] : array();
+$restore_form_state    = isset( $view_data['restore_form_state'] ) && is_array( $view_data['restore_form_state'] ) ? $view_data['restore_form_state'] : array();
 $component_manifest        = isset( $view_data['component_manifest'] ) && is_array( $view_data['component_manifest'] ) ? $view_data['component_manifest'] : array();
 $selected_snapshot_label   = isset( $view_data['selected_snapshot_label'] ) ? (string) $view_data['selected_snapshot_label'] : '';
 $selected_snapshot_note    = isset( $view_data['selected_snapshot_note'] ) ? (string) $view_data['selected_snapshot_note'] : '';
@@ -169,95 +168,29 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<?php if ( ! empty( $stage_checkpoint ) || ! empty( $plan_checkpoint ) ) : ?>
 					<p class="description"><?php echo esc_html__( 'Stage and plan checkpoints are pinned to the current snapshot package fingerprint and are reused during resume when they still match.', 'zignites-sentinel' ); ?></p>
 				<?php endif; ?>
-				<?php if ( ! empty( $execution_checkpoint_summary ) ) : ?>
+				<?php if ( ! empty( $execution_checkpoint_summary_rows ) ) : ?>
 					<h3><?php echo esc_html__( 'Execution Checkpoint', 'zignites-sentinel' ); ?></h3>
 					<table class="widefat striped">
 						<tbody>
-							<tr>
-								<th scope="row"><?php echo esc_html__( 'Run ID', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( isset( $execution_checkpoint_summary['run_id'] ) ? (string) $execution_checkpoint_summary['run_id'] : '' ); ?></td>
-							</tr>
-							<tr>
-								<th scope="row"><?php echo esc_html__( 'Generated', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( isset( $execution_checkpoint_summary['generated_at'] ) ? (string) $execution_checkpoint_summary['generated_at'] : '' ); ?></td>
-							</tr>
-							<tr>
-								<th scope="row"><?php echo esc_html__( 'Stage Reuse', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( ! empty( $execution_checkpoint_summary['stage_ready'] ) ? __( 'Ready', 'zignites-sentinel' ) : __( 'Not available', 'zignites-sentinel' ) ); ?></td>
-							</tr>
-							<tr>
-								<th scope="row"><?php echo esc_html__( 'Stage Path', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( isset( $execution_checkpoint_summary['stage_path'] ) ? (string) $execution_checkpoint_summary['stage_path'] : '' ); ?></td>
-							</tr>
-							<tr>
-								<th scope="row"><?php echo esc_html__( 'Health Reuse', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( ! empty( $execution_checkpoint_summary['health_completed'] ) ? __( 'Ready', 'zignites-sentinel' ) : __( 'Health will rerun', 'zignites-sentinel' ) ); ?></td>
-							</tr>
-							<tr>
-								<th scope="row"><?php echo esc_html__( 'Backed-Up Items', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( isset( $execution_checkpoint_summary['backup_count'] ) ? (string) $execution_checkpoint_summary['backup_count'] : '0' ); ?></td>
-							</tr>
-							<tr>
-								<th scope="row"><?php echo esc_html__( 'Written Items', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( isset( $execution_checkpoint_summary['write_count'] ) ? (string) $execution_checkpoint_summary['write_count'] : '0' ); ?></td>
-							</tr>
-							<tr>
-								<th scope="row"><?php echo esc_html__( 'Tracked Items', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( isset( $execution_checkpoint_summary['item_count'] ) ? (string) $execution_checkpoint_summary['item_count'] : '0' ); ?></td>
-							</tr>
-							<tr>
-								<th scope="row"><?php echo esc_html__( 'Failed Items', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( isset( $execution_checkpoint_summary['failed_count'] ) ? (string) $execution_checkpoint_summary['failed_count'] : '0' ); ?></td>
-							</tr>
-							<?php if ( ! empty( $execution_checkpoint_summary['phase_counts'] ) ) : ?>
+							<?php foreach ( $execution_checkpoint_summary_rows as $row ) : ?>
 								<tr>
-									<th scope="row"><?php echo esc_html__( 'Checkpoint Phases', 'zignites-sentinel' ); ?></th>
-									<td><?php echo esc_html( implode( ', ', array_map( static function ( $phase, $count ) { return sprintf( '%s (%d)', str_replace( '_', ' ', (string) $phase ), (int) $count ); }, array_keys( $execution_checkpoint_summary['phase_counts'] ), $execution_checkpoint_summary['phase_counts'] ) ) ); ?></td>
+									<th scope="row"><?php echo esc_html( isset( $row['label'] ) ? (string) $row['label'] : '' ); ?></th>
+									<td><?php echo esc_html( isset( $row['value'] ) ? (string) $row['value'] : '' ); ?></td>
 								</tr>
-							<?php endif; ?>
-							<?php if ( ! empty( $execution_checkpoint_summary['health_status'] ) ) : ?>
-								<tr>
-									<th scope="row"><?php echo esc_html__( 'Stored Health Status', 'zignites-sentinel' ); ?></th>
-									<td><?php echo esc_html( (string) $execution_checkpoint_summary['health_status'] ); ?></td>
-								</tr>
-							<?php endif; ?>
+							<?php endforeach; ?>
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $rollback_checkpoint_summary ) ) : ?>
+				<?php if ( ! empty( $rollback_checkpoint_summary_rows ) ) : ?>
 					<h3><?php echo esc_html__( 'Rollback Checkpoint', 'zignites-sentinel' ); ?></h3>
 					<table class="widefat striped">
 						<tbody>
-							<tr>
-								<th scope="row"><?php echo esc_html__( 'Run ID', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( isset( $rollback_checkpoint_summary['run_id'] ) ? (string) $rollback_checkpoint_summary['run_id'] : '' ); ?></td>
-							</tr>
-							<tr>
-								<th scope="row"><?php echo esc_html__( 'Generated', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( isset( $rollback_checkpoint_summary['generated_at'] ) ? (string) $rollback_checkpoint_summary['generated_at'] : '' ); ?></td>
-							</tr>
-							<tr>
-								<th scope="row"><?php echo esc_html__( 'Backup Root', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( isset( $rollback_checkpoint_summary['backup_root'] ) ? (string) $rollback_checkpoint_summary['backup_root'] : '' ); ?></td>
-							</tr>
-							<tr>
-								<th scope="row"><?php echo esc_html__( 'Tracked Items', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( isset( $rollback_checkpoint_summary['item_count'] ) ? (string) $rollback_checkpoint_summary['item_count'] : '0' ); ?></td>
-							</tr>
-							<tr>
-								<th scope="row"><?php echo esc_html__( 'Completed Items', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( isset( $rollback_checkpoint_summary['completed_count'] ) ? (string) $rollback_checkpoint_summary['completed_count'] : '0' ); ?></td>
-							</tr>
-							<tr>
-								<th scope="row"><?php echo esc_html__( 'Failed Items', 'zignites-sentinel' ); ?></th>
-								<td><?php echo esc_html( isset( $rollback_checkpoint_summary['failed_count'] ) ? (string) $rollback_checkpoint_summary['failed_count'] : '0' ); ?></td>
-							</tr>
-							<?php if ( ! empty( $rollback_checkpoint_summary['phase_counts'] ) ) : ?>
+							<?php foreach ( $rollback_checkpoint_summary_rows as $row ) : ?>
 								<tr>
-									<th scope="row"><?php echo esc_html__( 'Checkpoint Phases', 'zignites-sentinel' ); ?></th>
-									<td><?php echo esc_html( implode( ', ', array_map( static function ( $phase, $count ) { return sprintf( '%s (%d)', str_replace( '_', ' ', (string) $phase ), (int) $count ); }, array_keys( $rollback_checkpoint_summary['phase_counts'] ), $rollback_checkpoint_summary['phase_counts'] ) ) ); ?></td>
+									<th scope="row"><?php echo esc_html( isset( $row['label'] ) ? (string) $row['label'] : '' ); ?></th>
+									<td><?php echo esc_html( isset( $row['value'] ) ? (string) $row['value'] : '' ); ?></td>
 								</tr>
-							<?php endif; ?>
+							<?php endforeach; ?>
 						</tbody>
 					</table>
 				<?php endif; ?>
@@ -1549,9 +1482,9 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						<?php wp_nonce_field( 'znts_execute_restore_action' ); ?>
 						<p>
 							<label for="znts-restore-confirmation"><?php echo esc_html__( 'Type confirmation phrase', 'zignites-sentinel' ); ?></label><br />
-							<input id="znts-restore-confirmation" type="text" name="restore_confirmation_phrase" class="regular-text" placeholder="<?php echo esc_attr( isset( $last_restore_plan['confirmation_phrase'] ) ? $last_restore_plan['confirmation_phrase'] : sprintf( 'RESTORE SNAPSHOT %d', (int) $snapshot_detail['id'] ) ); ?>" />
+							<input id="znts-restore-confirmation" type="text" name="restore_confirmation_phrase" class="regular-text" placeholder="<?php echo esc_attr( isset( $restore_form_state['restore_confirmation_phrase'] ) ? $restore_form_state['restore_confirmation_phrase'] : '' ); ?>" />
 						</p>
-						<p class="description"><?php echo esc_html( isset( $last_restore_plan['confirmation_phrase'] ) ? $last_restore_plan['confirmation_phrase'] : sprintf( 'RESTORE SNAPSHOT %d', (int) $snapshot_detail['id'] ) ); ?></p>
+						<p class="description"><?php echo esc_html( isset( $restore_form_state['restore_confirmation_phrase'] ) ? $restore_form_state['restore_confirmation_phrase'] : '' ); ?></p>
 						<?php submit_button( __( 'Execute Live Restore', 'zignites-sentinel' ), 'primary', 'submit', false ); ?>
 					</form>
 				<?php else : ?>
@@ -1559,18 +1492,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<?php endif; ?>
 				<?php if ( ! empty( $restore_resume_context['can_resume'] ) ) : ?>
 					<h3><?php echo esc_html__( 'Resume Restore Execution', 'zignites-sentinel' ); ?></h3>
-					<p>
-						<?php
-						echo esc_html(
-							sprintf(
-								/* translators: 1: completed item count, 2: journal entry count */
-								__( 'A resumable execution journal exists with %1$d completed items across %2$d persisted entries.', 'zignites-sentinel' ),
-								isset( $restore_resume_context['completed_item_count'] ) ? (int) $restore_resume_context['completed_item_count'] : 0,
-								isset( $restore_resume_context['entry_count'] ) ? (int) $restore_resume_context['entry_count'] : 0
-							)
-						);
-						?>
-					</p>
+					<p><?php echo esc_html( isset( $restore_form_state['restore_resume_message'] ) ? $restore_form_state['restore_resume_message'] : '' ); ?></p>
 					<?php if ( ! empty( $operator_checklist['can_execute'] ) ) : ?>
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 							<input type="hidden" name="action" value="znts_resume_restore" />
@@ -1578,15 +1500,15 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							<?php wp_nonce_field( 'znts_resume_restore_action' ); ?>
 							<p>
 								<label for="znts-resume-confirmation"><?php echo esc_html__( 'Type confirmation phrase', 'zignites-sentinel' ); ?></label><br />
-								<input id="znts-resume-confirmation" type="text" name="restore_confirmation_phrase" class="regular-text" placeholder="<?php echo esc_attr( isset( $last_restore_plan['confirmation_phrase'] ) ? $last_restore_plan['confirmation_phrase'] : sprintf( 'RESTORE SNAPSHOT %d', (int) $snapshot_detail['id'] ) ); ?>" />
+								<input id="znts-resume-confirmation" type="text" name="restore_confirmation_phrase" class="regular-text" placeholder="<?php echo esc_attr( isset( $restore_form_state['restore_confirmation_phrase'] ) ? $restore_form_state['restore_confirmation_phrase'] : '' ); ?>" />
 							</p>
-							<p class="description"><?php echo esc_html( isset( $restore_resume_context['run_id'] ) ? sprintf( __( 'Run ID: %s', 'zignites-sentinel' ), $restore_resume_context['run_id'] ) : '' ); ?></p>
+							<p class="description"><?php echo esc_html( isset( $restore_form_state['restore_resume_run_label'] ) ? $restore_form_state['restore_resume_run_label'] : '' ); ?></p>
 							<?php submit_button( __( 'Resume Restore Execution', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 						</form>
 					<?php else : ?>
 						<p class="description"><?php echo esc_html__( 'Resume remains blocked until the operator checklist is complete and current.', 'zignites-sentinel' ); ?></p>
 					<?php endif; ?>
-					<?php if ( ! empty( $execution_checkpoint['checkpoint'] ) && is_array( $execution_checkpoint['checkpoint'] ) ) : ?>
+					<?php if ( ! empty( $restore_form_state['has_execution_checkpoint'] ) ) : ?>
 						<h3><?php echo esc_html__( 'Discard Preserved Checkpoint', 'zignites-sentinel' ); ?></h3>
 						<p><?php echo esc_html__( 'This removes the preserved execution stage and clears the execution checkpoint. Resume will still be possible from the persisted journal, but stage extraction and health verification reuse will be lost.', 'zignites-sentinel' ); ?></p>
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -1746,38 +1668,16 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						<?php wp_nonce_field( 'znts_rollback_restore_action' ); ?>
 						<p>
 							<label for="znts-rollback-confirmation"><?php echo esc_html__( 'Type rollback confirmation phrase', 'zignites-sentinel' ); ?></label><br />
-							<input id="znts-rollback-confirmation" type="text" name="rollback_confirmation_phrase" class="regular-text" placeholder="<?php echo esc_attr( isset( $last_restore_execution['rollback_confirmation_phrase'] ) ? $last_restore_execution['rollback_confirmation_phrase'] : sprintf( 'ROLLBACK SNAPSHOT %d', (int) $snapshot_detail['id'] ) ); ?>" />
+							<input id="znts-rollback-confirmation" type="text" name="rollback_confirmation_phrase" class="regular-text" placeholder="<?php echo esc_attr( isset( $restore_form_state['rollback_confirmation_phrase'] ) ? $restore_form_state['rollback_confirmation_phrase'] : '' ); ?>" />
 						</p>
-						<p class="description"><?php echo esc_html( isset( $last_restore_execution['rollback_confirmation_phrase'] ) ? $last_restore_execution['rollback_confirmation_phrase'] : sprintf( 'ROLLBACK SNAPSHOT %d', (int) $snapshot_detail['id'] ) ); ?></p>
+						<p class="description"><?php echo esc_html( isset( $restore_form_state['rollback_confirmation_phrase'] ) ? $restore_form_state['rollback_confirmation_phrase'] : '' ); ?></p>
 						<?php submit_button( __( 'Run Rollback', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 					</form>
 					<?php if ( ! empty( $restore_rollback_resume_context['can_resume'] ) ) : ?>
 						<h3><?php echo esc_html__( 'Resume Rollback', 'zignites-sentinel' ); ?></h3>
-						<p>
-							<?php
-							echo esc_html(
-								sprintf(
-									/* translators: 1: completed item count, 2: journal entry count */
-									__( 'A resumable rollback journal exists with %1$d completed items across %2$d persisted entries.', 'zignites-sentinel' ),
-									isset( $restore_rollback_resume_context['completed_item_count'] ) ? (int) $restore_rollback_resume_context['completed_item_count'] : 0,
-									isset( $restore_rollback_resume_context['entry_count'] ) ? (int) $restore_rollback_resume_context['entry_count'] : 0
-								)
-							);
-							?>
-						</p>
-						<?php if ( ! empty( $restore_rollback_resume_context['checkpoint_item_count'] ) ) : ?>
-							<p class="description">
-								<?php
-								echo esc_html(
-									sprintf(
-										/* translators: 1: completed count, 2: tracked item count */
-										__( 'Rollback checkpoint state currently tracks %1$d completed items across %2$d item checkpoints.', 'zignites-sentinel' ),
-										isset( $restore_rollback_resume_context['checkpoint_completed_count'] ) ? (int) $restore_rollback_resume_context['checkpoint_completed_count'] : 0,
-										(int) $restore_rollback_resume_context['checkpoint_item_count']
-									)
-								);
-								?>
-							</p>
+						<p><?php echo esc_html( isset( $restore_form_state['rollback_resume_message'] ) ? $restore_form_state['rollback_resume_message'] : '' ); ?></p>
+						<?php if ( ! empty( $restore_form_state['rollback_checkpoint_message'] ) ) : ?>
+							<p class="description"><?php echo esc_html( $restore_form_state['rollback_checkpoint_message'] ); ?></p>
 						<?php endif; ?>
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 							<input type="hidden" name="action" value="znts_resume_restore_rollback" />
@@ -1785,9 +1685,9 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							<?php wp_nonce_field( 'znts_resume_restore_rollback_action' ); ?>
 							<p>
 								<label for="znts-resume-rollback-confirmation"><?php echo esc_html__( 'Type rollback confirmation phrase', 'zignites-sentinel' ); ?></label><br />
-								<input id="znts-resume-rollback-confirmation" type="text" name="rollback_confirmation_phrase" class="regular-text" placeholder="<?php echo esc_attr( isset( $last_restore_execution['rollback_confirmation_phrase'] ) ? $last_restore_execution['rollback_confirmation_phrase'] : sprintf( 'ROLLBACK SNAPSHOT %d', (int) $snapshot_detail['id'] ) ); ?>" />
+								<input id="znts-resume-rollback-confirmation" type="text" name="rollback_confirmation_phrase" class="regular-text" placeholder="<?php echo esc_attr( isset( $restore_form_state['rollback_confirmation_phrase'] ) ? $restore_form_state['rollback_confirmation_phrase'] : '' ); ?>" />
 							</p>
-							<p class="description"><?php echo esc_html( isset( $restore_rollback_resume_context['run_id'] ) ? sprintf( __( 'Run ID: %s', 'zignites-sentinel' ), $restore_rollback_resume_context['run_id'] ) : '' ); ?></p>
+							<p class="description"><?php echo esc_html( isset( $restore_form_state['rollback_resume_run_label'] ) ? $restore_form_state['rollback_resume_run_label'] : '' ); ?></p>
 							<?php submit_button( __( 'Resume Rollback', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 						</form>
 					<?php endif; ?>
