@@ -114,13 +114,50 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 				'missing' => array(),
 			),
 			'last_restore_dry_run' => array(
-				'status' => 'ready',
+				'status'       => 'caution',
+				'generated_at' => '2026-04-09 10:05:00',
+				'note'         => 'Dry-run needs review.',
+				'checks'       => array(
+					array(
+						'label'   => 'Dry-run package',
+						'status'  => 'fail',
+						'message' => 'Dry-run package is missing.',
+					),
+				),
 			),
 			'last_restore_stage' => array(
-				'status' => 'ready',
+				'status'       => 'blocked',
+				'generated_at' => '2026-04-09 10:06:00',
+				'note'         => 'Stage is blocked.',
+				'checks'       => array(
+					array(
+						'label'   => 'Stage package',
+						'status'  => 'pass',
+						'message' => 'Stage package is available.',
+					),
+				),
 			),
 			'last_restore_plan' => array(
-				'status' => 'ready',
+				'status'       => 'ready',
+				'generated_at' => '2026-04-09 10:07:00',
+				'note'         => 'Plan is ready.',
+				'checks'       => array(
+					array(
+						'label'   => 'Plan package',
+						'status'  => 'pass',
+						'message' => 'Plan package is available.',
+					),
+				),
+				'items'        => array(
+					array(
+						'type'           => 'plugin',
+						'label'          => 'Example Plugin',
+						'action'         => 'replace',
+						'target_path'    => 'wp-content/plugins/example',
+						'conflict_count' => 2,
+						'message'        => 'Replace existing plugin.',
+					),
+				),
 			),
 			'last_restore_execution' => array(
 				'run_id' => 'restore-101',
@@ -225,6 +262,17 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( false, $state['open_health_validation'], 'Update Readiness state builder should close health validation details when checklist gates can execute.' );
 	znts_assert_same( 'Next: confirm the impact summary, verify the checklist is still current, and only then move into guarded restore review.', $state['workspace_flow_message'], 'Update Readiness state builder should derive ready-state workflow guidance.' );
 	znts_assert_same( 'Checklist gates are currently satisfied for this snapshot.', $state['workspace_confidence'], 'Update Readiness state builder should derive ready-state workspace confidence.' );
+	znts_assert_same( 'warning', $state['restore_dry_run_status']['badge'], 'Update Readiness state builder should derive caution restore result badges.' );
+	znts_assert_same( 'Caution', $state['restore_dry_run_status']['status_label'], 'Update Readiness state builder should derive dry-run status labels.' );
+	znts_assert_same( 'Dry-run package', $state['restore_dry_run_check_rows'][0]['label'], 'Update Readiness state builder should derive dry-run check rows.' );
+	znts_assert_same( 'critical', $state['restore_dry_run_check_rows'][0]['badge'], 'Update Readiness state builder should map failing dry-run checks to critical badges.' );
+	znts_assert_same( 'critical', $state['restore_stage_status']['badge'], 'Update Readiness state builder should derive blocked stage result badges.' );
+	znts_assert_same( 'Stage package', $state['restore_stage_check_rows'][0]['label'], 'Update Readiness state builder should derive stage check rows.' );
+	znts_assert_same( 'info', $state['restore_plan_status']['badge'], 'Update Readiness state builder should derive ready plan result badges.' );
+	znts_assert_same( 'Plan package', $state['restore_plan_check_rows'][0]['label'], 'Update Readiness state builder should derive plan check rows.' );
+	znts_assert_same( 'Plugin', $state['restore_plan_item_rows'][0]['type_label'], 'Update Readiness state builder should derive restore plan item type labels.' );
+	znts_assert_same( 'Replace', $state['restore_plan_item_rows'][0]['action_label'], 'Update Readiness state builder should derive restore plan item action labels.' );
+	znts_assert_same( '2', $state['restore_plan_item_rows'][0]['conflict_count'], 'Update Readiness state builder should normalize restore plan item conflict counts as strings.' );
 	znts_assert_same( 'restore-101', $state['last_restore_execution']['run_id'], 'Update Readiness state builder should preserve restore execution state.' );
 	znts_assert_same( true, $state['operator_checklist']['can_execute'], 'Update Readiness state builder should preserve operator checklist state.' );
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=101', $state['snapshot_activity_url'], 'Update Readiness state builder should preserve the activity URL.' );
@@ -249,6 +297,11 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( array(), $state['restore_source_validation_check_rows'], 'Update Readiness state builder should default missing restore source rows to an empty array.' );
 	znts_assert_same( array(), $state['restore_source_missing_plugins'], 'Update Readiness state builder should default missing plugin labels to an empty array.' );
 	znts_assert_same( array(), $state['restore_source_missing_artifacts'], 'Update Readiness state builder should default missing artifact labels to an empty array.' );
+	znts_assert_same( array(), $state['restore_dry_run_check_rows'], 'Update Readiness state builder should default missing dry-run check rows to an empty array.' );
+	znts_assert_same( array(), $state['restore_stage_check_rows'], 'Update Readiness state builder should default missing stage check rows to an empty array.' );
+	znts_assert_same( array(), $state['restore_plan_check_rows'], 'Update Readiness state builder should default missing plan check rows to an empty array.' );
+	znts_assert_same( array(), $state['restore_plan_item_rows'], 'Update Readiness state builder should default missing plan item rows to an empty array.' );
+	znts_assert_same( 'info', $state['restore_dry_run_status']['badge'], 'Update Readiness state builder should default missing restore result badges to info.' );
 	znts_assert_same( '123', $state['snapshot_search'], 'Update Readiness state builder should normalize snapshot search as a string.' );
 	znts_assert_same( '', $state['snapshot_status_filter'], 'Update Readiness state builder should normalize a missing snapshot status filter to an empty string.' );
 	znts_assert_same( null, $state['snapshot_detail'], 'Update Readiness state builder should normalize missing snapshot detail to null.' );

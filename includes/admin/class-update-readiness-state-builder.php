@@ -61,7 +61,7 @@ class UpdateReadinessStateBuilder {
 			'notice'                  => $this->array_value( $state, 'notice' ),
 		);
 
-		return $this->with_workspace_state( $view_data );
+		return $this->with_restore_result_state( $this->with_workspace_state( $view_data ) );
 	}
 
 	/**
@@ -127,6 +127,73 @@ class UpdateReadinessStateBuilder {
 			: __( 'The workspace is showing the shortest safe path, not every technical detail at once.', 'zignites-sentinel' );
 
 		return $view_data;
+	}
+
+	/**
+	 * Add derived restore result state used by validation and planning sections.
+	 *
+	 * @param array $view_data Normalized screen state.
+	 * @return array
+	 */
+	protected function with_restore_result_state( array $view_data ) {
+		$last_restore_dry_run = $this->array_value( $view_data, 'last_restore_dry_run' );
+		$last_restore_stage   = $this->array_value( $view_data, 'last_restore_stage' );
+		$last_restore_plan    = $this->array_value( $view_data, 'last_restore_plan' );
+
+		$view_data['restore_dry_run_status'] = $this->build_restore_result_status( $last_restore_dry_run );
+		$view_data['restore_dry_run_check_rows'] = $this->build_check_rows( $last_restore_dry_run );
+		$view_data['restore_stage_status'] = $this->build_restore_result_status( $last_restore_stage );
+		$view_data['restore_stage_check_rows'] = $this->build_check_rows( $last_restore_stage );
+		$view_data['restore_plan_status'] = $this->build_restore_result_status( $last_restore_plan );
+		$view_data['restore_plan_check_rows'] = $this->build_check_rows( $last_restore_plan );
+		$view_data['restore_plan_item_rows'] = $this->build_restore_plan_item_rows( $last_restore_plan );
+
+		return $view_data;
+	}
+
+	/**
+	 * Build normalized status state for restore validation/planning payloads.
+	 *
+	 * @param array $payload Restore result payload.
+	 * @return array
+	 */
+	protected function build_restore_result_status( array $payload ) {
+		$status = isset( $payload['status'] ) ? (string) $payload['status'] : '';
+
+		return array(
+			'status'       => $status,
+			'status_label' => ucfirst( $status ),
+			'badge'        => 'blocked' === $status ? 'critical' : ( 'caution' === $status ? 'warning' : 'info' ),
+			'generated_at' => isset( $payload['generated_at'] ) ? (string) $payload['generated_at'] : '',
+			'note'         => isset( $payload['note'] ) ? (string) $payload['note'] : '',
+		);
+	}
+
+	/**
+	 * Build normalized restore-plan item rows.
+	 *
+	 * @param array $plan Restore plan payload.
+	 * @return array
+	 */
+	protected function build_restore_plan_item_rows( array $plan ) {
+		$items = isset( $plan['items'] ) && is_array( $plan['items'] ) ? $plan['items'] : array();
+		$rows  = array();
+
+		foreach ( $items as $item ) {
+			$type   = isset( $item['type'] ) ? (string) $item['type'] : '';
+			$action = isset( $item['action'] ) ? (string) $item['action'] : '';
+
+			$rows[] = array(
+				'type_label'     => ucfirst( $type ),
+				'label'          => isset( $item['label'] ) ? (string) $item['label'] : '',
+				'action_label'   => ucfirst( $action ),
+				'target_path'    => isset( $item['target_path'] ) ? (string) $item['target_path'] : '',
+				'conflict_count' => isset( $item['conflict_count'] ) ? (string) $item['conflict_count'] : '0',
+				'message'        => isset( $item['message'] ) ? (string) $item['message'] : '',
+			);
+		}
+
+		return $rows;
 	}
 
 	/**
