@@ -450,7 +450,14 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 			),
 			'snapshot_activity' => array(
 				array(
-					'message' => 'Snapshot created',
+					'created_at'     => '2026-04-09 10:13:00',
+					'detail_url'     => 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&event_id=10',
+					'severity'       => 'fail',
+					'source'         => 'restore',
+					'event_type'     => 'restore_failed',
+					'message'        => 'Restore failed.',
+					'journal_url'    => 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&run_id=restore-101',
+					'journal_label'  => 'View journal',
 				),
 			),
 			'snapshot_activity_url' => 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=101',
@@ -583,6 +590,11 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'Payload hash', $state['audit_report_verification_check_rows'][0]['label'], 'Update Readiness state builder should derive audit verification check rows.' );
 	znts_assert_same( 'critical', $state['audit_report_verification_check_rows'][0]['badge'], 'Update Readiness state builder should map failing audit verification checks to critical.' );
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=101', $state['snapshot_activity_url'], 'Update Readiness state builder should preserve the activity URL.' );
+	znts_assert_same( '#znts-restore-dry-run', $state['restore_action_jump_links'][0]['href'], 'Update Readiness state builder should derive restore action jump-link hrefs.' );
+	znts_assert_same( 'Dry-Run', $state['restore_action_jump_links'][0]['label'], 'Update Readiness state builder should derive restore action jump-link labels.' );
+	znts_assert_same( 'critical', $state['snapshot_activity_rows'][0]['severity_badge'], 'Update Readiness state builder should map failing snapshot activity severity to critical.' );
+	znts_assert_same( 'Fail', $state['snapshot_activity_rows'][0]['severity_label'], 'Update Readiness state builder should derive snapshot activity severity labels.' );
+	znts_assert_same( 'View journal', $state['snapshot_activity_rows'][0]['journal_label'], 'Update Readiness state builder should preserve snapshot activity journal labels.' );
 	znts_assert_same( 'success', $state['notice']['type'], 'Update Readiness state builder should preserve notice state.' );
 }
 
@@ -622,6 +634,8 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( array(), $state['operator_checklist_check_rows'], 'Update Readiness state builder should default missing operator checklist check rows to an empty array.' );
 	znts_assert_same( 'info', $state['audit_report_verification_status']['badge'], 'Update Readiness state builder should default missing audit verification badges to info.' );
 	znts_assert_same( array(), $state['audit_report_verification_check_rows'], 'Update Readiness state builder should default missing audit verification check rows to an empty array.' );
+	znts_assert_same( array(), $state['restore_action_jump_links'], 'Update Readiness state builder should default missing restore action jump links to an empty array.' );
+	znts_assert_same( array(), $state['snapshot_activity_rows'], 'Update Readiness state builder should default missing snapshot activity rows to an empty array.' );
 	znts_assert_same( array(), $state['plan_validation_check_rows'], 'Update Readiness state builder should default missing plan validation rows to an empty array.' );
 	znts_assert_same( 'info', $state['restore_readiness_status']['badge'], 'Update Readiness state builder should default missing restore readiness badges to info.' );
 	znts_assert_same( array(), $state['restore_readiness_check_rows'], 'Update Readiness state builder should default missing restore readiness check rows to an empty array.' );
