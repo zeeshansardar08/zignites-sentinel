@@ -259,10 +259,22 @@
   - cross-screen status presenter extraction
   - snapshot summary presenter extraction
   - dashboard summary presenter extraction
+  - dashboard state-builder extraction for:
+    - shared dashboard summary payloads
+    - dashboard restore summary state
+    - dashboard health-strip state
+    - dashboard widget view state
+    - full dashboard screen view state
   - presenter-focused regression coverage
-- Current branch extends that read-only presentation cleanup with:
-  - full dashboard screen view-state extraction into the existing dashboard summary state helper
-  - presenter-focused regression coverage for the dashboard-screen state seam
+- Main is also current through the merged read-only state-builder cleanup for:
+  - restore impact summary state extraction
+  - restore operator checklist state extraction
+  - snapshot health-comparison state extraction
+  - focused regression coverage for those state seams
+- Current branch extends that read-only state-builder cleanup with:
+  - top-level Update Readiness screen view-state extraction
+  - `render_update_readiness()` now delegates payload assembly through `UpdateReadinessStateBuilder`
+  - focused regression coverage for Update Readiness screen-state normalization and empty-default handling
 - Live authenticated admin smoke validation has now been run successfully against a real wp-admin session for:
   - Sentinel Dashboard
   - Update Readiness
@@ -330,6 +342,7 @@
 - `includes/admin/class-settings-portability.php`
 - `includes/admin/class-snapshot-summary-presenter.php`
 - `includes/admin/class-status-presenter.php`
+- `includes/admin/class-update-readiness-state-builder.php`
 - `includes/admin/views/dashboard.php`
 - `includes/admin/views/update-readiness.php`
 - `includes/admin/views/event-logs.php`
@@ -359,15 +372,16 @@
 - `tests/test-snapshot-audit-report.php`
 - `tests/test-snapshot-summary-presenter.php`
 - `tests/test-status-presenter.php`
+- `tests/test-update-readiness-state-builder.php`
 
 ## What I Would Do Next
 
 ### Immediate Next Steps
 1. Continue the read-only presentation extraction work now that manual/admin validation is current
 - Likely candidates:
-  - remaining Update Readiness formatter helpers outside snapshot-list state, snapshot-summary state, dashboard-summary state, and checkpoint payloads
-  - compact dashboard/update-readiness presenter seams still embedded in `includes/admin/class-admin.php`, especially remaining dashboard/readiness state normalization after full dashboard-screen state extraction
-- Reason: the manual/admin pass and live smoke/export checks are current, so the next highest-value work is reducing presentation logic still concentrated in the admin controller
+  - remaining Update Readiness workspace/hero state still derived at the top of `includes/admin/views/update-readiness.php`
+  - remaining Update Readiness formatter helpers outside snapshot-list state, snapshot-summary state, dashboard-summary state, checkpoint payloads, restore-impact state, operator-checklist state, and health-comparison state
+- Reason: the controller-level Update Readiness payload is now extracted, so the next highest-value work is reducing derived presentation logic still concentrated in the view
 
 2. Keep the manual/admin validation current after each read-only extraction
 - Re-run the authenticated smoke helper and the targeted manual path for:
@@ -380,8 +394,8 @@
 ### Product Maturity Next Steps
 3. Add broader reporting/test coverage for any newly extracted presentation helper
 - Likely seams:
-  - future update-readiness formatter helpers
-  - remaining dashboard/readiness presenter helpers after dashboard-screen state extraction
+  - future update-readiness screen/view-state helpers
+  - any remaining dashboard/readiness presenter helpers after the current dashboard/state-builder cleanup
 
 4. Consider a compact printable operator handoff report later
 - Only after the current reporting surfaces are better covered by tests
@@ -394,6 +408,8 @@
 
 ## Recommended Restart Point
 - Start from `includes/admin/class-admin.php`
+- Start from `includes/admin/class-update-readiness-state-builder.php`
+- Start from `tests/test-update-readiness-state-builder.php`
 - The admin class is now the main orchestration layer for:
   - restore gate control
   - checkpoint logic
@@ -436,9 +452,11 @@
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
 - Current branch prepared for merge:
-  - `feature/dashboard-screen-view-state-builder-extraction`
+  - `feature/update-readiness-screen-state-builder-extraction`
 - Next likely restart task after this branch merges:
-  - extract the next update-readiness/dashboard read-only formatter/presenter seam from `includes/admin/class-admin.php`, likely remaining dashboard/readiness state normalization after the dashboard-screen path
+  - start from `includes/admin/views/update-readiness.php`
+  - extract the remaining workspace/hero derived state into a focused read-only helper
+  - avoid new restore behavior; keep this track to presentation-state cleanup and regression coverage
 
 
 

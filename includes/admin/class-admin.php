@@ -328,6 +328,13 @@ class Admin {
 	protected $dashboard_summary_state_builder;
 
 	/**
+	 * Update Readiness screen state builder.
+	 *
+	 * @var UpdateReadinessStateBuilder
+	 */
+	protected $update_readiness_state_builder;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Logger                   $logger              Structured logger.
@@ -400,6 +407,7 @@ class Admin {
 		$this->snapshot_list_state_builder = new SnapshotListStateBuilder();
 		$this->snapshot_summary_state_builder = new SnapshotSummaryStateBuilder();
 		$this->dashboard_summary_state_builder = new DashboardSummaryStateBuilder();
+		$this->update_readiness_state_builder = new UpdateReadinessStateBuilder();
 		$this->restore_impact_summary_state_builder = new RestoreImpactSummaryStateBuilder();
 		$this->health_comparison_state_builder = new HealthComparisonStateBuilder();
 		$this->status_presenter             = new StatusPresenter();
@@ -607,53 +615,62 @@ class Admin {
 			wp_die( esc_html__( 'You do not have permission to access this page.', 'zignites-sentinel' ) );
 		}
 
+		$view_data = $this->get_update_readiness_view_data();
+
+		require ZNTS_PLUGIN_DIR . 'includes/admin/views/update-readiness.php';
+	}
+
+	/**
+	 * Build the Update Readiness screen view data.
+	 *
+	 * @return array
+	 */
+	protected function get_update_readiness_view_data() {
 		$snapshot_detail        = $this->get_snapshot_detail();
 		$snapshot_search        = $this->get_snapshot_search_term();
 		$snapshot_status_filter = $this->get_snapshot_status_filter();
 		$snapshot_list_state    = $this->get_snapshot_list_state( $snapshot_search, $snapshot_status_filter );
 
-		$view_data = array(
-			'last_preflight'         => get_option( ZNTS_OPTION_LAST_PREFLIGHT, array() ),
-			'last_update_plan'       => get_option( ZNTS_OPTION_UPDATE_PLAN, array() ),
-			'last_restore_check'     => $this->get_last_restore_check( $snapshot_detail ),
-			'settings'               => $this->get_settings(),
-			'update_candidates'      => $this->update_planner->get_candidates(),
-			'recent_snapshots'       => isset( $snapshot_list_state['items'] ) ? $snapshot_list_state['items'] : array(),
-			'snapshot_search'        => $snapshot_search,
-			'snapshot_status_filter' => $snapshot_status_filter,
-			'snapshot_status_filter_options' => $this->snapshot_status_resolver->get_snapshot_filter_options(),
-			'snapshot_status_index'  => isset( $snapshot_list_state['status_index'] ) ? $snapshot_list_state['status_index'] : array(),
-			'snapshot_pagination'    => isset( $snapshot_list_state['pagination'] ) ? $snapshot_list_state['pagination'] : array(),
-			'snapshot_detail'        => $snapshot_detail,
-			'snapshot_comparison'    => $this->get_snapshot_comparison( $snapshot_detail ),
-			'snapshot_artifacts'     => $this->get_snapshot_artifacts( $snapshot_detail ),
-			'artifact_diff'          => $this->get_artifact_diff( $snapshot_detail ),
-			'last_restore_dry_run'   => $this->get_last_restore_dry_run( $snapshot_detail ),
-			'last_restore_stage'     => $this->get_last_restore_stage( $snapshot_detail ),
-			'last_restore_plan'      => $this->get_last_restore_plan( $snapshot_detail ),
-			'last_restore_execution' => $this->get_last_restore_execution( $snapshot_detail ),
-			'last_restore_rollback'  => $this->get_last_restore_rollback( $snapshot_detail ),
-			'stage_checkpoint'       => $this->get_restore_stage_checkpoint( $snapshot_detail ),
-			'plan_checkpoint'        => $this->get_restore_plan_checkpoint( $snapshot_detail ),
-			'execution_checkpoint'   => $this->get_restore_execution_checkpoint( $snapshot_detail ),
-			'execution_checkpoint_summary' => $this->get_restore_execution_checkpoint_summary( $snapshot_detail ),
-			'rollback_checkpoint'    => $this->get_restore_rollback_checkpoint( $snapshot_detail ),
-			'rollback_checkpoint_summary' => $this->get_restore_rollback_checkpoint_summary( $snapshot_detail ),
-			'restore_resume_context' => $this->get_restore_resume_context( $snapshot_detail ),
-			'restore_rollback_resume_context' => $this->get_restore_rollback_resume_context( $snapshot_detail ),
-			'restore_run_cards'      => $this->get_restore_run_cards( $snapshot_detail ),
-			'snapshot_health_baseline' => $this->get_snapshot_health_baseline( $snapshot_detail ),
-			'snapshot_health_comparison' => $this->get_snapshot_health_comparison( $snapshot_detail ),
-			'snapshot_summary'       => $this->get_snapshot_summary( $snapshot_detail ),
-			'operator_checklist'     => $this->get_restore_operator_checklist( $snapshot_detail ),
-			'restore_impact_summary' => $this->get_restore_impact_summary( $snapshot_detail ),
-			'audit_report_verification' => $this->get_audit_report_verification( $snapshot_detail ),
-			'snapshot_activity'      => $this->get_snapshot_activity( $snapshot_detail ),
-			'snapshot_activity_url'  => $this->get_snapshot_activity_url( is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) ? (int) $snapshot_detail['id'] : 0 ),
-			'notice'                 => $this->get_notice_message(),
+		return $this->update_readiness_state_builder->build_screen_state(
+			array(
+				'last_preflight'          => get_option( ZNTS_OPTION_LAST_PREFLIGHT, array() ),
+				'last_update_plan'        => get_option( ZNTS_OPTION_UPDATE_PLAN, array() ),
+				'last_restore_check'      => $this->get_last_restore_check( $snapshot_detail ),
+				'settings'                => $this->get_settings(),
+				'update_candidates'       => $this->update_planner->get_candidates(),
+				'snapshot_list_state'     => $snapshot_list_state,
+				'snapshot_search'         => $snapshot_search,
+				'snapshot_status_filter'  => $snapshot_status_filter,
+				'snapshot_status_filter_options' => $this->snapshot_status_resolver->get_snapshot_filter_options(),
+				'snapshot_detail'         => $snapshot_detail,
+				'snapshot_comparison'     => $this->get_snapshot_comparison( $snapshot_detail ),
+				'snapshot_artifacts'      => $this->get_snapshot_artifacts( $snapshot_detail ),
+				'artifact_diff'           => $this->get_artifact_diff( $snapshot_detail ),
+				'last_restore_dry_run'    => $this->get_last_restore_dry_run( $snapshot_detail ),
+				'last_restore_stage'      => $this->get_last_restore_stage( $snapshot_detail ),
+				'last_restore_plan'       => $this->get_last_restore_plan( $snapshot_detail ),
+				'last_restore_execution'  => $this->get_last_restore_execution( $snapshot_detail ),
+				'last_restore_rollback'   => $this->get_last_restore_rollback( $snapshot_detail ),
+				'stage_checkpoint'        => $this->get_restore_stage_checkpoint( $snapshot_detail ),
+				'plan_checkpoint'         => $this->get_restore_plan_checkpoint( $snapshot_detail ),
+				'execution_checkpoint'    => $this->get_restore_execution_checkpoint( $snapshot_detail ),
+				'execution_checkpoint_summary' => $this->get_restore_execution_checkpoint_summary( $snapshot_detail ),
+				'rollback_checkpoint'     => $this->get_restore_rollback_checkpoint( $snapshot_detail ),
+				'rollback_checkpoint_summary' => $this->get_restore_rollback_checkpoint_summary( $snapshot_detail ),
+				'restore_resume_context'  => $this->get_restore_resume_context( $snapshot_detail ),
+				'restore_rollback_resume_context' => $this->get_restore_rollback_resume_context( $snapshot_detail ),
+				'restore_run_cards'       => $this->get_restore_run_cards( $snapshot_detail ),
+				'snapshot_health_baseline' => $this->get_snapshot_health_baseline( $snapshot_detail ),
+				'snapshot_health_comparison' => $this->get_snapshot_health_comparison( $snapshot_detail ),
+				'snapshot_summary'        => $this->get_snapshot_summary( $snapshot_detail ),
+				'operator_checklist'      => $this->get_restore_operator_checklist( $snapshot_detail ),
+				'restore_impact_summary'  => $this->get_restore_impact_summary( $snapshot_detail ),
+				'audit_report_verification' => $this->get_audit_report_verification( $snapshot_detail ),
+				'snapshot_activity'       => $this->get_snapshot_activity( $snapshot_detail ),
+				'snapshot_activity_url'   => $this->get_snapshot_activity_url( is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) ? (int) $snapshot_detail['id'] : 0 ),
+				'notice'                  => $this->get_notice_message(),
+			)
 		);
-
-		require ZNTS_PLUGIN_DIR . 'includes/admin/views/update-readiness.php';
 	}
 
 	/**
