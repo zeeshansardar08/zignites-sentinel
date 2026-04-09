@@ -252,6 +252,8 @@
   - health comparison rows and dashboard health-strip behavior
   - live admin smoke runner helper behavior
   - resume-path admin presentation payloads
+  - Update Readiness checkpoint summary rows
+  - Update Readiness restore/rollback form and resume presentation state
   - event log presentation payloads
   - shared cross-screen status presentation
 - Main is now current through the merged read-only presentation cleanup for:
@@ -293,10 +295,16 @@
   - post-restore/post-rollback health status state prepared before rendering
   - execution/rollback check and item rows normalized before rendering
   - focused regression coverage for execution, rollback, and health result state
-- Current branch extends the Update Readiness journal-row cleanup with:
+- Main is now current through the merged Update Readiness journal-row cleanup for:
   - execution and rollback journal rows normalized by `UpdateReadinessStateBuilder`
   - journal status badge and label formatting moved out of `includes/admin/views/update-readiness.php`
   - focused regression coverage for execution and rollback journal rows
+- Current branch extends the Update Readiness form/checkpoint presentation-state cleanup with:
+  - execution and rollback checkpoint summary rows prepared by `UpdateReadinessStateBuilder`
+  - restore and rollback confirmation phrases prepared before rendering forms
+  - restore and rollback resume messages and run labels prepared before rendering
+  - execution-checkpoint discard visibility derived before rendering
+  - focused regression coverage for checkpoint rows, form phrases, resume copy, run labels, and empty defaults
 - Live authenticated admin smoke validation has now been run successfully against a real wp-admin session for:
   - Sentinel Dashboard
   - Update Readiness
@@ -401,9 +409,9 @@
 ### Immediate Next Steps
 1. Continue the read-only presentation extraction work now that manual/admin validation is current
 - Likely candidates:
-  - remaining Update Readiness resume/checkpoint/form presentation state still embedded in `includes/admin/views/update-readiness.php`
-  - remaining Update Readiness formatter helpers outside snapshot-list state, snapshot-summary state, dashboard-summary state, checkpoint payloads, restore-impact state, operator-checklist state, health-comparison state, and workspace state
-- Reason: controller-level, workspace-level, validation-row, restore validation/planning, execution/rollback result, and journal row state are now extracted, so the next highest-value work is reducing remaining form/checkpoint presentation state still concentrated in the view
+  - remaining Update Readiness operator-checklist/audit/preflight status formatting still embedded in `includes/admin/views/update-readiness.php`
+  - remaining snapshot metadata/artifact/diff row formatting still embedded in the Update Readiness view
+- Reason: controller-level, workspace-level, validation-row, restore validation/planning, execution/rollback result, journal row, checkpoint summary, and form/resume state are now extracted, so the next highest-value work is reducing the remaining older status/table formatting still concentrated in the view
 
 2. Keep the manual/admin validation current after each read-only extraction
 - Re-run the authenticated smoke helper and the targeted manual path for:
@@ -474,10 +482,10 @@
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
 - Current branch prepared for merge:
-  - `feature/update-readiness-journal-row-state`
+  - `feature/update-readiness-form-state`
 - Next likely restart task after this branch merges:
   - start from `includes/admin/views/update-readiness.php`
-  - extract the next resume/checkpoint/form presentation-state seam into the Update Readiness state builder or a focused presenter
+  - extract the next operator-checklist/audit/preflight or snapshot artifact/metadata presentation-state seam into the Update Readiness state builder or a focused presenter
   - avoid new restore behavior; keep this track to presentation-state cleanup and regression coverage
 
 

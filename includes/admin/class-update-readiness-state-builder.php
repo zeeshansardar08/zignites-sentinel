@@ -61,7 +61,7 @@ class UpdateReadinessStateBuilder {
 			'notice'                  => $this->array_value( $state, 'notice' ),
 		);
 
-		return $this->with_restore_result_state( $this->with_workspace_state( $view_data ) );
+		return $this->with_form_state( $this->with_checkpoint_summary_state( $this->with_restore_result_state( $this->with_workspace_state( $view_data ) ) ) );
 	}
 
 	/**
@@ -162,6 +162,249 @@ class UpdateReadinessStateBuilder {
 		$view_data['restore_rollback_journal_rows'] = $this->build_journal_rows( $last_restore_rollback );
 
 		return $view_data;
+	}
+
+	/**
+	 * Add derived checkpoint summary rows.
+	 *
+	 * @param array $view_data Normalized screen state.
+	 * @return array
+	 */
+	protected function with_checkpoint_summary_state( array $view_data ) {
+		$view_data['execution_checkpoint_summary_rows'] = $this->build_execution_checkpoint_summary_rows( $this->array_value( $view_data, 'execution_checkpoint_summary' ) );
+		$view_data['rollback_checkpoint_summary_rows']  = $this->build_rollback_checkpoint_summary_rows( $this->array_value( $view_data, 'rollback_checkpoint_summary' ) );
+
+		return $view_data;
+	}
+
+	/**
+	 * Add derived restore form and resume presentation state.
+	 *
+	 * @param array $view_data Normalized screen state.
+	 * @return array
+	 */
+	protected function with_form_state( array $view_data ) {
+		$snapshot_detail                 = $this->nullable_array_value( $view_data, 'snapshot_detail' );
+		$last_restore_plan               = $this->array_value( $view_data, 'last_restore_plan' );
+		$last_restore_execution          = $this->array_value( $view_data, 'last_restore_execution' );
+		$execution_checkpoint            = $this->array_value( $view_data, 'execution_checkpoint' );
+		$restore_resume_context          = $this->array_value( $view_data, 'restore_resume_context' );
+		$restore_rollback_resume_context = $this->array_value( $view_data, 'restore_rollback_resume_context' );
+		$snapshot_id                     = is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) ? (int) $snapshot_detail['id'] : 0;
+
+		$restore_confirmation_phrase  = isset( $last_restore_plan['confirmation_phrase'] ) ? (string) $last_restore_plan['confirmation_phrase'] : ( $snapshot_id > 0 ? sprintf( 'RESTORE SNAPSHOT %d', $snapshot_id ) : '' );
+		$rollback_confirmation_phrase = isset( $last_restore_execution['rollback_confirmation_phrase'] ) ? (string) $last_restore_execution['rollback_confirmation_phrase'] : ( $snapshot_id > 0 ? sprintf( 'ROLLBACK SNAPSHOT %d', $snapshot_id ) : '' );
+
+		$view_data['restore_form_state'] = array(
+			'restore_confirmation_phrase'  => $restore_confirmation_phrase,
+			'rollback_confirmation_phrase' => $rollback_confirmation_phrase,
+			'restore_resume_message'       => $this->build_restore_resume_message( $restore_resume_context ),
+			'restore_resume_run_label'     => $this->build_run_label( $restore_resume_context ),
+			'rollback_resume_message'      => $this->build_rollback_resume_message( $restore_rollback_resume_context ),
+			'rollback_checkpoint_message'  => $this->build_rollback_checkpoint_message( $restore_rollback_resume_context ),
+			'rollback_resume_run_label'    => $this->build_run_label( $restore_rollback_resume_context ),
+			'has_execution_checkpoint'     => isset( $execution_checkpoint['checkpoint'] ) && is_array( $execution_checkpoint['checkpoint'] ),
+		);
+
+		return $view_data;
+	}
+
+	/**
+	 * Build the restore execution resume summary.
+	 *
+	 * @param array $resume_context Resume context payload.
+	 * @return string
+	 */
+	protected function build_restore_resume_message( array $resume_context ) {
+		return sprintf(
+			/* translators: 1: completed item count, 2: journal entry count */
+			__( 'A resumable execution journal exists with %1$d completed items across %2$d persisted entries.', 'zignites-sentinel' ),
+			isset( $resume_context['completed_item_count'] ) ? (int) $resume_context['completed_item_count'] : 0,
+			isset( $resume_context['entry_count'] ) ? (int) $resume_context['entry_count'] : 0
+		);
+	}
+
+	/**
+	 * Build the restore rollback resume summary.
+	 *
+	 * @param array $resume_context Resume context payload.
+	 * @return string
+	 */
+	protected function build_rollback_resume_message( array $resume_context ) {
+		return sprintf(
+			/* translators: 1: completed item count, 2: journal entry count */
+			__( 'A resumable rollback journal exists with %1$d completed items across %2$d persisted entries.', 'zignites-sentinel' ),
+			isset( $resume_context['completed_item_count'] ) ? (int) $resume_context['completed_item_count'] : 0,
+			isset( $resume_context['entry_count'] ) ? (int) $resume_context['entry_count'] : 0
+		);
+	}
+
+	/**
+	 * Build the rollback checkpoint resume summary.
+	 *
+	 * @param array $resume_context Resume context payload.
+	 * @return string
+	 */
+	protected function build_rollback_checkpoint_message( array $resume_context ) {
+		if ( empty( $resume_context['checkpoint_item_count'] ) ) {
+			return '';
+		}
+
+		return sprintf(
+			/* translators: 1: completed count, 2: tracked item count */
+			__( 'Rollback checkpoint state currently tracks %1$d completed items across %2$d item checkpoints.', 'zignites-sentinel' ),
+			isset( $resume_context['checkpoint_completed_count'] ) ? (int) $resume_context['checkpoint_completed_count'] : 0,
+			(int) $resume_context['checkpoint_item_count']
+		);
+	}
+
+	/**
+	 * Build a display label for a resumable run id.
+	 *
+	 * @param array $resume_context Resume context payload.
+	 * @return string
+	 */
+	protected function build_run_label( array $resume_context ) {
+		if ( empty( $resume_context['run_id'] ) ) {
+			return '';
+		}
+
+		return sprintf(
+			/* translators: %s: restore run id */
+			__( 'Run ID: %s', 'zignites-sentinel' ),
+			(string) $resume_context['run_id']
+		);
+	}
+
+	/**
+	 * Build execution checkpoint summary rows.
+	 *
+	 * @param array $summary Execution checkpoint summary.
+	 * @return array
+	 */
+	protected function build_execution_checkpoint_summary_rows( array $summary ) {
+		if ( empty( $summary ) ) {
+			return array();
+		}
+
+		$rows = array(
+			array(
+				'label' => __( 'Run ID', 'zignites-sentinel' ),
+				'value' => isset( $summary['run_id'] ) ? (string) $summary['run_id'] : '',
+			),
+			array(
+				'label' => __( 'Generated', 'zignites-sentinel' ),
+				'value' => isset( $summary['generated_at'] ) ? (string) $summary['generated_at'] : '',
+			),
+			array(
+				'label' => __( 'Stage Reuse', 'zignites-sentinel' ),
+				'value' => ! empty( $summary['stage_ready'] ) ? __( 'Ready', 'zignites-sentinel' ) : __( 'Not available', 'zignites-sentinel' ),
+			),
+			array(
+				'label' => __( 'Stage Path', 'zignites-sentinel' ),
+				'value' => isset( $summary['stage_path'] ) ? (string) $summary['stage_path'] : '',
+			),
+			array(
+				'label' => __( 'Health Reuse', 'zignites-sentinel' ),
+				'value' => ! empty( $summary['health_completed'] ) ? __( 'Ready', 'zignites-sentinel' ) : __( 'Health will rerun', 'zignites-sentinel' ),
+			),
+			array(
+				'label' => __( 'Backed-Up Items', 'zignites-sentinel' ),
+				'value' => isset( $summary['backup_count'] ) ? (string) $summary['backup_count'] : '0',
+			),
+			array(
+				'label' => __( 'Written Items', 'zignites-sentinel' ),
+				'value' => isset( $summary['write_count'] ) ? (string) $summary['write_count'] : '0',
+			),
+			array(
+				'label' => __( 'Tracked Items', 'zignites-sentinel' ),
+				'value' => isset( $summary['item_count'] ) ? (string) $summary['item_count'] : '0',
+			),
+			array(
+				'label' => __( 'Failed Items', 'zignites-sentinel' ),
+				'value' => isset( $summary['failed_count'] ) ? (string) $summary['failed_count'] : '0',
+			),
+		);
+
+		if ( ! empty( $summary['phase_counts'] ) && is_array( $summary['phase_counts'] ) ) {
+			$rows[] = array(
+				'label' => __( 'Checkpoint Phases', 'zignites-sentinel' ),
+				'value' => $this->format_phase_counts( $summary['phase_counts'] ),
+			);
+		}
+
+		if ( ! empty( $summary['health_status'] ) ) {
+			$rows[] = array(
+				'label' => __( 'Stored Health Status', 'zignites-sentinel' ),
+				'value' => (string) $summary['health_status'],
+			);
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * Build rollback checkpoint summary rows.
+	 *
+	 * @param array $summary Rollback checkpoint summary.
+	 * @return array
+	 */
+	protected function build_rollback_checkpoint_summary_rows( array $summary ) {
+		if ( empty( $summary ) ) {
+			return array();
+		}
+
+		$rows = array(
+			array(
+				'label' => __( 'Run ID', 'zignites-sentinel' ),
+				'value' => isset( $summary['run_id'] ) ? (string) $summary['run_id'] : '',
+			),
+			array(
+				'label' => __( 'Generated', 'zignites-sentinel' ),
+				'value' => isset( $summary['generated_at'] ) ? (string) $summary['generated_at'] : '',
+			),
+			array(
+				'label' => __( 'Backup Root', 'zignites-sentinel' ),
+				'value' => isset( $summary['backup_root'] ) ? (string) $summary['backup_root'] : '',
+			),
+			array(
+				'label' => __( 'Tracked Items', 'zignites-sentinel' ),
+				'value' => isset( $summary['item_count'] ) ? (string) $summary['item_count'] : '0',
+			),
+			array(
+				'label' => __( 'Completed Items', 'zignites-sentinel' ),
+				'value' => isset( $summary['completed_count'] ) ? (string) $summary['completed_count'] : '0',
+			),
+			array(
+				'label' => __( 'Failed Items', 'zignites-sentinel' ),
+				'value' => isset( $summary['failed_count'] ) ? (string) $summary['failed_count'] : '0',
+			),
+		);
+
+		if ( ! empty( $summary['phase_counts'] ) && is_array( $summary['phase_counts'] ) ) {
+			$rows[] = array(
+				'label' => __( 'Checkpoint Phases', 'zignites-sentinel' ),
+				'value' => $this->format_phase_counts( $summary['phase_counts'] ),
+			);
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * Format checkpoint phase counts for display.
+	 *
+	 * @param array $phase_counts Phase count map.
+	 * @return string
+	 */
+	protected function format_phase_counts( array $phase_counts ) {
+		$labels = array();
+
+		foreach ( $phase_counts as $phase => $count ) {
+			$labels[] = sprintf( '%s (%d)', str_replace( '_', ' ', (string) $phase ), (int) $count );
+		}
+
+		return implode( ', ', $labels );
 	}
 
 	/**
