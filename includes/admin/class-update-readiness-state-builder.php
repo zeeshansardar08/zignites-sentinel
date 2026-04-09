@@ -154,10 +154,12 @@ class UpdateReadinessStateBuilder {
 		$view_data['restore_execution_health_check_rows'] = $this->build_check_rows( $this->array_value( $last_restore_execution, 'health_verification' ) );
 		$view_data['restore_execution_check_rows'] = $this->build_check_rows( $last_restore_execution );
 		$view_data['restore_execution_item_rows'] = $this->build_execution_item_rows( $last_restore_execution );
+		$view_data['restore_execution_journal_rows'] = $this->build_journal_rows( $last_restore_execution );
 		$view_data['restore_rollback_status'] = $this->build_execution_result_status( $last_restore_rollback );
 		$view_data['restore_rollback_health_status'] = $this->build_health_verification_status( $this->array_value( $last_restore_rollback, 'health_verification' ) );
 		$view_data['restore_rollback_check_rows'] = $this->build_check_rows( $last_restore_rollback );
 		$view_data['restore_rollback_item_rows'] = $this->build_execution_item_rows( $last_restore_rollback );
+		$view_data['restore_rollback_journal_rows'] = $this->build_journal_rows( $last_restore_rollback );
 
 		return $view_data;
 	}
@@ -264,6 +266,34 @@ class UpdateReadinessStateBuilder {
 				'status_label' => ucfirst( $status ),
 				'badge'        => 'fail' === $status ? 'critical' : $status,
 				'message'      => isset( $item['message'] ) ? (string) $item['message'] : '',
+			);
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * Build normalized restore execution/rollback journal rows.
+	 *
+	 * @param array $payload Restore execution or rollback payload.
+	 * @return array
+	 */
+	protected function build_journal_rows( array $payload ) {
+		$entries = isset( $payload['journal'] ) && is_array( $payload['journal'] ) ? $payload['journal'] : array();
+		$rows    = array();
+
+		foreach ( $entries as $entry ) {
+			$status = isset( $entry['status'] ) ? (string) $entry['status'] : '';
+
+			$rows[] = array(
+				'timestamp'    => isset( $entry['timestamp'] ) ? (string) $entry['timestamp'] : '',
+				'scope'        => isset( $entry['scope'] ) ? (string) $entry['scope'] : '',
+				'label'        => isset( $entry['label'] ) ? (string) $entry['label'] : '',
+				'phase'        => isset( $entry['phase'] ) ? (string) $entry['phase'] : '',
+				'status'       => $status,
+				'status_label' => ucfirst( $status ),
+				'badge'        => 'fail' === $status ? 'critical' : $status,
+				'message'      => isset( $entry['message'] ) ? (string) $entry['message'] : '',
 			);
 		}
 

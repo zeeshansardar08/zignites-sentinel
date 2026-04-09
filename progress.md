@@ -288,11 +288,15 @@
   - dry-run/stage/plan check rows prepared before rendering
   - restore-plan item rows normalized before rendering
   - focused regression coverage for restore validation and plan-row state
-- Current branch extends the Update Readiness execution result-state cleanup with:
+- Main is now current through the merged Update Readiness execution result-state cleanup for:
   - restore execution and rollback result status badges prepared by `UpdateReadinessStateBuilder`
   - post-restore/post-rollback health status state prepared before rendering
   - execution/rollback check and item rows normalized before rendering
   - focused regression coverage for execution, rollback, and health result state
+- Current branch extends the Update Readiness journal-row cleanup with:
+  - execution and rollback journal rows normalized by `UpdateReadinessStateBuilder`
+  - journal status badge and label formatting moved out of `includes/admin/views/update-readiness.php`
+  - focused regression coverage for execution and rollback journal rows
 - Live authenticated admin smoke validation has now been run successfully against a real wp-admin session for:
   - Sentinel Dashboard
   - Update Readiness
@@ -397,9 +401,9 @@
 ### Immediate Next Steps
 1. Continue the read-only presentation extraction work now that manual/admin validation is current
 - Likely candidates:
-  - remaining Update Readiness execution/rollback journal row formatting still embedded in `includes/admin/views/update-readiness.php`
+  - remaining Update Readiness resume/checkpoint/form presentation state still embedded in `includes/admin/views/update-readiness.php`
   - remaining Update Readiness formatter helpers outside snapshot-list state, snapshot-summary state, dashboard-summary state, checkpoint payloads, restore-impact state, operator-checklist state, health-comparison state, and workspace state
-- Reason: controller-level, workspace-level, validation-row, restore validation/planning, and execution/rollback result state are now extracted, so the next highest-value work is reducing remaining journal formatting still concentrated in the view
+- Reason: controller-level, workspace-level, validation-row, restore validation/planning, execution/rollback result, and journal row state are now extracted, so the next highest-value work is reducing remaining form/checkpoint presentation state still concentrated in the view
 
 2. Keep the manual/admin validation current after each read-only extraction
 - Re-run the authenticated smoke helper and the targeted manual path for:
@@ -470,10 +474,10 @@
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
 - Current branch prepared for merge:
-  - `feature/update-readiness-execution-result-state`
+  - `feature/update-readiness-journal-row-state`
 - Next likely restart task after this branch merges:
   - start from `includes/admin/views/update-readiness.php`
-  - extract the next execution/rollback journal-row seam into the Update Readiness state builder or a focused presenter
+  - extract the next resume/checkpoint/form presentation-state seam into the Update Readiness state builder or a focused presenter
   - avoid new restore behavior; keep this track to presentation-state cleanup and regression coverage
 
 
