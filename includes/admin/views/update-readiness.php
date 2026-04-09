@@ -42,6 +42,15 @@ $snapshot_status_filter_options = isset( $view_data['snapshot_status_filter_opti
 $snapshot_status_index   = isset( $view_data['snapshot_status_index'] ) && is_array( $view_data['snapshot_status_index'] ) ? $view_data['snapshot_status_index'] : array();
 $snapshot_pagination     = isset( $view_data['snapshot_pagination'] ) && is_array( $view_data['snapshot_pagination'] ) ? $view_data['snapshot_pagination'] : array();
 $selected_snapshot_status  = isset( $view_data['selected_snapshot_status'] ) && is_array( $view_data['selected_snapshot_status'] ) ? $view_data['selected_snapshot_status'] : array();
+$operator_checklist_status = isset( $view_data['operator_checklist_status'] ) && is_array( $view_data['operator_checklist_status'] ) ? $view_data['operator_checklist_status'] : array();
+$operator_checklist_check_rows = isset( $view_data['operator_checklist_check_rows'] ) && is_array( $view_data['operator_checklist_check_rows'] ) ? $view_data['operator_checklist_check_rows'] : array();
+$audit_report_verification_status = isset( $view_data['audit_report_verification_status'] ) && is_array( $view_data['audit_report_verification_status'] ) ? $view_data['audit_report_verification_status'] : array();
+$audit_report_verification_check_rows = isset( $view_data['audit_report_verification_check_rows'] ) && is_array( $view_data['audit_report_verification_check_rows'] ) ? $view_data['audit_report_verification_check_rows'] : array();
+$preflight_status          = isset( $view_data['preflight_status'] ) && is_array( $view_data['preflight_status'] ) ? $view_data['preflight_status'] : array();
+$preflight_check_rows      = isset( $view_data['preflight_check_rows'] ) && is_array( $view_data['preflight_check_rows'] ) ? $view_data['preflight_check_rows'] : array();
+$update_candidate_rows     = isset( $view_data['update_candidate_rows'] ) && is_array( $view_data['update_candidate_rows'] ) ? $view_data['update_candidate_rows'] : array();
+$last_update_plan_status   = isset( $view_data['last_update_plan_status'] ) && is_array( $view_data['last_update_plan_status'] ) ? $view_data['last_update_plan_status'] : array();
+$last_update_plan_target_rows = isset( $view_data['last_update_plan_target_rows'] ) && is_array( $view_data['last_update_plan_target_rows'] ) ? $view_data['last_update_plan_target_rows'] : array();
 $plan_validation           = isset( $view_data['plan_validation'] ) && is_array( $view_data['plan_validation'] ) ? $view_data['plan_validation'] : array();
 $plan_validation_check_rows = isset( $view_data['plan_validation_check_rows'] ) && is_array( $view_data['plan_validation_check_rows'] ) ? $view_data['plan_validation_check_rows'] : array();
 $restore_source_validation = isset( $view_data['restore_source_validation'] ) && is_array( $view_data['restore_source_validation'] ) ? $view_data['restore_source_validation'] : array();
@@ -125,7 +134,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			</div>
 			<div class="znts-summary-item">
 				<span><?php echo esc_html__( 'Checklist gates', 'zignites-sentinel' ); ?></span>
-				<strong><?php echo esc_html( ! empty( $operator_checklist['checks'] ) ? sprintf( __( '%d checks', 'zignites-sentinel' ), count( $operator_checklist['checks'] ) ) : __( 'Not started', 'zignites-sentinel' ) ); ?></strong>
+				<strong><?php echo esc_html( isset( $operator_checklist_status['check_count_label'] ) ? $operator_checklist_status['check_count_label'] : '' ); ?></strong>
 				<p><?php echo esc_html__( 'Baseline, stage validation, and plan freshness determine whether guarded restore is offered.', 'zignites-sentinel' ); ?></p>
 			</div>
 			<div class="znts-summary-item">
@@ -374,7 +383,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</div>
 					</details>
 				<?php endif; ?>
-				<?php if ( ! empty( $operator_checklist['checks'] ) ) : ?>
+				<?php if ( ! empty( $operator_checklist_check_rows ) ) : ?>
 					<details class="znts-disclosure" <?php echo esc_attr( $open_health_validation ? 'open' : '' ); ?>>
 						<summary><?php echo esc_html__( 'Live Restore Operator Checklist', 'zignites-sentinel' ); ?></summary>
 						<div class="znts-disclosure-body">
@@ -387,20 +396,10 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</form>
 							</div>
 							<div class="znts-readiness-row">
-						<span class="znts-pill znts-pill-<?php echo esc_attr( ! empty( $operator_checklist['can_execute'] ) ? 'info' : 'critical' ); ?>">
-							<?php echo esc_html( ! empty( $operator_checklist['can_execute'] ) ? __( 'Ready', 'zignites-sentinel' ) : __( 'Blocked', 'zignites-sentinel' ) ); ?>
+						<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $operator_checklist_status['badge'] ) ? $operator_checklist_status['badge'] : 'info' ); ?>">
+							<?php echo esc_html( isset( $operator_checklist_status['label'] ) ? $operator_checklist_status['label'] : '' ); ?>
 						</span>
-						<span>
-							<?php
-							echo esc_html(
-								sprintf(
-									/* translators: %d: max age in hours */
-									__( 'Live restore is offered only when all checklist gates pass and checkpoints are no older than %d hours.', 'zignites-sentinel' ),
-									isset( $operator_checklist['max_age_hours'] ) ? (int) $operator_checklist['max_age_hours'] : 24
-								)
-							);
-							?>
-						</span>
+						<span><?php echo esc_html( isset( $operator_checklist_status['message'] ) ? $operator_checklist_status['message'] : '' ); ?></span>
 							</div>
 							<p class="description"><?php echo esc_html__( 'This reruns staged validation and restore planning only. It does not execute a restore or modify live plugin/theme files.', 'zignites-sentinel' ); ?></p>
 							<table class="widefat striped">
@@ -412,15 +411,15 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $operator_checklist['checks'] as $check ) : ?>
+							<?php foreach ( $operator_checklist_check_rows as $check ) : ?>
 								<tr>
-									<td><?php echo esc_html( isset( $check['label'] ) ? $check['label'] : '' ); ?></td>
+									<td><?php echo esc_html( $check['label'] ); ?></td>
 									<td>
-										<span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === ( isset( $check['status'] ) ? $check['status'] : '' ) ? 'critical' : ( isset( $check['status'] ) ? $check['status'] : 'info' ) ); ?>">
-											<?php echo esc_html( ucfirst( isset( $check['status'] ) ? $check['status'] : '' ) ); ?>
+										<span class="znts-pill znts-pill-<?php echo esc_attr( $check['badge'] ); ?>">
+											<?php echo esc_html( $check['status_label'] ); ?>
 										</span>
 									</td>
-									<td><?php echo esc_html( isset( $check['message'] ) ? $check['message'] : '' ); ?></td>
+									<td><?php echo esc_html( $check['message'] ); ?></td>
 								</tr>
 							<?php endforeach; ?>
 						</tbody>
@@ -445,13 +444,13 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<?php if ( ! empty( $audit_report_verification ) ) : ?>
 					<h3><?php echo esc_html__( 'Latest Verification Result', 'zignites-sentinel' ); ?></h3>
 					<div class="znts-readiness-row">
-						<span class="znts-pill znts-pill-<?php echo esc_attr( 'blocked' === $audit_report_verification['status'] ? 'critical' : ( 'caution' === $audit_report_verification['status'] ? 'warning' : 'info' ) ); ?>">
-							<?php echo esc_html( ucfirst( $audit_report_verification['status'] ) ); ?>
+						<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $audit_report_verification_status['badge'] ) ? $audit_report_verification_status['badge'] : 'info' ); ?>">
+							<?php echo esc_html( isset( $audit_report_verification_status['status_label'] ) ? $audit_report_verification_status['status_label'] : '' ); ?>
 						</span>
-						<span><?php echo esc_html( isset( $audit_report_verification['generated_at'] ) ? $audit_report_verification['generated_at'] : '' ); ?></span>
+						<span><?php echo esc_html( isset( $audit_report_verification_status['generated_at'] ) ? $audit_report_verification_status['generated_at'] : '' ); ?></span>
 					</div>
-					<p><?php echo esc_html( isset( $audit_report_verification['note'] ) ? $audit_report_verification['note'] : '' ); ?></p>
-					<?php if ( ! empty( $audit_report_verification['checks'] ) ) : ?>
+					<p><?php echo esc_html( isset( $audit_report_verification_status['note'] ) ? $audit_report_verification_status['note'] : '' ); ?></p>
+					<?php if ( ! empty( $audit_report_verification_check_rows ) ) : ?>
 						<table class="widefat striped">
 							<thead>
 								<tr>
@@ -461,15 +460,15 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 								</tr>
 							</thead>
 							<tbody>
-								<?php foreach ( $audit_report_verification['checks'] as $check ) : ?>
+								<?php foreach ( $audit_report_verification_check_rows as $check ) : ?>
 									<tr>
-										<td><?php echo esc_html( isset( $check['label'] ) ? $check['label'] : '' ); ?></td>
+										<td><?php echo esc_html( $check['label'] ); ?></td>
 										<td>
-											<span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === ( isset( $check['status'] ) ? $check['status'] : '' ) ? 'critical' : ( isset( $check['status'] ) ? $check['status'] : 'info' ) ); ?>">
-												<?php echo esc_html( ucfirst( isset( $check['status'] ) ? $check['status'] : '' ) ); ?>
+											<span class="znts-pill znts-pill-<?php echo esc_attr( $check['badge'] ); ?>">
+												<?php echo esc_html( $check['status_label'] ); ?>
 											</span>
 										</td>
-										<td><?php echo esc_html( isset( $check['message'] ) ? $check['message'] : '' ); ?></td>
+										<td><?php echo esc_html( $check['message'] ); ?></td>
 									</tr>
 								<?php endforeach; ?>
 							</tbody>
@@ -558,12 +557,12 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<p><?php echo esc_html__( 'No preflight scan has been recorded yet.', 'zignites-sentinel' ); ?></p>
 			<?php else : ?>
 				<div class="znts-readiness-row">
-					<span class="znts-pill znts-pill-<?php echo esc_attr( 'blocked' === $preflight['readiness'] ? 'critical' : ( 'caution' === $preflight['readiness'] ? 'warning' : 'info' ) ); ?>">
-						<?php echo esc_html( ucfirst( $preflight['readiness'] ) ); ?>
+					<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $preflight_status['badge'] ) ? $preflight_status['badge'] : 'info' ); ?>">
+						<?php echo esc_html( isset( $preflight_status['status_label'] ) ? $preflight_status['status_label'] : '' ); ?>
 					</span>
-					<span><?php echo esc_html( $preflight['generated_at'] ); ?></span>
+					<span><?php echo esc_html( isset( $preflight_status['generated_at'] ) ? $preflight_status['generated_at'] : '' ); ?></span>
 				</div>
-				<p><?php echo esc_html( $preflight['note'] ); ?></p>
+				<p><?php echo esc_html( isset( $preflight_status['note'] ) ? $preflight_status['note'] : '' ); ?></p>
 				<table class="widefat striped">
 					<thead>
 						<tr>
@@ -573,12 +572,12 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tr>
 					</thead>
 					<tbody>
-						<?php foreach ( $preflight['checks'] as $check ) : ?>
+						<?php foreach ( $preflight_check_rows as $check ) : ?>
 							<tr>
 								<td><?php echo esc_html( $check['label'] ); ?></td>
 								<td>
-									<span class="znts-pill znts-pill-<?php echo esc_attr( 'fail' === $check['status'] ? 'critical' : $check['status'] ); ?>">
-										<?php echo esc_html( ucfirst( $check['status'] ) ); ?>
+									<span class="znts-pill znts-pill-<?php echo esc_attr( $check['badge'] ); ?>">
+										<?php echo esc_html( $check['status_label'] ); ?>
 									</span>
 								</td>
 								<td><?php echo esc_html( $check['message'] ); ?></td>
@@ -591,7 +590,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 
 		<section class="znts-card znts-card-secondary">
 			<h2><?php echo esc_html__( 'Pending Update Candidates', 'zignites-sentinel' ); ?></h2>
-			<?php if ( empty( $view_data['update_candidates'] ) ) : ?>
+			<?php if ( empty( $update_candidate_rows ) ) : ?>
 				<p><?php echo esc_html__( 'No pending plugin, theme, or core updates were found.', 'zignites-sentinel' ); ?></p>
 			<?php else : ?>
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -608,10 +607,10 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $view_data['update_candidates'] as $candidate ) : ?>
+							<?php foreach ( $update_candidate_rows as $candidate ) : ?>
 								<tr>
 									<td><input type="checkbox" name="update_targets[]" value="<?php echo esc_attr( $candidate['key'] ); ?>" /></td>
-									<td><?php echo esc_html( ucfirst( $candidate['type'] ) ); ?></td>
+									<td><?php echo esc_html( $candidate['type_label'] ); ?></td>
 									<td><?php echo esc_html( $candidate['label'] ); ?></td>
 									<td><?php echo esc_html( $candidate['current_version'] ); ?></td>
 									<td><?php echo esc_html( $candidate['new_version'] ); ?></td>
@@ -631,12 +630,12 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<p><?php echo esc_html__( 'No update plan has been created yet.', 'zignites-sentinel' ); ?></p>
 			<?php else : ?>
 				<div class="znts-readiness-row">
-					<span class="znts-pill znts-pill-<?php echo esc_attr( 'blocked_for_review' === $last_plan['status'] ? 'critical' : ( 'caution' === $last_plan['status'] ? 'warning' : 'info' ) ); ?>">
-						<?php echo esc_html( ucfirst( str_replace( '_', ' ', $last_plan['status'] ) ) ); ?>
+					<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $last_update_plan_status['badge'] ) ? $last_update_plan_status['badge'] : 'info' ); ?>">
+						<?php echo esc_html( isset( $last_update_plan_status['status_label'] ) ? $last_update_plan_status['status_label'] : '' ); ?>
 					</span>
-					<span><?php echo esc_html( $last_plan['created_at'] ); ?></span>
+					<span><?php echo esc_html( isset( $last_update_plan_status['generated_at'] ) ? $last_update_plan_status['generated_at'] : '' ); ?></span>
 				</div>
-				<p><?php echo esc_html( $last_plan['note'] ); ?></p>
+				<p><?php echo esc_html( isset( $last_update_plan_status['note'] ) ? $last_update_plan_status['note'] : '' ); ?></p>
 				<?php if ( ! empty( $last_plan['snapshot_id'] ) ) : ?>
 					<p>
 						<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-update-readiness', 'snapshot_id' => (int) $last_plan['snapshot_id'] ), admin_url( 'admin.php' ) ) ); ?>">
@@ -644,7 +643,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</a>
 					</p>
 				<?php endif; ?>
-				<?php if ( ! empty( $last_plan['targets'] ) ) : ?>
+				<?php if ( ! empty( $last_update_plan_target_rows ) ) : ?>
 					<table class="widefat striped">
 						<thead>
 							<tr>
@@ -655,9 +654,9 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $last_plan['targets'] as $target ) : ?>
+							<?php foreach ( $last_update_plan_target_rows as $target ) : ?>
 								<tr>
-									<td><?php echo esc_html( ucfirst( $target['type'] ) ); ?></td>
+									<td><?php echo esc_html( $target['type_label'] ); ?></td>
 									<td><?php echo esc_html( $target['label'] ); ?></td>
 									<td><?php echo esc_html( $target['current_version'] ); ?></td>
 									<td><?php echo esc_html( $target['new_version'] ); ?></td>

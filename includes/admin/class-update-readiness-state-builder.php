@@ -61,7 +61,13 @@ class UpdateReadinessStateBuilder {
 			'notice'                  => $this->array_value( $state, 'notice' ),
 		);
 
-		return $this->with_form_state( $this->with_checkpoint_summary_state( $this->with_restore_result_state( $this->with_workspace_state( $view_data ) ) ) );
+		$view_data = $this->with_workspace_state( $view_data );
+		$view_data = $this->with_status_section_state( $view_data );
+		$view_data = $this->with_restore_result_state( $view_data );
+		$view_data = $this->with_checkpoint_summary_state( $view_data );
+		$view_data = $this->with_form_state( $view_data );
+
+		return $view_data;
 	}
 
 	/**
@@ -125,6 +131,32 @@ class UpdateReadinessStateBuilder {
 		$view_data['workspace_confidence'] = ! empty( $operator_checklist['can_execute'] )
 			? __( 'Checklist gates are currently satisfied for this snapshot.', 'zignites-sentinel' )
 			: __( 'The workspace is showing the shortest safe path, not every technical detail at once.', 'zignites-sentinel' );
+
+		return $view_data;
+	}
+
+	/**
+	 * Add derived state for general Update Readiness status sections.
+	 *
+	 * @param array $view_data Normalized screen state.
+	 * @return array
+	 */
+	protected function with_status_section_state( array $view_data ) {
+		$preflight                 = $this->array_value( $view_data, 'last_preflight' );
+		$last_plan                 = $this->array_value( $view_data, 'last_update_plan' );
+		$operator_checklist        = $this->array_value( $view_data, 'operator_checklist' );
+		$audit_report_verification = $this->array_value( $view_data, 'audit_report_verification' );
+		$update_candidates         = $this->array_value( $view_data, 'update_candidates' );
+
+		$view_data['operator_checklist_status'] = $this->build_operator_checklist_status( $operator_checklist );
+		$view_data['operator_checklist_check_rows'] = $this->build_check_rows( $operator_checklist );
+		$view_data['audit_report_verification_status'] = $this->build_restore_result_status( $audit_report_verification );
+		$view_data['audit_report_verification_check_rows'] = $this->build_check_rows( $audit_report_verification );
+		$view_data['preflight_status'] = $this->build_readiness_status( $preflight, 'readiness', 'generated_at' );
+		$view_data['preflight_check_rows'] = $this->build_check_rows( $preflight );
+		$view_data['update_candidate_rows'] = $this->build_update_candidate_rows( $update_candidates );
+		$view_data['last_update_plan_status'] = $this->build_readiness_status( $last_plan, 'status', 'created_at' );
+		$view_data['last_update_plan_target_rows'] = $this->build_update_plan_target_rows( $last_plan );
 
 		return $view_data;
 	}
@@ -277,6 +309,101 @@ class UpdateReadinessStateBuilder {
 	}
 
 	/**
+	 * Build normalized operator checklist status.
+	 *
+	 * @param array $operator_checklist Operator checklist payload.
+	 * @return array
+	 */
+	protected function build_operator_checklist_status( array $operator_checklist ) {
+		$can_execute = ! empty( $operator_checklist['can_execute'] );
+
+		return array(
+			'badge'   => $can_execute ? 'info' : 'critical',
+			'label'   => $can_execute ? __( 'Ready', 'zignites-sentinel' ) : __( 'Blocked', 'zignites-sentinel' ),
+			'check_count_label' => ! empty( $operator_checklist['checks'] ) && is_array( $operator_checklist['checks'] )
+				? sprintf(
+					/* translators: %d: checklist check count */
+					__( '%d checks', 'zignites-sentinel' ),
+					count( $operator_checklist['checks'] )
+				)
+				: __( 'Not started', 'zignites-sentinel' ),
+			'message' => sprintf(
+				/* translators: %d: max age in hours */
+				__( 'Live restore is offered only when all checklist gates pass and checkpoints are no older than %d hours.', 'zignites-sentinel' ),
+				isset( $operator_checklist['max_age_hours'] ) ? (int) $operator_checklist['max_age_hours'] : 24
+			),
+		);
+	}
+
+	/**
+	 * Build normalized status state for readiness-style result payloads.
+	 *
+	 * @param array  $payload      Result payload.
+	 * @param string $status_key   Status key to read.
+	 * @param string $timestamp_key Timestamp key to read.
+	 * @return array
+	 */
+	protected function build_readiness_status( array $payload, $status_key, $timestamp_key ) {
+		$status = isset( $payload[ $status_key ] ) ? (string) $payload[ $status_key ] : '';
+
+		return array(
+			'status'       => $status,
+			'status_label' => $this->humanize_status( $status ),
+			'badge'        => 'blocked' === $status || 'blocked_for_review' === $status ? 'critical' : ( 'caution' === $status ? 'warning' : 'info' ),
+			'generated_at' => isset( $payload[ $timestamp_key ] ) ? (string) $payload[ $timestamp_key ] : '',
+			'note'         => isset( $payload['note'] ) ? (string) $payload['note'] : '',
+		);
+	}
+
+	/**
+	 * Build normalized pending update candidate rows.
+	 *
+	 * @param array $candidates Update candidates.
+	 * @return array
+	 */
+	protected function build_update_candidate_rows( array $candidates ) {
+		$rows = array();
+
+		foreach ( $candidates as $candidate ) {
+			$type = isset( $candidate['type'] ) ? (string) $candidate['type'] : '';
+
+			$rows[] = array(
+				'key'             => isset( $candidate['key'] ) ? (string) $candidate['key'] : '',
+				'type_label'      => ucfirst( $type ),
+				'label'           => isset( $candidate['label'] ) ? (string) $candidate['label'] : '',
+				'current_version' => isset( $candidate['current_version'] ) ? (string) $candidate['current_version'] : '',
+				'new_version'     => isset( $candidate['new_version'] ) ? (string) $candidate['new_version'] : '',
+			);
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * Build normalized update plan target rows.
+	 *
+	 * @param array $last_plan Last update plan payload.
+	 * @return array
+	 */
+	protected function build_update_plan_target_rows( array $last_plan ) {
+		$targets = isset( $last_plan['targets'] ) && is_array( $last_plan['targets'] ) ? $last_plan['targets'] : array();
+		$rows    = array();
+
+		foreach ( $targets as $target ) {
+			$type = isset( $target['type'] ) ? (string) $target['type'] : '';
+
+			$rows[] = array(
+				'type_label'      => ucfirst( $type ),
+				'label'           => isset( $target['label'] ) ? (string) $target['label'] : '',
+				'current_version' => isset( $target['current_version'] ) ? (string) $target['current_version'] : '',
+				'new_version'     => isset( $target['new_version'] ) ? (string) $target['new_version'] : '',
+			);
+		}
+
+		return $rows;
+	}
+
+	/**
 	 * Build execution checkpoint summary rows.
 	 *
 	 * @param array $summary Execution checkpoint summary.
@@ -418,7 +545,7 @@ class UpdateReadinessStateBuilder {
 
 		return array(
 			'status'       => $status,
-			'status_label' => ucfirst( $status ),
+			'status_label' => $this->humanize_status( $status ),
 			'badge'        => 'blocked' === $status ? 'critical' : ( 'caution' === $status ? 'warning' : 'info' ),
 			'generated_at' => isset( $payload['generated_at'] ) ? (string) $payload['generated_at'] : '',
 			'note'         => isset( $payload['note'] ) ? (string) $payload['note'] : '',
@@ -463,7 +590,7 @@ class UpdateReadinessStateBuilder {
 
 		return array(
 			'status'       => $status,
-			'status_label' => ucfirst( $status ),
+			'status_label' => $this->humanize_status( $status ),
 			'badge'        => 'blocked' === $status ? 'critical' : ( 'partial' === $status ? 'warning' : 'info' ),
 			'generated_at' => isset( $payload['generated_at'] ) ? (string) $payload['generated_at'] : '',
 			'note'         => isset( $payload['note'] ) ? (string) $payload['note'] : '',
@@ -481,7 +608,7 @@ class UpdateReadinessStateBuilder {
 
 		return array(
 			'status'       => $status,
-			'status_label' => ucfirst( $status ),
+			'status_label' => $this->humanize_status( $status ),
 			'badge'        => 'unhealthy' === $status ? 'critical' : ( 'degraded' === $status ? 'warning' : 'info' ),
 			'generated_at' => isset( $payload['generated_at'] ) ? (string) $payload['generated_at'] : '',
 			'note'         => isset( $payload['note'] ) ? (string) $payload['note'] : '',
@@ -506,7 +633,7 @@ class UpdateReadinessStateBuilder {
 				'label'        => isset( $item['label'] ) ? (string) $item['label'] : '',
 				'action_label' => ucfirst( $action ),
 				'status'       => $status,
-				'status_label' => ucfirst( $status ),
+				'status_label' => $this->humanize_status( $status ),
 				'badge'        => 'fail' === $status ? 'critical' : $status,
 				'message'      => isset( $item['message'] ) ? (string) $item['message'] : '',
 			);
@@ -534,7 +661,7 @@ class UpdateReadinessStateBuilder {
 				'label'        => isset( $entry['label'] ) ? (string) $entry['label'] : '',
 				'phase'        => isset( $entry['phase'] ) ? (string) $entry['phase'] : '',
 				'status'       => $status,
-				'status_label' => ucfirst( $status ),
+				'status_label' => $this->humanize_status( $status ),
 				'badge'        => 'fail' === $status ? 'critical' : $status,
 				'message'      => isset( $entry['message'] ) ? (string) $entry['message'] : '',
 			);
@@ -559,7 +686,7 @@ class UpdateReadinessStateBuilder {
 			$rows[] = array(
 				'label'        => isset( $check['label'] ) ? (string) $check['label'] : '',
 				'status'       => $status,
-				'status_label' => ucfirst( $status ),
+				'status_label' => $this->humanize_status( $status ),
 				'badge'        => 'fail' === $status ? 'critical' : $status,
 				'message'      => isset( $check['message'] ) ? (string) $check['message'] : '',
 			);
@@ -608,6 +735,16 @@ class UpdateReadinessStateBuilder {
 		}
 
 		return array_values( array_filter( $labels, 'strlen' ) );
+	}
+
+	/**
+	 * Convert a machine status into a compact display label.
+	 *
+	 * @param string $status Machine status.
+	 * @return string
+	 */
+	protected function humanize_status( $status ) {
+		return ucfirst( str_replace( '_', ' ', (string) $status ) );
 	}
 
 	/**
