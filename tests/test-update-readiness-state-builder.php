@@ -385,12 +385,24 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 				),
 			),
 			'snapshot_health_baseline' => array(
-				'status'      => 'healthy',
-				'status_pill' => 'warning',
+				'status'       => 'healthy',
+				'status_label' => 'Healthy',
+				'status_pill'  => 'warning',
+				'generated_at' => '2026-04-09 10:02:00',
+				'note'         => 'Baseline captured.',
 			),
 			'snapshot_health_comparison' => array(
 				array(
-					'label' => 'Baseline',
+					'label'        => 'Baseline',
+					'status_label' => 'Healthy',
+					'status_pill'  => 'info',
+					'generated_at' => '2026-04-09 10:02:00',
+					'summary'      => array(
+						'pass'    => 4,
+						'warning' => 1,
+						'fail'    => 0,
+					),
+					'delta'        => 'No change',
 				),
 			),
 			'snapshot_summary' => array(
@@ -492,6 +504,12 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'Review restore impact', $state['snapshot_primary_step'], 'Update Readiness state builder should derive the primary snapshot next step.' );
 	znts_assert_same( 'warning', $state['health_attention_state'], 'Update Readiness state builder should derive the health attention state from baseline status pill.' );
 	znts_assert_same( 'Restore preparation needs attention: the current health baseline is degraded.', $state['health_attention_message'], 'Update Readiness state builder should derive the health attention message.' );
+	znts_assert_same( 'warning', $state['snapshot_health_baseline_status']['badge'], 'Update Readiness state builder should derive health baseline status badges.' );
+	znts_assert_same( 'Healthy', $state['snapshot_health_baseline_status']['status_label'], 'Update Readiness state builder should derive health baseline status labels.' );
+	znts_assert_same( '2026-04-09 10:02:00', $state['snapshot_health_baseline_status']['generated_at'], 'Update Readiness state builder should derive health baseline timestamps.' );
+	znts_assert_same( 'Baseline', $state['snapshot_health_comparison_rows'][0]['label'], 'Update Readiness state builder should derive health comparison row labels.' );
+	znts_assert_same( '4', $state['snapshot_health_comparison_rows'][0]['pass_count'], 'Update Readiness state builder should normalize health comparison pass counts.' );
+	znts_assert_same( 'No change', $state['snapshot_health_comparison_rows'][0]['delta'], 'Update Readiness state builder should derive health comparison deltas.' );
 	znts_assert_same( false, $state['open_health_validation'], 'Update Readiness state builder should close health validation details when checklist gates can execute.' );
 	znts_assert_same( 'Next: confirm the impact summary, verify the checklist is still current, and only then move into guarded restore review.', $state['workspace_flow_message'], 'Update Readiness state builder should derive ready-state workflow guidance.' );
 	znts_assert_same( 'Checklist gates are currently satisfied for this snapshot.', $state['workspace_confidence'], 'Update Readiness state builder should derive ready-state workspace confidence.' );
@@ -626,5 +644,7 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( 'Awaiting snapshot', $state['workspace_status_label'], 'Update Readiness state builder should derive awaiting-snapshot workspace status.' );
 	znts_assert_same( 'critical', $state['workspace_status_badge'], 'Update Readiness state builder should derive the awaiting-snapshot workspace badge.' );
 	znts_assert_same( 'critical', $state['health_attention_state'], 'Update Readiness state builder should derive critical health attention state without a baseline.' );
+	znts_assert_same( 'info', $state['snapshot_health_baseline_status']['badge'], 'Update Readiness state builder should default missing health baseline badges to info.' );
+	znts_assert_same( array(), $state['snapshot_health_comparison_rows'], 'Update Readiness state builder should default missing health comparison rows to an empty array.' );
 	znts_assert_same( true, $state['open_health_validation'], 'Update Readiness state builder should open health validation details when checklist gates are incomplete.' );
 }

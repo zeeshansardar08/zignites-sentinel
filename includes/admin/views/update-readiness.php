@@ -87,6 +87,8 @@ $snapshot_primary_risk     = isset( $view_data['snapshot_primary_risk'] ) ? (str
 $snapshot_primary_step     = isset( $view_data['snapshot_primary_step'] ) ? (string) $view_data['snapshot_primary_step'] : '';
 $health_attention_state    = isset( $view_data['health_attention_state'] ) ? (string) $view_data['health_attention_state'] : 'info';
 $health_attention_message  = isset( $view_data['health_attention_message'] ) ? (string) $view_data['health_attention_message'] : '';
+$snapshot_health_baseline_status = isset( $view_data['snapshot_health_baseline_status'] ) && is_array( $view_data['snapshot_health_baseline_status'] ) ? $view_data['snapshot_health_baseline_status'] : array();
+$snapshot_health_comparison_rows = isset( $view_data['snapshot_health_comparison_rows'] ) && is_array( $view_data['snapshot_health_comparison_rows'] ) ? $view_data['snapshot_health_comparison_rows'] : array();
 $snapshot_basic_rows       = isset( $view_data['snapshot_basic_rows'] ) && is_array( $view_data['snapshot_basic_rows'] ) ? $view_data['snapshot_basic_rows'] : array();
 $snapshot_metadata_rows    = isset( $view_data['snapshot_metadata_rows'] ) && is_array( $view_data['snapshot_metadata_rows'] ) ? $view_data['snapshot_metadata_rows'] : array();
 $component_manifest_rows   = isset( $view_data['component_manifest_rows'] ) && is_array( $view_data['component_manifest_rows'] ) ? $view_data['component_manifest_rows'] : array();
@@ -349,14 +351,14 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<p><?php echo esc_html__( 'No health baseline has been captured for this snapshot yet.', 'zignites-sentinel' ); ?></p>
 				<?php else : ?>
 					<div class="znts-readiness-row">
-						<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $snapshot_health_baseline['status_pill'] ) ? $snapshot_health_baseline['status_pill'] : ( 'unhealthy' === $snapshot_health_baseline['status'] ? 'critical' : ( 'degraded' === $snapshot_health_baseline['status'] ? 'warning' : 'info' ) ) ); ?>">
-							<?php echo esc_html( isset( $snapshot_health_baseline['status_label'] ) ? $snapshot_health_baseline['status_label'] : ucfirst( $snapshot_health_baseline['status'] ) ); ?>
+						<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $snapshot_health_baseline_status['badge'] ) ? $snapshot_health_baseline_status['badge'] : 'info' ); ?>">
+							<?php echo esc_html( isset( $snapshot_health_baseline_status['status_label'] ) ? $snapshot_health_baseline_status['status_label'] : '' ); ?>
 						</span>
-						<span><?php echo esc_html( $snapshot_health_baseline['generated_at'] ); ?></span>
+						<span><?php echo esc_html( isset( $snapshot_health_baseline_status['generated_at'] ) ? $snapshot_health_baseline_status['generated_at'] : '' ); ?></span>
 					</div>
-					<p><?php echo esc_html( $snapshot_health_baseline['note'] ); ?></p>
+					<p><?php echo esc_html( isset( $snapshot_health_baseline_status['note'] ) ? $snapshot_health_baseline_status['note'] : '' ); ?></p>
 				<?php endif; ?>
-				<?php if ( ! empty( $snapshot_health_comparison ) ) : ?>
+				<?php if ( ! empty( $snapshot_health_comparison_rows ) ) : ?>
 					<details class="znts-disclosure" <?php echo esc_attr( $open_health_validation ? 'open' : '' ); ?>>
 						<summary><?php echo esc_html__( 'Health Comparison', 'zignites-sentinel' ); ?></summary>
 						<div class="znts-disclosure-body">
@@ -373,19 +375,19 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ( $snapshot_health_comparison as $health_row ) : ?>
+							<?php foreach ( $snapshot_health_comparison_rows as $health_row ) : ?>
 								<tr>
-									<td><?php echo esc_html( isset( $health_row['label'] ) ? $health_row['label'] : '' ); ?></td>
+									<td><?php echo esc_html( $health_row['label'] ); ?></td>
 									<td>
-										<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $health_row['status_pill'] ) ? $health_row['status_pill'] : 'info' ); ?>">
-											<?php echo esc_html( isset( $health_row['status_label'] ) ? $health_row['status_label'] : '' ); ?>
+										<span class="znts-pill znts-pill-<?php echo esc_attr( $health_row['badge'] ); ?>">
+											<?php echo esc_html( $health_row['status_label'] ); ?>
 										</span>
 									</td>
-									<td><?php echo esc_html( isset( $health_row['generated_at'] ) ? $health_row['generated_at'] : '' ); ?></td>
-									<td><?php echo esc_html( isset( $health_row['summary']['pass'] ) ? (string) $health_row['summary']['pass'] : '0' ); ?></td>
-									<td><?php echo esc_html( isset( $health_row['summary']['warning'] ) ? (string) $health_row['summary']['warning'] : '0' ); ?></td>
-									<td><?php echo esc_html( isset( $health_row['summary']['fail'] ) ? (string) $health_row['summary']['fail'] : '0' ); ?></td>
-									<td><?php echo esc_html( isset( $health_row['delta'] ) ? $health_row['delta'] : '' ); ?></td>
+									<td><?php echo esc_html( $health_row['generated_at'] ); ?></td>
+									<td><?php echo esc_html( $health_row['pass_count'] ); ?></td>
+									<td><?php echo esc_html( $health_row['warning_count'] ); ?></td>
+									<td><?php echo esc_html( $health_row['fail_count'] ); ?></td>
+									<td><?php echo esc_html( $health_row['delta'] ); ?></td>
 								</tr>
 							<?php endforeach; ?>
 						</tbody>
