@@ -196,6 +196,7 @@ require_once __DIR__ . '/../includes/admin/class-snapshot-audit-report-presenter
 require_once __DIR__ . '/../includes/admin/class-restore-operator-checklist-state-builder.php';
 require_once __DIR__ . '/../includes/admin/class-snapshot-list-state-builder.php';
 require_once __DIR__ . '/../includes/admin/class-dashboard-summary-state-builder.php';
+require_once __DIR__ . '/../includes/admin/class-update-readiness-state-builder.php';
 require_once __DIR__ . '/../includes/admin/class-snapshot-summary-state-builder.php';
 require_once __DIR__ . '/../includes/admin/class-snapshot-summary-presenter.php';
 require_once __DIR__ . '/../includes/admin/class-restore-operator-checklist-evaluator.php';

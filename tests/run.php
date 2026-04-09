@@ -24,6 +24,7 @@ require_once __DIR__ . '/test-snapshot-audit-report-presenter.php';
 require_once __DIR__ . '/test-snapshot-audit-report.php';
 require_once __DIR__ . '/test-snapshot-list-state-builder.php';
 require_once __DIR__ . '/test-dashboard-summary-state-builder.php';
+require_once __DIR__ . '/test-update-readiness-state-builder.php';
 require_once __DIR__ . '/test-snapshot-summary-state-builder.php';
 require_once __DIR__ . '/test-snapshot-summary-presenter.php';
 require_once __DIR__ . '/test-snapshot-summary-export.php';
