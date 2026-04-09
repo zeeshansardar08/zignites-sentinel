@@ -50,6 +50,15 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 			),
 			'last_restore_check' => array(
 				'status'            => 'blocked',
+				'generated_at'      => '2026-04-09 10:03:00',
+				'note'              => 'Restore readiness is blocked.',
+				'checks'            => array(
+					array(
+						'label'   => 'Snapshot completeness',
+						'status'  => 'fail',
+						'message' => 'Snapshot is incomplete.',
+					),
+				),
 				'source_validation' => array(
 					'message' => 'Sources available',
 					'checks'  => array(
@@ -472,6 +481,11 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'Plugin package', $state['plan_validation_check_rows'][0]['label'], 'Update Readiness state builder should derive plan validation check rows.' );
 	znts_assert_same( 'pass', $state['plan_validation_check_rows'][0]['badge'], 'Update Readiness state builder should preserve non-failing validation check badges.' );
 	znts_assert_same( 'Sources available', $state['restore_source_validation']['message'], 'Update Readiness state builder should derive restore source validation state.' );
+	znts_assert_same( 'critical', $state['restore_readiness_status']['badge'], 'Update Readiness state builder should derive restore readiness status badges.' );
+	znts_assert_same( 'Blocked', $state['restore_readiness_status']['status_label'], 'Update Readiness state builder should derive restore readiness status labels.' );
+	znts_assert_same( '2026-04-09 10:03:00', $state['restore_readiness_status']['generated_at'], 'Update Readiness state builder should derive restore readiness timestamps.' );
+	znts_assert_same( 'Snapshot completeness', $state['restore_readiness_check_rows'][0]['label'], 'Update Readiness state builder should derive restore readiness check rows.' );
+	znts_assert_same( 'critical', $state['restore_readiness_check_rows'][0]['badge'], 'Update Readiness state builder should map failing restore readiness checks to critical.' );
 	znts_assert_same( 'critical', $state['restore_source_validation_check_rows'][0]['badge'], 'Update Readiness state builder should map failing restore source checks to critical badges.' );
 	znts_assert_same( 'Fail', $state['restore_source_validation_check_rows'][0]['status_label'], 'Update Readiness state builder should derive human-readable validation status labels.' );
 	znts_assert_same( 'Missing Plugin', $state['restore_source_missing_plugins'][0], 'Update Readiness state builder should prefer missing plugin names when available.' );
@@ -609,6 +623,8 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( 'info', $state['audit_report_verification_status']['badge'], 'Update Readiness state builder should default missing audit verification badges to info.' );
 	znts_assert_same( array(), $state['audit_report_verification_check_rows'], 'Update Readiness state builder should default missing audit verification check rows to an empty array.' );
 	znts_assert_same( array(), $state['plan_validation_check_rows'], 'Update Readiness state builder should default missing plan validation rows to an empty array.' );
+	znts_assert_same( 'info', $state['restore_readiness_status']['badge'], 'Update Readiness state builder should default missing restore readiness badges to info.' );
+	znts_assert_same( array(), $state['restore_readiness_check_rows'], 'Update Readiness state builder should default missing restore readiness check rows to an empty array.' );
 	znts_assert_same( array(), $state['restore_source_validation_check_rows'], 'Update Readiness state builder should default missing restore source rows to an empty array.' );
 	znts_assert_same( array(), $state['restore_source_missing_plugins'], 'Update Readiness state builder should default missing plugin labels to an empty array.' );
 	znts_assert_same( array(), $state['restore_source_missing_artifacts'], 'Update Readiness state builder should default missing artifact labels to an empty array.' );

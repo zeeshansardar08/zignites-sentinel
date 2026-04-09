@@ -95,6 +95,8 @@ class UpdateReadinessStateBuilder {
 		$view_data['plan_validation'] = isset( $last_plan['validation'] ) && is_array( $last_plan['validation'] ) ? $last_plan['validation'] : array();
 		$view_data['restore_source_validation'] = isset( $last_restore_check['source_validation'] ) && is_array( $last_restore_check['source_validation'] ) ? $last_restore_check['source_validation'] : array();
 		$view_data['plan_validation_check_rows'] = $this->build_check_rows( $view_data['plan_validation'] );
+		$view_data['restore_readiness_status'] = $this->build_restore_result_status( $last_restore_check );
+		$view_data['restore_readiness_check_rows'] = $this->build_check_rows( $last_restore_check );
 		$view_data['restore_source_validation_check_rows'] = $this->build_check_rows( $view_data['restore_source_validation'] );
 		$view_data['restore_source_missing_plugins'] = $this->build_missing_plugin_labels( $view_data['restore_source_validation'] );
 		$view_data['restore_source_missing_artifacts'] = $this->build_missing_artifact_labels( $view_data['restore_source_validation'] );
