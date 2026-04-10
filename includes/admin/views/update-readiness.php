@@ -160,7 +160,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			</div>
 			<div class="znts-summary-item">
 				<span><?php echo esc_html__( 'Checklist gates', 'zignites-sentinel' ); ?></span>
-				<strong><?php echo esc_html( isset( $operator_checklist_status['check_count_label'] ) ? $operator_checklist_status['check_count_label'] : '' ); ?></strong>
+				<strong><?php echo esc_html( $operator_checklist_status['check_count_label'] ); ?></strong>
 				<p><?php echo esc_html__( 'Baseline, stage validation, and plan freshness determine whether guarded restore is offered.', 'zignites-sentinel' ); ?></p>
 			</div>
 			<div class="znts-summary-item">
@@ -425,7 +425,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						<span class="znts-pill znts-pill-<?php echo esc_attr( $operator_checklist_status['badge'] ); ?>">
 							<?php echo esc_html( $operator_checklist_status['label'] ); ?>
 						</span>
-						<span><?php echo esc_html( isset( $operator_checklist_status['message'] ) ? $operator_checklist_status['message'] : '' ); ?></span>
+						<span><?php echo esc_html( $operator_checklist_status['message'] ); ?></span>
 							</div>
 							<p class="description"><?php echo esc_html__( 'This reruns staged validation and restore planning only. It does not execute a restore or modify live plugin/theme files.', 'zignites-sentinel' ); ?></p>
 							<table class="widefat striped">

@@ -533,11 +533,15 @@
 - Main is now current through the merged Update Readiness summary support-state cleanup for:
   - snapshot summary risks and next-step lists prepared by `UpdateReadinessStateBuilder`
   - focused regression coverage for snapshot summary support lists and empty defaults
+- Main is now current through the merged Update Readiness execution detail-state cleanup for:
+  - restore execution and rollback secondary result state prepared by `UpdateReadinessStateBuilder`
+  - execution/rollback backup-root visibility, run links, resumed-run messaging, and health-section visibility now render from prepared state
+  - focused regression coverage for execution/rollback meta state and empty defaults
 - Current branch prepared for merge:
-  - `feature/update-readiness-secondary-detail-state`
+  - `feature/update-readiness-remaining-helper-state`
 - Next likely restart task after this branch merges:
   - start from `includes/admin/views/update-readiness.php`
-  - extract the next residual execution/rollback support detail seam or remaining raw helper block into the Update Readiness state builder or a focused presenter
+  - extract the remaining raw gating/form-context seam, especially selected-snapshot form state, resume visibility, and checklist gating booleans, into the Update Readiness state builder or a focused presenter
   - avoid new restore behavior; keep this track to presentation-state cleanup and regression coverage
 
 
