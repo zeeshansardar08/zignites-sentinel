@@ -377,6 +377,7 @@ class UpdateReadinessStateBuilder {
 		$restore_resume_context          = $this->array_value( $view_data, 'restore_resume_context' );
 		$restore_rollback_resume_context = $this->array_value( $view_data, 'restore_rollback_resume_context' );
 		$snapshot_id                     = is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) ? (int) $snapshot_detail['id'] : 0;
+		$rollback_checkpoint_message     = $this->build_rollback_checkpoint_message( $restore_rollback_resume_context );
 
 		$restore_confirmation_phrase  = isset( $last_restore_plan['confirmation_phrase'] ) ? (string) $last_restore_plan['confirmation_phrase'] : ( $snapshot_id > 0 ? sprintf( 'RESTORE SNAPSHOT %d', $snapshot_id ) : '' );
 		$rollback_confirmation_phrase = isset( $last_restore_execution['rollback_confirmation_phrase'] ) ? (string) $last_restore_execution['rollback_confirmation_phrase'] : ( $snapshot_id > 0 ? sprintf( 'ROLLBACK SNAPSHOT %d', $snapshot_id ) : '' );
@@ -394,7 +395,8 @@ class UpdateReadinessStateBuilder {
 			'restore_resume_message'       => $this->build_restore_resume_message( $restore_resume_context ),
 			'restore_resume_run_label'     => $this->build_run_label( $restore_resume_context ),
 			'rollback_resume_message'      => $this->build_rollback_resume_message( $restore_rollback_resume_context ),
-			'rollback_checkpoint_message'  => $this->build_rollback_checkpoint_message( $restore_rollback_resume_context ),
+			'rollback_checkpoint_message'  => $rollback_checkpoint_message,
+			'show_rollback_checkpoint_message' => '' !== $rollback_checkpoint_message,
 			'rollback_resume_run_label'    => $this->build_run_label( $restore_rollback_resume_context ),
 			'has_execution_checkpoint'     => isset( $execution_checkpoint['checkpoint'] ) && is_array( $execution_checkpoint['checkpoint'] ),
 		);
@@ -424,12 +426,16 @@ class UpdateReadinessStateBuilder {
 		$selected_snapshot_badges   = $this->array_value( $view_data, 'selected_snapshot_status_badges' );
 		$snapshot_summary_risks     = $this->array_value( $view_data, 'snapshot_summary_risks' );
 		$artifact_diff_state        = $this->array_value( $view_data, 'artifact_diff_state' );
+		$restore_execution_meta     = $this->array_value( $view_data, 'restore_execution_meta' );
+		$restore_rollback_meta      = $this->array_value( $view_data, 'restore_rollback_meta' );
 
 		$view_data['view_visibility'] = array(
+			'show_notice'                          => ! empty( $this->array_value( $view_data, 'notice' ) ),
 			'has_preflight_result'                 => ! empty( $this->array_value( $view_data, 'last_preflight' ) ),
 			'has_last_update_plan'                => ! empty( $last_plan ),
 			'show_last_update_plan_snapshot_link' => $last_plan_snapshot_id > 0,
 			'last_update_plan_snapshot_url'       => $last_plan_snapshot_id > 0 ? $this->build_snapshot_detail_url( $last_plan_snapshot_id ) : '',
+			'show_last_update_plan_targets'       => ! empty( $this->array_value( $view_data, 'last_update_plan_target_rows' ) ),
 			'has_selected_snapshot'               => $has_selected_snapshot,
 			'show_restore_control_summary'        => $has_selected_snapshot && ! empty( $this->array_value( $view_data, 'restore_run_card_rows' ) ),
 			'show_checkpoint_note'                => ! empty( $this->array_value( $view_data, 'stage_checkpoint' ) ) || ! empty( $this->array_value( $view_data, 'plan_checkpoint' ) ),
@@ -459,6 +465,34 @@ class UpdateReadinessStateBuilder {
 			'has_missing_snapshot_plugins'        => ! empty( $this->array_value( $view_data, 'missing_snapshot_plugin_labels' ) ),
 			'has_new_current_plugins'             => ! empty( $this->array_value( $view_data, 'new_current_plugin_labels' ) ),
 			'has_plugin_version_changes'          => ! empty( $this->array_value( $view_data, 'plugin_version_change_rows' ) ),
+			'show_execution_checkpoint_summary'   => ! empty( $this->array_value( $view_data, 'execution_checkpoint_summary_rows' ) ),
+			'show_rollback_checkpoint_summary'    => ! empty( $this->array_value( $view_data, 'rollback_checkpoint_summary_rows' ) ),
+			'show_snapshot_health_comparison'     => ! empty( $this->array_value( $view_data, 'snapshot_health_comparison_rows' ) ),
+			'show_operator_checklist_checks'      => ! empty( $this->array_value( $view_data, 'operator_checklist_check_rows' ) ),
+			'show_audit_report_verification_checks' => ! empty( $this->array_value( $view_data, 'audit_report_verification_check_rows' ) ),
+			'show_update_candidate_rows'          => ! empty( $this->array_value( $view_data, 'update_candidate_rows' ) ),
+			'has_recent_snapshot_rows'            => ! empty( $this->array_value( $view_data, 'recent_snapshot_rows' ) ),
+			'show_snapshot_pagination'            => ! empty( $this->array_value( $view_data, 'snapshot_pagination_links_args' ) ),
+			'show_restore_source_validation_checks' => ! empty( $this->array_value( $view_data, 'restore_source_validation_check_rows' ) ),
+			'show_restore_source_missing_plugins' => ! empty( $this->array_value( $view_data, 'restore_source_missing_plugins' ) ),
+			'show_restore_source_missing_artifacts' => ! empty( $this->array_value( $view_data, 'restore_source_missing_artifacts' ) ),
+			'show_restore_plan_checks'            => ! empty( $this->array_value( $view_data, 'restore_plan_check_rows' ) ),
+			'show_restore_plan_items'             => ! empty( $this->array_value( $view_data, 'restore_plan_item_rows' ) ),
+			'show_restore_impact_rows'            => ! empty( $this->array_value( $restore_impact_summary, 'rows' ) ),
+			'show_restore_impact_blockers'        => ! empty( $this->array_value( $restore_impact_summary, 'blockers' ) ),
+			'show_execution_backup_root'          => ! empty( $restore_execution_meta['show_backup_root'] ),
+			'show_execution_run_link'             => ! empty( $restore_execution_meta['show_run_link'] ),
+			'show_execution_resumed_run_notice'   => ! empty( $restore_execution_meta['show_resumed_run_notice'] ),
+			'show_execution_health_section'       => ! empty( $restore_execution_meta['show_health_section'] ),
+			'show_execution_checks'               => ! empty( $this->array_value( $view_data, 'restore_execution_check_rows' ) ),
+			'show_execution_items'                => ! empty( $this->array_value( $view_data, 'restore_execution_item_rows' ) ),
+			'show_execution_journal'              => ! empty( $this->array_value( $view_data, 'restore_execution_journal_rows' ) ),
+			'show_execution_rollback_form'        => ! empty( $restore_execution_meta['show_backup_root'] ),
+			'show_rollback_run_link'              => ! empty( $restore_rollback_meta['show_run_link'] ),
+			'show_rollback_health_section'        => ! empty( $restore_rollback_meta['show_health_section'] ),
+			'show_rollback_checks'                => ! empty( $this->array_value( $view_data, 'restore_rollback_check_rows' ) ),
+			'show_rollback_items'                 => ! empty( $this->array_value( $view_data, 'restore_rollback_item_rows' ) ),
+			'show_rollback_journal'               => ! empty( $this->array_value( $view_data, 'restore_rollback_journal_rows' ) ),
 		);
 
 		return $view_data;
@@ -785,10 +819,13 @@ class UpdateReadinessStateBuilder {
 		$normalized = array();
 
 		foreach ( $rows as $row ) {
+			$note = isset( $row['note'] ) ? (string) $row['note'] : '';
+
 			$normalized[] = array(
-				'label' => isset( $row['label'] ) ? (string) $row['label'] : '',
-				'value' => isset( $row['value'] ) ? (string) $row['value'] : '',
-				'note'  => isset( $row['note'] ) ? (string) $row['note'] : '',
+				'label'     => isset( $row['label'] ) ? (string) $row['label'] : '',
+				'value'     => isset( $row['value'] ) ? (string) $row['value'] : '',
+				'note'      => $note,
+				'show_note' => '' !== $note,
 			);
 		}
 
@@ -825,6 +862,10 @@ class UpdateReadinessStateBuilder {
 		$rows = array();
 
 		foreach ( $cards as $card ) {
+			$secondary  = isset( $card['secondary'] ) ? (string) $card['secondary'] : '';
+			$link_url   = isset( $card['link_url'] ) ? (string) $card['link_url'] : '';
+			$link_label = isset( $card['link_label'] ) ? (string) $card['link_label'] : '';
+
 			$rows[] = array(
 				'title'        => isset( $card['title'] ) ? (string) $card['title'] : '',
 				'status'       => isset( $card['status'] ) ? (string) $card['status'] : '',
@@ -832,9 +873,11 @@ class UpdateReadinessStateBuilder {
 				'status_label' => isset( $card['status_label'] ) ? (string) $card['status_label'] : '',
 				'timestamp'    => isset( $card['timestamp'] ) ? (string) $card['timestamp'] : '',
 				'primary'      => isset( $card['primary'] ) ? (string) $card['primary'] : '',
-				'secondary'    => isset( $card['secondary'] ) ? (string) $card['secondary'] : '',
-				'link_url'     => isset( $card['link_url'] ) ? (string) $card['link_url'] : '',
-				'link_label'   => isset( $card['link_label'] ) ? (string) $card['link_label'] : '',
+				'secondary'    => $secondary,
+				'show_secondary' => '' !== $secondary,
+				'link_url'     => $link_url,
+				'link_label'   => $link_label,
+				'show_link'    => '' !== $link_url && '' !== $link_label,
 			);
 		}
 
@@ -1029,6 +1072,7 @@ class UpdateReadinessStateBuilder {
 
 		foreach ( $snapshot_activity as $activity ) {
 			$severity = isset( $activity['severity'] ) ? (string) $activity['severity'] : 'info';
+			$journal_url = isset( $activity['journal_url'] ) ? (string) $activity['journal_url'] : '';
 
 			$rows[] = array(
 				'created_at'     => isset( $activity['created_at'] ) ? (string) $activity['created_at'] : '',
@@ -1039,8 +1083,9 @@ class UpdateReadinessStateBuilder {
 				'source'         => isset( $activity['source'] ) ? (string) $activity['source'] : '',
 				'event_type'     => isset( $activity['event_type'] ) ? (string) $activity['event_type'] : '',
 				'message'        => isset( $activity['message'] ) ? (string) $activity['message'] : '',
-				'journal_url'    => isset( $activity['journal_url'] ) ? (string) $activity['journal_url'] : '',
+				'journal_url'    => $journal_url,
 				'journal_label'  => isset( $activity['journal_label'] ) ? (string) $activity['journal_label'] : __( 'Event detail', 'zignites-sentinel' ),
+				'show_journal_link' => '' !== $journal_url,
 			);
 		}
 

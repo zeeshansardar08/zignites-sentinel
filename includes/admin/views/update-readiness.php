@@ -65,10 +65,13 @@ $has_form_snapshot       = ! empty( $restore_form_state['has_selected_snapshot']
 $can_execute_restore     = ! empty( $restore_form_state['can_execute_restore'] );
 $can_resume_restore      = ! empty( $restore_form_state['can_resume_restore'] );
 $can_resume_rollback     = ! empty( $restore_form_state['can_resume_rollback'] );
+$show_rollback_checkpoint_message = ! empty( $restore_form_state['show_rollback_checkpoint_message'] );
+$show_notice             = ! empty( $view_visibility['show_notice'] );
 $has_preflight_result    = ! empty( $view_visibility['has_preflight_result'] );
 $has_last_update_plan    = ! empty( $view_visibility['has_last_update_plan'] );
 $show_last_update_plan_snapshot_link = ! empty( $view_visibility['show_last_update_plan_snapshot_link'] );
 $last_update_plan_snapshot_url = isset( $view_visibility['last_update_plan_snapshot_url'] ) ? (string) $view_visibility['last_update_plan_snapshot_url'] : '';
+$show_last_update_plan_targets = ! empty( $view_visibility['show_last_update_plan_targets'] );
 $show_restore_control_summary = ! empty( $view_visibility['show_restore_control_summary'] );
 $show_checkpoint_note    = ! empty( $view_visibility['show_checkpoint_note'] );
 $has_health_baseline     = ! empty( $view_visibility['has_health_baseline'] );
@@ -97,6 +100,34 @@ $show_active_plugin_rows = ! empty( $view_visibility['show_active_plugin_rows'] 
 $has_missing_snapshot_plugins = ! empty( $view_visibility['has_missing_snapshot_plugins'] );
 $has_new_current_plugins = ! empty( $view_visibility['has_new_current_plugins'] );
 $has_plugin_version_changes = ! empty( $view_visibility['has_plugin_version_changes'] );
+$show_execution_checkpoint_summary = ! empty( $view_visibility['show_execution_checkpoint_summary'] );
+$show_rollback_checkpoint_summary = ! empty( $view_visibility['show_rollback_checkpoint_summary'] );
+$show_snapshot_health_comparison = ! empty( $view_visibility['show_snapshot_health_comparison'] );
+$show_operator_checklist_checks = ! empty( $view_visibility['show_operator_checklist_checks'] );
+$show_audit_report_verification_checks = ! empty( $view_visibility['show_audit_report_verification_checks'] );
+$show_update_candidate_rows = ! empty( $view_visibility['show_update_candidate_rows'] );
+$has_recent_snapshot_rows = ! empty( $view_visibility['has_recent_snapshot_rows'] );
+$show_snapshot_pagination = ! empty( $view_visibility['show_snapshot_pagination'] );
+$show_restore_source_validation_checks = ! empty( $view_visibility['show_restore_source_validation_checks'] );
+$show_restore_source_missing_plugins = ! empty( $view_visibility['show_restore_source_missing_plugins'] );
+$show_restore_source_missing_artifacts = ! empty( $view_visibility['show_restore_source_missing_artifacts'] );
+$show_restore_plan_checks = ! empty( $view_visibility['show_restore_plan_checks'] );
+$show_restore_plan_items = ! empty( $view_visibility['show_restore_plan_items'] );
+$show_restore_impact_rows = ! empty( $view_visibility['show_restore_impact_rows'] );
+$show_restore_impact_blockers = ! empty( $view_visibility['show_restore_impact_blockers'] );
+$show_execution_backup_root = ! empty( $view_visibility['show_execution_backup_root'] );
+$show_execution_run_link = ! empty( $view_visibility['show_execution_run_link'] );
+$show_execution_resumed_run_notice = ! empty( $view_visibility['show_execution_resumed_run_notice'] );
+$show_execution_health_section = ! empty( $view_visibility['show_execution_health_section'] );
+$show_execution_checks = ! empty( $view_visibility['show_execution_checks'] );
+$show_execution_items = ! empty( $view_visibility['show_execution_items'] );
+$show_execution_journal = ! empty( $view_visibility['show_execution_journal'] );
+$show_execution_rollback_form = ! empty( $view_visibility['show_execution_rollback_form'] );
+$show_rollback_run_link = ! empty( $view_visibility['show_rollback_run_link'] );
+$show_rollback_health_section = ! empty( $view_visibility['show_rollback_health_section'] );
+$show_rollback_checks = ! empty( $view_visibility['show_rollback_checks'] );
+$show_rollback_items = ! empty( $view_visibility['show_rollback_items'] );
+$show_rollback_journal = ! empty( $view_visibility['show_rollback_journal'] );
 $component_manifest        = isset( $view_data['component_manifest'] ) && is_array( $view_data['component_manifest'] ) ? $view_data['component_manifest'] : array();
 $selected_snapshot_label   = isset( $view_data['selected_snapshot_label'] ) ? (string) $view_data['selected_snapshot_label'] : '';
 $selected_snapshot_note    = isset( $view_data['selected_snapshot_note'] ) ? (string) $view_data['selected_snapshot_note'] : '';
@@ -138,7 +169,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 		<p class="znts-page-intro"><?php echo esc_html__( 'Use this workspace to answer one question quickly: is the site prepared for safe update work, and what should happen next?', 'zignites-sentinel' ); ?></p>
 	</div>
 
-	<?php if ( ! empty( $notice ) ) : ?>
+	<?php if ( $show_notice ) : ?>
 		<div class="notice notice-<?php echo esc_attr( $notice['type'] ); ?> is-dismissible">
 			<p><?php echo esc_html( $notice['message'] ); ?></p>
 		</div>
@@ -206,10 +237,10 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							</div>
 							<h3><?php echo esc_html( $card['title'] ); ?></h3>
 							<p><?php echo esc_html( $card['primary'] ); ?></p>
-							<?php if ( ! empty( $card['secondary'] ) ) : ?>
+							<?php if ( ! empty( $card['show_secondary'] ) ) : ?>
 								<p class="description"><?php echo esc_html( $card['secondary'] ); ?></p>
 							<?php endif; ?>
-							<?php if ( ! empty( $card['link_url'] ) && ! empty( $card['link_label'] ) ) : ?>
+							<?php if ( ! empty( $card['show_link'] ) ) : ?>
 								<p><a href="<?php echo esc_url( $card['link_url'] ); ?>"><?php echo esc_html( $card['link_label'] ); ?></a></p>
 							<?php endif; ?>
 						</section>
@@ -218,7 +249,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<?php if ( $show_checkpoint_note ) : ?>
 					<p class="description"><?php echo esc_html__( 'Stage and plan checkpoints are pinned to the current snapshot package fingerprint and are reused during resume when they still match.', 'zignites-sentinel' ); ?></p>
 				<?php endif; ?>
-				<?php if ( ! empty( $execution_checkpoint_summary_rows ) ) : ?>
+				<?php if ( $show_execution_checkpoint_summary ) : ?>
 					<h3><?php echo esc_html__( 'Execution Checkpoint', 'zignites-sentinel' ); ?></h3>
 					<table class="widefat striped">
 						<tbody>
@@ -231,7 +262,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $rollback_checkpoint_summary_rows ) ) : ?>
+				<?php if ( $show_rollback_checkpoint_summary ) : ?>
 					<h3><?php echo esc_html__( 'Rollback Checkpoint', 'zignites-sentinel' ); ?></h3>
 					<table class="widefat striped">
 						<tbody>
@@ -300,7 +331,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 									<div class="znts-overview-block">
 										<strong><?php echo esc_html( $item['label'] ); ?></strong>
 										<span><?php echo esc_html( $item['value'] ); ?></span>
-										<?php if ( ! empty( $item['note'] ) ) : ?>
+										<?php if ( ! empty( $item['show_note'] ) ) : ?>
 											<p class="description"><?php echo esc_html( $item['note'] ); ?></p>
 										<?php endif; ?>
 								</div>
@@ -320,7 +351,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 										<li>
 											<strong><?php echo esc_html( $item['label'] ); ?>:</strong>
 											<?php echo esc_html( $item['value'] ); ?>
-											<?php if ( ! empty( $item['note'] ) ) : ?>
+											<?php if ( ! empty( $item['show_note'] ) ) : ?>
 												<span class="znts-inline-note"><?php echo esc_html( ' ' . $item['note'] ); ?></span>
 											<?php endif; ?>
 										</li>
@@ -387,7 +418,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					</div>
 					<p><?php echo esc_html( $snapshot_health_baseline_status['note'] ); ?></p>
 				<?php endif; ?>
-				<?php if ( ! empty( $snapshot_health_comparison_rows ) ) : ?>
+				<?php if ( $show_snapshot_health_comparison ) : ?>
 					<details class="znts-disclosure" <?php echo esc_attr( $open_health_validation ? 'open' : '' ); ?>>
 						<summary><?php echo esc_html__( 'Health Comparison', 'zignites-sentinel' ); ?></summary>
 						<div class="znts-disclosure-body">
@@ -424,7 +455,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</div>
 					</details>
 				<?php endif; ?>
-				<?php if ( ! empty( $operator_checklist_check_rows ) ) : ?>
+				<?php if ( $show_operator_checklist_checks ) : ?>
 					<details class="znts-disclosure" <?php echo esc_attr( $open_health_validation ? 'open' : '' ); ?>>
 						<summary><?php echo esc_html__( 'Live Restore Operator Checklist', 'zignites-sentinel' ); ?></summary>
 						<div class="znts-disclosure-body">
@@ -491,7 +522,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						<span><?php echo esc_html( $audit_report_verification_status['generated_at'] ); ?></span>
 					</div>
 					<p><?php echo esc_html( $audit_report_verification_status['note'] ); ?></p>
-					<?php if ( ! empty( $audit_report_verification_check_rows ) ) : ?>
+					<?php if ( $show_audit_report_verification_checks ) : ?>
 						<table class="widefat striped">
 							<thead>
 								<tr>
@@ -631,7 +662,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 
 		<section class="znts-card znts-card-secondary">
 			<h2><?php echo esc_html__( 'Pending Update Candidates', 'zignites-sentinel' ); ?></h2>
-			<?php if ( empty( $update_candidate_rows ) ) : ?>
+			<?php if ( ! $show_update_candidate_rows ) : ?>
 				<p><?php echo esc_html__( 'No pending plugin, theme, or core updates were found.', 'zignites-sentinel' ); ?></p>
 			<?php else : ?>
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -684,7 +715,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</a>
 					</p>
 				<?php endif; ?>
-				<?php if ( ! empty( $last_update_plan_target_rows ) ) : ?>
+				<?php if ( $show_last_update_plan_targets ) : ?>
 					<table class="widefat striped">
 						<thead>
 							<tr>
@@ -775,7 +806,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<?php endif; ?>
 				</p>
 			</form>
-			<?php if ( empty( $recent_snapshot_rows ) ) : ?>
+			<?php if ( ! $has_recent_snapshot_rows ) : ?>
 				<p><?php echo esc_html( $snapshot_empty_message ); ?></p>
 			<?php else : ?>
 				<?php if ( '' !== $snapshot_pagination_summary ) : ?>
@@ -815,7 +846,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						<?php endforeach; ?>
 					</tbody>
 				</table>
-				<?php if ( ! empty( $snapshot_pagination_links_args ) ) : ?>
+				<?php if ( $show_snapshot_pagination ) : ?>
 					<div class="tablenav">
 						<div class="tablenav-pages">
 							<?php
@@ -881,7 +912,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 										</details>
 									</td>
 									<td>
-										<?php if ( ! empty( $activity['journal_url'] ) ) : ?>
+										<?php if ( ! empty( $activity['show_journal_link'] ) ) : ?>
 											<a href="<?php echo esc_url( $activity['journal_url'] ); ?>"><?php echo esc_html( $activity['journal_label'] ); ?></a>
 										<?php else : ?>
 											<span class="description"><?php echo esc_html( $activity['journal_label'] ); ?></span>
@@ -1192,7 +1223,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<?php if ( $show_restore_source_validation ) : ?>
 					<h3><?php echo esc_html__( 'Snapshot Source Validation', 'zignites-sentinel' ); ?></h3>
 					<p><?php echo esc_html( $restore_form_state['restore_source_validation_message'] ); ?></p>
-					<?php if ( ! empty( $restore_source_validation_check_rows ) ) : ?>
+					<?php if ( $show_restore_source_validation_checks ) : ?>
 						<table class="widefat striped">
 							<thead>
 								<tr>
@@ -1216,7 +1247,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							</tbody>
 						</table>
 					<?php endif; ?>
-					<?php if ( ! empty( $restore_source_missing_plugins ) ) : ?>
+					<?php if ( $show_restore_source_missing_plugins ) : ?>
 						<h3><?php echo esc_html__( 'Unavailable Snapshot Plugin Sources', 'zignites-sentinel' ); ?></h3>
 						<ul class="znts-list">
 							<?php foreach ( $restore_source_missing_plugins as $plugin_label ) : ?>
@@ -1224,7 +1255,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							<?php endforeach; ?>
 						</ul>
 					<?php endif; ?>
-					<?php if ( ! empty( $restore_source_missing_artifacts ) ) : ?>
+					<?php if ( $show_restore_source_missing_artifacts ) : ?>
 						<h3><?php echo esc_html__( 'Unavailable Stored Artifacts', 'zignites-sentinel' ); ?></h3>
 						<ul class="znts-list">
 							<?php foreach ( $restore_source_missing_artifacts as $artifact_label ) : ?>
@@ -1316,7 +1347,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<span><?php echo esc_html( $restore_plan_status['generated_at'] ); ?></span>
 				</div>
 				<p><?php echo esc_html( $restore_plan_status['note'] ); ?></p>
-				<?php if ( ! empty( $restore_plan_check_rows ) ) : ?>
+				<?php if ( $show_restore_plan_checks ) : ?>
 					<table class="widefat striped">
 						<thead>
 							<tr>
@@ -1340,7 +1371,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $restore_plan_item_rows ) ) : ?>
+				<?php if ( $show_restore_plan_items ) : ?>
 					<table class="widefat striped">
 						<thead>
 							<tr>
@@ -1374,7 +1405,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</span>
 					</div>
 					<p><?php echo esc_html( $restore_impact_summary['message'] ); ?></p>
-					<?php if ( ! empty( $restore_impact_summary['rows'] ) ) : ?>
+					<?php if ( $show_restore_impact_rows ) : ?>
 						<table class="widefat striped">
 							<tbody>
 								<?php foreach ( $restore_impact_summary['rows'] as $impact_row ) : ?>
@@ -1386,7 +1417,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							</tbody>
 						</table>
 					<?php endif; ?>
-					<?php if ( ! empty( $restore_impact_summary['blockers'] ) ) : ?>
+					<?php if ( $show_restore_impact_blockers ) : ?>
 						<h4><?php echo esc_html__( 'Execution blockers', 'zignites-sentinel' ); ?></h4>
 						<ul class="znts-list">
 							<?php foreach ( $restore_impact_summary['blockers'] as $blocker ) : ?>
@@ -1465,10 +1496,10 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<span><?php echo esc_html( $restore_execution_status['generated_at'] ); ?></span>
 				</div>
 				<p><?php echo esc_html( $restore_execution_status['note'] ); ?></p>
-				<?php if ( ! empty( $restore_execution_meta['show_backup_root'] ) ) : ?>
+				<?php if ( $show_execution_backup_root ) : ?>
 					<p><strong><?php echo esc_html__( 'Backup Root:', 'zignites-sentinel' ); ?></strong> <?php echo esc_html( $restore_execution_meta['backup_root'] ); ?></p>
 				<?php endif; ?>
-				<?php if ( ! empty( $restore_execution_meta['show_run_link'] ) ) : ?>
+				<?php if ( $show_execution_run_link ) : ?>
 					<p>
 						<strong><?php echo esc_html__( 'Run ID:', 'zignites-sentinel' ); ?></strong>
 						<a href="<?php echo esc_url( $restore_execution_meta['run_url'] ); ?>">
@@ -1476,10 +1507,10 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</a>
 					</p>
 				<?php endif; ?>
-				<?php if ( ! empty( $restore_execution_meta['show_resumed_run_notice'] ) ) : ?>
+				<?php if ( $show_execution_resumed_run_notice ) : ?>
 					<p><?php echo esc_html__( 'This execution reused persisted journal state from a prior run.', 'zignites-sentinel' ); ?></p>
 				<?php endif; ?>
-				<?php if ( ! empty( $restore_execution_meta['show_health_section'] ) ) : ?>
+				<?php if ( $show_execution_health_section ) : ?>
 					<h3><?php echo esc_html__( 'Post-Restore Health Verification', 'zignites-sentinel' ); ?></h3>
 					<div class="znts-readiness-row">
 						<span class="znts-pill znts-pill-<?php echo esc_attr( $restore_execution_health_status['badge'] ); ?>">
@@ -1511,7 +1542,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $restore_execution_check_rows ) ) : ?>
+				<?php if ( $show_execution_checks ) : ?>
 					<table class="widefat striped">
 						<thead>
 							<tr>
@@ -1535,7 +1566,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $restore_execution_item_rows ) ) : ?>
+				<?php if ( $show_execution_items ) : ?>
 					<table class="widefat striped">
 						<thead>
 							<tr>
@@ -1561,7 +1592,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $restore_execution_journal_rows ) ) : ?>
+				<?php if ( $show_execution_journal ) : ?>
 					<h3><?php echo esc_html__( 'Execution Journal', 'zignites-sentinel' ); ?></h3>
 					<table class="widefat striped">
 						<thead>
@@ -1592,7 +1623,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $restore_execution_meta['show_backup_root'] ) ) : ?>
+				<?php if ( $show_execution_rollback_form ) : ?>
 					<h3><?php echo esc_html__( 'Rollback From Backup', 'zignites-sentinel' ); ?></h3>
 					<p><?php echo esc_html__( 'This restores the previously live payloads from the backup root created during restore execution.', 'zignites-sentinel' ); ?></p>
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -1609,7 +1640,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<?php if ( $can_resume_rollback ) : ?>
 						<h3><?php echo esc_html__( 'Resume Rollback', 'zignites-sentinel' ); ?></h3>
 						<p><?php echo esc_html( $restore_form_state['rollback_resume_message'] ); ?></p>
-						<?php if ( ! empty( $restore_form_state['rollback_checkpoint_message'] ) ) : ?>
+						<?php if ( $show_rollback_checkpoint_message ) : ?>
 							<p class="description"><?php echo esc_html( $restore_form_state['rollback_checkpoint_message'] ); ?></p>
 						<?php endif; ?>
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -1638,7 +1669,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<span><?php echo esc_html( $restore_rollback_status['generated_at'] ); ?></span>
 				</div>
 				<p><?php echo esc_html( $restore_rollback_status['note'] ); ?></p>
-				<?php if ( ! empty( $restore_rollback_meta['show_run_link'] ) ) : ?>
+				<?php if ( $show_rollback_run_link ) : ?>
 					<p>
 						<strong><?php echo esc_html__( 'Run ID:', 'zignites-sentinel' ); ?></strong>
 						<a href="<?php echo esc_url( $restore_rollback_meta['run_url'] ); ?>">
@@ -1646,7 +1677,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</a>
 					</p>
 				<?php endif; ?>
-				<?php if ( ! empty( $restore_rollback_meta['show_health_section'] ) ) : ?>
+				<?php if ( $show_rollback_health_section ) : ?>
 					<h3><?php echo esc_html__( 'Post-Rollback Health Verification', 'zignites-sentinel' ); ?></h3>
 					<div class="znts-readiness-row">
 						<span class="znts-pill znts-pill-<?php echo esc_attr( $restore_rollback_health_status['badge'] ); ?>">
@@ -1656,7 +1687,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					</div>
 					<p><?php echo esc_html( $restore_rollback_health_status['note'] ); ?></p>
 				<?php endif; ?>
-				<?php if ( ! empty( $restore_rollback_check_rows ) ) : ?>
+				<?php if ( $show_rollback_checks ) : ?>
 					<table class="widefat striped">
 						<thead>
 							<tr>
@@ -1680,7 +1711,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $restore_rollback_item_rows ) ) : ?>
+				<?php if ( $show_rollback_items ) : ?>
 					<table class="widefat striped">
 						<thead>
 							<tr>
@@ -1706,7 +1737,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $restore_rollback_journal_rows ) ) : ?>
+				<?php if ( $show_rollback_journal ) : ?>
 					<h3><?php echo esc_html__( 'Rollback Journal', 'zignites-sentinel' ); ?></h3>
 					<table class="widefat striped">
 						<thead>
