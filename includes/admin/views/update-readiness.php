@@ -93,6 +93,9 @@ $health_attention_state    = isset( $view_data['health_attention_state'] ) ? (st
 $health_attention_message  = isset( $view_data['health_attention_message'] ) ? (string) $view_data['health_attention_message'] : '';
 $snapshot_health_baseline_status = isset( $view_data['snapshot_health_baseline_status'] ) && is_array( $view_data['snapshot_health_baseline_status'] ) ? $view_data['snapshot_health_baseline_status'] : array();
 $snapshot_health_comparison_rows = isset( $view_data['snapshot_health_comparison_rows'] ) && is_array( $view_data['snapshot_health_comparison_rows'] ) ? $view_data['snapshot_health_comparison_rows'] : array();
+$snapshot_summary_status_badges = isset( $view_data['snapshot_summary_status_badges'] ) && is_array( $view_data['snapshot_summary_status_badges'] ) ? $view_data['snapshot_summary_status_badges'] : array();
+$snapshot_summary_overview_rows = isset( $view_data['snapshot_summary_overview_rows'] ) && is_array( $view_data['snapshot_summary_overview_rows'] ) ? $view_data['snapshot_summary_overview_rows'] : array();
+$snapshot_summary_evidence_rows = isset( $view_data['snapshot_summary_evidence_rows'] ) && is_array( $view_data['snapshot_summary_evidence_rows'] ) ? $view_data['snapshot_summary_evidence_rows'] : array();
 $restore_run_card_rows    = isset( $view_data['restore_run_card_rows'] ) && is_array( $view_data['restore_run_card_rows'] ) ? $view_data['restore_run_card_rows'] : array();
 $restore_action_jump_links = isset( $view_data['restore_action_jump_links'] ) && is_array( $view_data['restore_action_jump_links'] ) ? $view_data['restore_action_jump_links'] : array();
 $snapshot_activity_rows    = isset( $view_data['snapshot_activity_rows'] ) && is_array( $view_data['snapshot_activity_rows'] ) ? $view_data['snapshot_activity_rows'] : array();
@@ -247,11 +250,11 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</form>
 					</div>
 				</div>
-				<?php if ( ! empty( $snapshot_summary['status_badges'] ) ) : ?>
+				<?php if ( ! empty( $snapshot_summary_status_badges ) ) : ?>
 					<div class="znts-badge-row znts-card-note">
-						<?php foreach ( $snapshot_summary['status_badges'] as $badge ) : ?>
-							<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $badge['badge'] ) ? $badge['badge'] : 'info' ); ?>">
-								<?php echo esc_html( isset( $badge['label'] ) ? $badge['label'] : '' ); ?>
+						<?php foreach ( $snapshot_summary_status_badges as $badge ) : ?>
+							<span class="znts-pill znts-pill-<?php echo esc_attr( $badge['badge'] ); ?>">
+								<?php echo esc_html( $badge['label'] ); ?>
 							</span>
 						<?php endforeach; ?>
 					</div>
@@ -271,16 +274,16 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					</section>
 				</div>
 				<details class="znts-disclosure" open>
-					<summary><?php echo esc_html__( 'Snapshot Summary Details', 'zignites-sentinel' ); ?></summary>
-					<div class="znts-disclosure-body">
-						<div class="znts-snapshot-overview">
-							<?php foreach ( isset( $snapshot_summary['overview'] ) && is_array( $snapshot_summary['overview'] ) ? $snapshot_summary['overview'] : array() as $item ) : ?>
-								<div class="znts-overview-block">
-									<strong><?php echo esc_html( isset( $item['label'] ) ? $item['label'] : '' ); ?></strong>
-									<span><?php echo esc_html( isset( $item['value'] ) ? $item['value'] : '' ); ?></span>
-									<?php if ( ! empty( $item['note'] ) ) : ?>
-										<p class="description"><?php echo esc_html( $item['note'] ); ?></p>
-									<?php endif; ?>
+						<summary><?php echo esc_html__( 'Snapshot Summary Details', 'zignites-sentinel' ); ?></summary>
+						<div class="znts-disclosure-body">
+							<div class="znts-snapshot-overview">
+								<?php foreach ( $snapshot_summary_overview_rows as $item ) : ?>
+									<div class="znts-overview-block">
+										<strong><?php echo esc_html( $item['label'] ); ?></strong>
+										<span><?php echo esc_html( $item['value'] ); ?></span>
+										<?php if ( ! empty( $item['note'] ) ) : ?>
+											<p class="description"><?php echo esc_html( $item['note'] ); ?></p>
+										<?php endif; ?>
 								</div>
 							<?php endforeach; ?>
 						</div>
@@ -294,10 +297,10 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							<summary><?php echo esc_html__( 'View evidence summary', 'zignites-sentinel' ); ?></summary>
 							<div class="znts-disclosure-body">
 								<ul class="znts-list">
-									<?php foreach ( isset( $snapshot_summary['evidence'] ) && is_array( $snapshot_summary['evidence'] ) ? $snapshot_summary['evidence'] : array() as $item ) : ?>
+									<?php foreach ( $snapshot_summary_evidence_rows as $item ) : ?>
 										<li>
-											<strong><?php echo esc_html( isset( $item['label'] ) ? $item['label'] : '' ); ?>:</strong>
-											<?php echo esc_html( isset( $item['value'] ) ? $item['value'] : '' ); ?>
+											<strong><?php echo esc_html( $item['label'] ); ?>:</strong>
+											<?php echo esc_html( $item['value'] ); ?>
 											<?php if ( ! empty( $item['note'] ) ) : ?>
 												<span class="znts-inline-note"><?php echo esc_html( ' ' . $item['note'] ); ?></span>
 											<?php endif; ?>

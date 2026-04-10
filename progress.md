@@ -521,11 +521,17 @@
 ## Handoff Note
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
+- Main is now current through the merged Update Readiness residual view-fallback cleanup for:
+  - selected snapshot status badge rows prepared by `UpdateReadinessStateBuilder`
+  - restore control summary cards normalized before rendering
+  - artifact-diff rows and checkpoint summary rows now render from prepared shapes without inline fallback checks
+  - normalized status-header and impact-summary rendering now consume prepared status/row keys directly without per-field fallback checks
+  - focused regression coverage for selected snapshot badges, restore summary cards, and empty defaults
 - Current branch prepared for merge:
-  - `feature/update-readiness-residual-view-fallback-state`
+  - `feature/update-readiness-overview-detail-state`
 - Next likely restart task after this branch merges:
   - start from `includes/admin/views/update-readiness.php`
-  - extract the next residual overview/detail-list fallback seam into the Update Readiness state builder or a focused presenter
+  - extract the next residual summary-support or helper-list fallback seam into the Update Readiness state builder or a focused presenter
   - avoid new restore behavior; keep this track to presentation-state cleanup and regression coverage
 
 

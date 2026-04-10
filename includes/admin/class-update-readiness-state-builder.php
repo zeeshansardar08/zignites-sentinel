@@ -66,6 +66,7 @@ class UpdateReadinessStateBuilder {
 		$view_data = $this->with_snapshot_list_state( $view_data );
 		$view_data = $this->with_settings_form_state( $view_data );
 		$view_data = $this->with_health_state( $view_data );
+		$view_data = $this->with_snapshot_summary_state( $view_data );
 		$view_data = $this->with_snapshot_detail_state( $view_data );
 		$view_data = $this->with_activity_navigation_state( $view_data );
 		$view_data = $this->with_status_section_state( $view_data );
@@ -235,6 +236,26 @@ class UpdateReadinessStateBuilder {
 	protected function with_health_state( array $view_data ) {
 		$view_data['snapshot_health_baseline_status'] = $this->build_snapshot_health_baseline_status( $this->array_value( $view_data, 'snapshot_health_baseline' ) );
 		$view_data['snapshot_health_comparison_rows'] = $this->build_snapshot_health_comparison_rows( $this->array_value( $view_data, 'snapshot_health_comparison' ) );
+
+		return $view_data;
+	}
+
+	/**
+	 * Add derived snapshot summary badge and detail rows.
+	 *
+	 * @param array $view_data Normalized screen state.
+	 * @return array
+	 */
+	protected function with_snapshot_summary_state( array $view_data ) {
+		$snapshot_summary = $this->array_value( $view_data, 'snapshot_summary' );
+
+		$view_data['snapshot_summary_status_badges'] = $this->build_snapshot_summary_status_badges( $snapshot_summary );
+		$view_data['snapshot_summary_overview_rows'] = $this->build_snapshot_summary_detail_rows(
+			isset( $snapshot_summary['overview'] ) && is_array( $snapshot_summary['overview'] ) ? $snapshot_summary['overview'] : array()
+		);
+		$view_data['snapshot_summary_evidence_rows'] = $this->build_snapshot_summary_detail_rows(
+			isset( $snapshot_summary['evidence'] ) && is_array( $snapshot_summary['evidence'] ) ? $snapshot_summary['evidence'] : array()
+		);
 
 		return $view_data;
 	}
@@ -659,6 +680,38 @@ class UpdateReadinessStateBuilder {
 			'message' => isset( $artifact_diff['message'] ) ? (string) $artifact_diff['message'] : '',
 			'rows'    => $rows,
 		);
+	}
+
+	/**
+	 * Build normalized snapshot summary badge rows.
+	 *
+	 * @param array $snapshot_summary Snapshot summary payload.
+	 * @return array
+	 */
+	protected function build_snapshot_summary_status_badges( array $snapshot_summary ) {
+		$rows = isset( $snapshot_summary['status_badges'] ) && is_array( $snapshot_summary['status_badges'] ) ? $snapshot_summary['status_badges'] : array();
+
+		return $this->build_snapshot_status_badge_rows( array( 'status_badges' => $rows ) );
+	}
+
+	/**
+	 * Build normalized snapshot summary overview/evidence rows.
+	 *
+	 * @param array $rows Snapshot summary detail rows.
+	 * @return array
+	 */
+	protected function build_snapshot_summary_detail_rows( array $rows ) {
+		$normalized = array();
+
+		foreach ( $rows as $row ) {
+			$normalized[] = array(
+				'label' => isset( $row['label'] ) ? (string) $row['label'] : '',
+				'value' => isset( $row['value'] ) ? (string) $row['value'] : '',
+				'note'  => isset( $row['note'] ) ? (string) $row['note'] : '',
+			);
+		}
+
+		return $normalized;
 	}
 
 	/**
