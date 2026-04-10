@@ -530,11 +530,14 @@
 - Main is now current through the merged Update Readiness summary detail-state cleanup for:
   - snapshot summary badge, overview, and evidence rows prepared by `UpdateReadinessStateBuilder`
   - focused regression coverage for snapshot summary detail rows and empty defaults
+- Main is now current through the merged Update Readiness summary support-state cleanup for:
+  - snapshot summary risks and next-step lists prepared by `UpdateReadinessStateBuilder`
+  - focused regression coverage for snapshot summary support lists and empty defaults
 - Current branch prepared for merge:
-  - `feature/update-readiness-summary-support-state`
+  - `feature/update-readiness-secondary-detail-state`
 - Next likely restart task after this branch merges:
   - start from `includes/admin/views/update-readiness.php`
-  - extract the next residual snapshot-summary helper block or secondary detail fallback seam into the Update Readiness state builder or a focused presenter
+  - extract the next residual execution/rollback support detail seam or remaining raw helper block into the Update Readiness state builder or a focused presenter
   - avoid new restore behavior; keep this track to presentation-state cleanup and regression coverage
 
 

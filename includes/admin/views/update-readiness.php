@@ -69,12 +69,14 @@ $restore_plan_status     = isset( $view_data['restore_plan_status'] ) && is_arra
 $restore_plan_check_rows = isset( $view_data['restore_plan_check_rows'] ) && is_array( $view_data['restore_plan_check_rows'] ) ? $view_data['restore_plan_check_rows'] : array();
 $restore_plan_item_rows  = isset( $view_data['restore_plan_item_rows'] ) && is_array( $view_data['restore_plan_item_rows'] ) ? $view_data['restore_plan_item_rows'] : array();
 $restore_execution_status = isset( $view_data['restore_execution_status'] ) && is_array( $view_data['restore_execution_status'] ) ? $view_data['restore_execution_status'] : array();
+$restore_execution_meta  = isset( $view_data['restore_execution_meta'] ) && is_array( $view_data['restore_execution_meta'] ) ? $view_data['restore_execution_meta'] : array();
 $restore_execution_health_status = isset( $view_data['restore_execution_health_status'] ) && is_array( $view_data['restore_execution_health_status'] ) ? $view_data['restore_execution_health_status'] : array();
 $restore_execution_health_check_rows = isset( $view_data['restore_execution_health_check_rows'] ) && is_array( $view_data['restore_execution_health_check_rows'] ) ? $view_data['restore_execution_health_check_rows'] : array();
 $restore_execution_check_rows = isset( $view_data['restore_execution_check_rows'] ) && is_array( $view_data['restore_execution_check_rows'] ) ? $view_data['restore_execution_check_rows'] : array();
 $restore_execution_item_rows = isset( $view_data['restore_execution_item_rows'] ) && is_array( $view_data['restore_execution_item_rows'] ) ? $view_data['restore_execution_item_rows'] : array();
 $restore_execution_journal_rows = isset( $view_data['restore_execution_journal_rows'] ) && is_array( $view_data['restore_execution_journal_rows'] ) ? $view_data['restore_execution_journal_rows'] : array();
 $restore_rollback_status = isset( $view_data['restore_rollback_status'] ) && is_array( $view_data['restore_rollback_status'] ) ? $view_data['restore_rollback_status'] : array();
+$restore_rollback_meta   = isset( $view_data['restore_rollback_meta'] ) && is_array( $view_data['restore_rollback_meta'] ) ? $view_data['restore_rollback_meta'] : array();
 $restore_rollback_health_status = isset( $view_data['restore_rollback_health_status'] ) && is_array( $view_data['restore_rollback_health_status'] ) ? $view_data['restore_rollback_health_status'] : array();
 $restore_rollback_check_rows = isset( $view_data['restore_rollback_check_rows'] ) && is_array( $view_data['restore_rollback_check_rows'] ) ? $view_data['restore_rollback_check_rows'] : array();
 $restore_rollback_item_rows = isset( $view_data['restore_rollback_item_rows'] ) && is_array( $view_data['restore_rollback_item_rows'] ) ? $view_data['restore_rollback_item_rows'] : array();
@@ -1448,21 +1450,21 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<span><?php echo esc_html( $restore_execution_status['generated_at'] ); ?></span>
 				</div>
 				<p><?php echo esc_html( $restore_execution_status['note'] ); ?></p>
-				<?php if ( ! empty( $last_restore_execution['backup_root'] ) ) : ?>
-					<p><strong><?php echo esc_html__( 'Backup Root:', 'zignites-sentinel' ); ?></strong> <?php echo esc_html( $last_restore_execution['backup_root'] ); ?></p>
+				<?php if ( ! empty( $restore_execution_meta['show_backup_root'] ) ) : ?>
+					<p><strong><?php echo esc_html__( 'Backup Root:', 'zignites-sentinel' ); ?></strong> <?php echo esc_html( $restore_execution_meta['backup_root'] ); ?></p>
 				<?php endif; ?>
-				<?php if ( ! empty( $last_restore_execution['run_id'] ) ) : ?>
+				<?php if ( ! empty( $restore_execution_meta['show_run_link'] ) ) : ?>
 					<p>
 						<strong><?php echo esc_html__( 'Run ID:', 'zignites-sentinel' ); ?></strong>
-						<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs', 'source' => 'restore-execution-journal', 'run_id' => $last_restore_execution['run_id'] ), admin_url( 'admin.php' ) ) ); ?>">
-							<?php echo esc_html( $last_restore_execution['run_id'] ); ?>
+						<a href="<?php echo esc_url( $restore_execution_meta['run_url'] ); ?>">
+							<?php echo esc_html( $restore_execution_meta['run_id'] ); ?>
 						</a>
 					</p>
 				<?php endif; ?>
-				<?php if ( ! empty( $last_restore_execution['resumed_run'] ) ) : ?>
+				<?php if ( ! empty( $restore_execution_meta['show_resumed_run_notice'] ) ) : ?>
 					<p><?php echo esc_html__( 'This execution reused persisted journal state from a prior run.', 'zignites-sentinel' ); ?></p>
 				<?php endif; ?>
-				<?php if ( ! empty( $last_restore_execution['health_verification'] ) ) : ?>
+				<?php if ( ! empty( $restore_execution_meta['show_health_section'] ) ) : ?>
 					<h3><?php echo esc_html__( 'Post-Restore Health Verification', 'zignites-sentinel' ); ?></h3>
 					<div class="znts-readiness-row">
 						<span class="znts-pill znts-pill-<?php echo esc_attr( $restore_execution_health_status['badge'] ); ?>">
@@ -1575,7 +1577,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $last_restore_execution['backup_root'] ) ) : ?>
+				<?php if ( ! empty( $restore_execution_meta['show_backup_root'] ) ) : ?>
 					<h3><?php echo esc_html__( 'Rollback From Backup', 'zignites-sentinel' ); ?></h3>
 					<p><?php echo esc_html__( 'This restores the previously live payloads from the backup root created during restore execution.', 'zignites-sentinel' ); ?></p>
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -1621,15 +1623,15 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<span><?php echo esc_html( $restore_rollback_status['generated_at'] ); ?></span>
 				</div>
 				<p><?php echo esc_html( $restore_rollback_status['note'] ); ?></p>
-				<?php if ( ! empty( $last_restore_rollback['run_id'] ) ) : ?>
+				<?php if ( ! empty( $restore_rollback_meta['show_run_link'] ) ) : ?>
 					<p>
 						<strong><?php echo esc_html__( 'Run ID:', 'zignites-sentinel' ); ?></strong>
-						<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs', 'source' => 'restore-rollback-journal', 'run_id' => $last_restore_rollback['run_id'] ), admin_url( 'admin.php' ) ) ); ?>">
-							<?php echo esc_html( $last_restore_rollback['run_id'] ); ?>
+						<a href="<?php echo esc_url( $restore_rollback_meta['run_url'] ); ?>">
+							<?php echo esc_html( $restore_rollback_meta['run_id'] ); ?>
 						</a>
 					</p>
 				<?php endif; ?>
-				<?php if ( ! empty( $last_restore_rollback['health_verification'] ) ) : ?>
+				<?php if ( ! empty( $restore_rollback_meta['show_health_section'] ) ) : ?>
 					<h3><?php echo esc_html__( 'Post-Rollback Health Verification', 'zignites-sentinel' ); ?></h3>
 					<div class="znts-readiness-row">
 						<span class="znts-pill znts-pill-<?php echo esc_attr( $restore_rollback_health_status['badge'] ); ?>">

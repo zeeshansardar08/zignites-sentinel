@@ -330,12 +330,14 @@ class UpdateReadinessStateBuilder {
 		$view_data['restore_plan_check_rows'] = $this->build_check_rows( $last_restore_plan );
 		$view_data['restore_plan_item_rows'] = $this->build_restore_plan_item_rows( $last_restore_plan );
 		$view_data['restore_execution_status'] = $this->build_execution_result_status( $last_restore_execution );
+		$view_data['restore_execution_meta'] = $this->build_execution_result_meta( $last_restore_execution, 'restore-execution-journal' );
 		$view_data['restore_execution_health_status'] = $this->build_health_verification_status( $this->array_value( $last_restore_execution, 'health_verification' ) );
 		$view_data['restore_execution_health_check_rows'] = $this->build_check_rows( $this->array_value( $last_restore_execution, 'health_verification' ) );
 		$view_data['restore_execution_check_rows'] = $this->build_check_rows( $last_restore_execution );
 		$view_data['restore_execution_item_rows'] = $this->build_execution_item_rows( $last_restore_execution );
 		$view_data['restore_execution_journal_rows'] = $this->build_journal_rows( $last_restore_execution );
 		$view_data['restore_rollback_status'] = $this->build_execution_result_status( $last_restore_rollback );
+		$view_data['restore_rollback_meta'] = $this->build_execution_result_meta( $last_restore_rollback, 'restore-rollback-journal' );
 		$view_data['restore_rollback_health_status'] = $this->build_health_verification_status( $this->array_value( $last_restore_rollback, 'health_verification' ) );
 		$view_data['restore_rollback_check_rows'] = $this->build_check_rows( $last_restore_rollback );
 		$view_data['restore_rollback_item_rows'] = $this->build_execution_item_rows( $last_restore_rollback );
@@ -1330,6 +1332,27 @@ class UpdateReadinessStateBuilder {
 	}
 
 	/**
+	 * Build normalized execution or rollback meta state.
+	 *
+	 * @param array  $payload      Restore execution or rollback payload.
+	 * @param string $journal_type Event log source slug.
+	 * @return array
+	 */
+	protected function build_execution_result_meta( array $payload, $journal_type ) {
+		$run_id = isset( $payload['run_id'] ) ? (string) $payload['run_id'] : '';
+
+		return array(
+			'backup_root'            => isset( $payload['backup_root'] ) ? (string) $payload['backup_root'] : '',
+			'show_backup_root'       => ! empty( $payload['backup_root'] ),
+			'run_id'                 => $run_id,
+			'run_url'                => '' !== $run_id ? $this->build_result_run_url( $journal_type, $run_id ) : '',
+			'show_run_link'          => '' !== $run_id,
+			'show_resumed_run_notice'=> ! empty( $payload['resumed_run'] ),
+			'show_health_section'    => ! empty( $payload['health_verification'] ) && is_array( $payload['health_verification'] ),
+		);
+	}
+
+	/**
 	 * Build normalized health verification status state.
 	 *
 	 * @param array $payload Health verification payload.
@@ -1400,6 +1423,24 @@ class UpdateReadinessStateBuilder {
 		}
 
 		return $rows;
+	}
+
+	/**
+	 * Build a result run journal URL.
+	 *
+	 * @param string $source Event log source slug.
+	 * @param string $run_id Restore run ID.
+	 * @return string
+	 */
+	protected function build_result_run_url( $source, $run_id ) {
+		return add_query_arg(
+			array(
+				'page'   => 'zignites-sentinel-event-logs',
+				'source' => (string) $source,
+				'run_id' => (string) $run_id,
+			),
+			admin_url( 'admin.php' )
+		);
 	}
 
 	/**
