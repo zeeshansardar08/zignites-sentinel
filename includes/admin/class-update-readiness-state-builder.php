@@ -73,6 +73,7 @@ class UpdateReadinessStateBuilder {
 		$view_data = $this->with_restore_result_state( $view_data );
 		$view_data = $this->with_checkpoint_summary_state( $view_data );
 		$view_data = $this->with_form_state( $view_data );
+		$view_data = $this->with_view_visibility_state( $view_data );
 
 		return $view_data;
 	}
@@ -396,6 +397,51 @@ class UpdateReadinessStateBuilder {
 			'rollback_checkpoint_message'  => $this->build_rollback_checkpoint_message( $restore_rollback_resume_context ),
 			'rollback_resume_run_label'    => $this->build_run_label( $restore_rollback_resume_context ),
 			'has_execution_checkpoint'     => isset( $execution_checkpoint['checkpoint'] ) && is_array( $execution_checkpoint['checkpoint'] ),
+		);
+
+		return $view_data;
+	}
+
+	/**
+	 * Add derived section visibility and link state for the Update Readiness view.
+	 *
+	 * @param array $view_data Normalized screen state.
+	 * @return array
+	 */
+	protected function with_view_visibility_state( array $view_data ) {
+		$restore_form_state         = $this->array_value( $view_data, 'restore_form_state' );
+		$last_plan                  = $this->array_value( $view_data, 'last_update_plan' );
+		$last_restore_check         = $this->array_value( $view_data, 'last_restore_check' );
+		$last_restore_dry_run       = $this->array_value( $view_data, 'last_restore_dry_run' );
+		$last_restore_stage         = $this->array_value( $view_data, 'last_restore_stage' );
+		$last_restore_plan          = $this->array_value( $view_data, 'last_restore_plan' );
+		$last_restore_execution     = $this->array_value( $view_data, 'last_restore_execution' );
+		$last_restore_rollback      = $this->array_value( $view_data, 'last_restore_rollback' );
+		$restore_impact_summary     = $this->array_value( $view_data, 'restore_impact_summary' );
+		$audit_report_verification  = $this->array_value( $view_data, 'audit_report_verification' );
+		$has_selected_snapshot      = ! empty( $restore_form_state['has_selected_snapshot'] );
+		$last_plan_snapshot_id      = isset( $last_plan['snapshot_id'] ) ? (int) $last_plan['snapshot_id'] : 0;
+
+		$view_data['view_visibility'] = array(
+			'has_preflight_result'                 => ! empty( $this->array_value( $view_data, 'last_preflight' ) ),
+			'has_last_update_plan'                => ! empty( $last_plan ),
+			'show_last_update_plan_snapshot_link' => $last_plan_snapshot_id > 0,
+			'last_update_plan_snapshot_url'       => $last_plan_snapshot_id > 0 ? $this->build_snapshot_detail_url( $last_plan_snapshot_id ) : '',
+			'has_selected_snapshot'               => $has_selected_snapshot,
+			'show_restore_control_summary'        => $has_selected_snapshot && ! empty( $this->array_value( $view_data, 'restore_run_card_rows' ) ),
+			'show_checkpoint_note'                => ! empty( $this->array_value( $view_data, 'stage_checkpoint' ) ) || ! empty( $this->array_value( $view_data, 'plan_checkpoint' ) ),
+			'has_health_baseline'                 => ! empty( $this->array_value( $view_data, 'snapshot_health_baseline' ) ),
+			'show_plan_validation'                => ! empty( $this->array_value( $view_data, 'plan_validation_check_rows' ) ) || '' !== ( isset( $restore_form_state['plan_validation_message'] ) ? (string) $restore_form_state['plan_validation_message'] : '' ),
+			'show_snapshot_comparison'            => $has_selected_snapshot && ! empty( $this->array_value( $view_data, 'snapshot_comparison' ) ),
+			'show_restore_readiness'              => $has_selected_snapshot && ! empty( $last_restore_check ),
+			'show_restore_source_validation'      => ! empty( $this->array_value( $view_data, 'restore_source_validation_check_rows' ) ) || ! empty( $this->array_value( $view_data, 'restore_source_missing_plugins' ) ) || ! empty( $this->array_value( $view_data, 'restore_source_missing_artifacts' ) ) || '' !== ( isset( $restore_form_state['restore_source_validation_message'] ) ? (string) $restore_form_state['restore_source_validation_message'] : '' ),
+			'show_restore_dry_run'                => $has_selected_snapshot && ! empty( $last_restore_dry_run ),
+			'show_restore_stage'                  => $has_selected_snapshot && ! empty( $last_restore_stage ),
+			'show_restore_plan'                   => $has_selected_snapshot && ! empty( $last_restore_plan ),
+			'show_restore_impact_summary'         => ! empty( $restore_impact_summary ),
+			'show_restore_execution'              => $has_selected_snapshot && ! empty( $last_restore_execution ),
+			'show_audit_report_verification'      => ! empty( $audit_report_verification ),
+			'show_restore_rollback'               => $has_selected_snapshot && ! empty( $last_restore_rollback ),
 		);
 
 		return $view_data;

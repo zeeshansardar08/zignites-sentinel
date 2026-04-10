@@ -7,28 +7,15 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$preflight                 = isset( $view_data['last_preflight'] ) && is_array( $view_data['last_preflight'] ) ? $view_data['last_preflight'] : array();
-$last_plan                 = isset( $view_data['last_update_plan'] ) && is_array( $view_data['last_update_plan'] ) ? $view_data['last_update_plan'] : array();
-$last_restore_check        = isset( $view_data['last_restore_check'] ) && is_array( $view_data['last_restore_check'] ) ? $view_data['last_restore_check'] : array();
 $notice                    = isset( $view_data['notice'] ) && is_array( $view_data['notice'] ) ? $view_data['notice'] : array();
-$snapshot_detail           = isset( $view_data['snapshot_detail'] ) && is_array( $view_data['snapshot_detail'] ) ? $view_data['snapshot_detail'] : null;
-$snapshot_comparison       = isset( $view_data['snapshot_comparison'] ) && is_array( $view_data['snapshot_comparison'] ) ? $view_data['snapshot_comparison'] : array();
 $snapshot_artifacts        = isset( $view_data['snapshot_artifacts'] ) && is_array( $view_data['snapshot_artifacts'] ) ? $view_data['snapshot_artifacts'] : array();
 $artifact_diff            = isset( $view_data['artifact_diff'] ) && is_array( $view_data['artifact_diff'] ) ? $view_data['artifact_diff'] : array();
-$last_restore_dry_run     = isset( $view_data['last_restore_dry_run'] ) && is_array( $view_data['last_restore_dry_run'] ) ? $view_data['last_restore_dry_run'] : array();
-$last_restore_stage       = isset( $view_data['last_restore_stage'] ) && is_array( $view_data['last_restore_stage'] ) ? $view_data['last_restore_stage'] : array();
-$last_restore_plan        = isset( $view_data['last_restore_plan'] ) && is_array( $view_data['last_restore_plan'] ) ? $view_data['last_restore_plan'] : array();
-$last_restore_execution   = isset( $view_data['last_restore_execution'] ) && is_array( $view_data['last_restore_execution'] ) ? $view_data['last_restore_execution'] : array();
-$last_restore_rollback    = isset( $view_data['last_restore_rollback'] ) && is_array( $view_data['last_restore_rollback'] ) ? $view_data['last_restore_rollback'] : array();
-$stage_checkpoint         = isset( $view_data['stage_checkpoint'] ) && is_array( $view_data['stage_checkpoint'] ) ? $view_data['stage_checkpoint'] : array();
-$plan_checkpoint          = isset( $view_data['plan_checkpoint'] ) && is_array( $view_data['plan_checkpoint'] ) ? $view_data['plan_checkpoint'] : array();
 $execution_checkpoint_summary_rows = isset( $view_data['execution_checkpoint_summary_rows'] ) && is_array( $view_data['execution_checkpoint_summary_rows'] ) ? $view_data['execution_checkpoint_summary_rows'] : array();
 $rollback_checkpoint_summary_rows = isset( $view_data['rollback_checkpoint_summary_rows'] ) && is_array( $view_data['rollback_checkpoint_summary_rows'] ) ? $view_data['rollback_checkpoint_summary_rows'] : array();
 $snapshot_health_baseline = isset( $view_data['snapshot_health_baseline'] ) && is_array( $view_data['snapshot_health_baseline'] ) ? $view_data['snapshot_health_baseline'] : array();
 $snapshot_health_comparison = isset( $view_data['snapshot_health_comparison'] ) && is_array( $view_data['snapshot_health_comparison'] ) ? $view_data['snapshot_health_comparison'] : array();
 $snapshot_summary       = isset( $view_data['snapshot_summary'] ) && is_array( $view_data['snapshot_summary'] ) ? $view_data['snapshot_summary'] : array();
 $restore_impact_summary  = isset( $view_data['restore_impact_summary'] ) && is_array( $view_data['restore_impact_summary'] ) ? $view_data['restore_impact_summary'] : array();
-$audit_report_verification = isset( $view_data['audit_report_verification'] ) && is_array( $view_data['audit_report_verification'] ) ? $view_data['audit_report_verification'] : array();
 $snapshot_activity_url   = isset( $view_data['snapshot_activity_url'] ) ? (string) $view_data['snapshot_activity_url'] : '';
 $snapshot_search         = isset( $view_data['snapshot_search'] ) ? (string) $view_data['snapshot_search'] : '';
 $snapshot_status_filter  = isset( $view_data['snapshot_status_filter'] ) ? (string) $view_data['snapshot_status_filter'] : '';
@@ -77,11 +64,30 @@ $restore_rollback_check_rows = isset( $view_data['restore_rollback_check_rows'] 
 $restore_rollback_item_rows = isset( $view_data['restore_rollback_item_rows'] ) && is_array( $view_data['restore_rollback_item_rows'] ) ? $view_data['restore_rollback_item_rows'] : array();
 $restore_rollback_journal_rows = isset( $view_data['restore_rollback_journal_rows'] ) && is_array( $view_data['restore_rollback_journal_rows'] ) ? $view_data['restore_rollback_journal_rows'] : array();
 $restore_form_state    = isset( $view_data['restore_form_state'] ) && is_array( $view_data['restore_form_state'] ) ? $view_data['restore_form_state'] : array();
+$view_visibility       = isset( $view_data['view_visibility'] ) && is_array( $view_data['view_visibility'] ) ? $view_data['view_visibility'] : array();
 $form_snapshot_id        = isset( $restore_form_state['selected_snapshot_id'] ) ? (string) $restore_form_state['selected_snapshot_id'] : '';
 $has_form_snapshot       = ! empty( $restore_form_state['has_selected_snapshot'] );
 $can_execute_restore     = ! empty( $restore_form_state['can_execute_restore'] );
 $can_resume_restore      = ! empty( $restore_form_state['can_resume_restore'] );
 $can_resume_rollback     = ! empty( $restore_form_state['can_resume_rollback'] );
+$has_preflight_result    = ! empty( $view_visibility['has_preflight_result'] );
+$has_last_update_plan    = ! empty( $view_visibility['has_last_update_plan'] );
+$show_last_update_plan_snapshot_link = ! empty( $view_visibility['show_last_update_plan_snapshot_link'] );
+$last_update_plan_snapshot_url = isset( $view_visibility['last_update_plan_snapshot_url'] ) ? (string) $view_visibility['last_update_plan_snapshot_url'] : '';
+$show_restore_control_summary = ! empty( $view_visibility['show_restore_control_summary'] );
+$show_checkpoint_note    = ! empty( $view_visibility['show_checkpoint_note'] );
+$has_health_baseline     = ! empty( $view_visibility['has_health_baseline'] );
+$show_plan_validation    = ! empty( $view_visibility['show_plan_validation'] );
+$show_snapshot_comparison = ! empty( $view_visibility['show_snapshot_comparison'] );
+$show_restore_readiness  = ! empty( $view_visibility['show_restore_readiness'] );
+$show_restore_source_validation = ! empty( $view_visibility['show_restore_source_validation'] );
+$show_restore_dry_run    = ! empty( $view_visibility['show_restore_dry_run'] );
+$show_restore_stage      = ! empty( $view_visibility['show_restore_stage'] );
+$show_restore_plan       = ! empty( $view_visibility['show_restore_plan'] );
+$show_restore_impact_summary = ! empty( $view_visibility['show_restore_impact_summary'] );
+$show_restore_execution  = ! empty( $view_visibility['show_restore_execution'] );
+$show_audit_report_verification = ! empty( $view_visibility['show_audit_report_verification'] );
+$show_restore_rollback   = ! empty( $view_visibility['show_restore_rollback'] );
 $component_manifest        = isset( $view_data['component_manifest'] ) && is_array( $view_data['component_manifest'] ) ? $view_data['component_manifest'] : array();
 $selected_snapshot_label   = isset( $view_data['selected_snapshot_label'] ) ? (string) $view_data['selected_snapshot_label'] : '';
 $selected_snapshot_note    = isset( $view_data['selected_snapshot_note'] ) ? (string) $view_data['selected_snapshot_note'] : '';
@@ -135,7 +141,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			<span class="znts-pill znts-pill-<?php echo esc_attr( $workspace_status_badge ); ?>">
 				<?php echo esc_html( $workspace_status_label ); ?>
 			</span>
-			<?php if ( $snapshot_detail && ! empty( $selected_snapshot_status_badges ) ) : ?>
+			<?php if ( $has_form_snapshot && ! empty( $selected_snapshot_status_badges ) ) : ?>
 				<div class="znts-badge-row">
 					<?php foreach ( $selected_snapshot_status_badges as $badge ) : ?>
 						<span class="znts-pill znts-pill-<?php echo esc_attr( $badge['badge'] ); ?>">
@@ -177,7 +183,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 	</section>
 
 	<div class="znts-admin-grid znts-readiness-grid">
-		<?php if ( $snapshot_detail && ! empty( $restore_run_card_rows ) ) : ?>
+		<?php if ( $show_restore_control_summary ) : ?>
 			<section class="znts-card znts-card-full znts-card-primary znts-card-hero">
 				<h2><?php echo esc_html__( 'Restore Control Summary', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-status-grid">
@@ -200,7 +206,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</section>
 					<?php endforeach; ?>
 				</div>
-				<?php if ( ! empty( $stage_checkpoint ) || ! empty( $plan_checkpoint ) ) : ?>
+				<?php if ( $show_checkpoint_note ) : ?>
 					<p class="description"><?php echo esc_html__( 'Stage and plan checkpoints are pinned to the current snapshot package fingerprint and are reused during resume when they still match.', 'zignites-sentinel' ); ?></p>
 				<?php endif; ?>
 				<?php if ( ! empty( $execution_checkpoint_summary_rows ) ) : ?>
@@ -232,7 +238,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			</section>
 		<?php endif; ?>
 
-		<?php if ( $snapshot_detail ) : ?>
+		<?php if ( $has_form_snapshot ) : ?>
 			<section class="znts-card znts-card-full znts-card-primary">
 				<div class="znts-section-header">
 					<div>
@@ -341,7 +347,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			</section>
 		<?php endif; ?>
 
-		<?php if ( $snapshot_detail ) : ?>
+		<?php if ( $has_form_snapshot ) : ?>
 			<section class="znts-card znts-card-full znts-card-secondary">
 				<div class="znts-section-header">
 					<div>
@@ -361,7 +367,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<strong><?php echo esc_html( 'info' === $health_attention_state ? __( 'Baseline ready', 'zignites-sentinel' ) : __( 'Attention required', 'zignites-sentinel' ) ); ?></strong>
 					<p><?php echo esc_html( $health_attention_message ); ?></p>
 				</div>
-				<?php if ( empty( $snapshot_health_baseline ) ) : ?>
+				<?php if ( ! $has_health_baseline ) : ?>
 					<p><?php echo esc_html__( 'No health baseline has been captured for this snapshot yet.', 'zignites-sentinel' ); ?></p>
 				<?php else : ?>
 					<div class="znts-readiness-row">
@@ -467,7 +473,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					</p>
 						<?php submit_button( __( 'Verify Audit Report', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 						</form>
-				<?php if ( ! empty( $audit_report_verification ) ) : ?>
+				<?php if ( $show_audit_report_verification ) : ?>
 					<h3><?php echo esc_html__( 'Latest Verification Result', 'zignites-sentinel' ); ?></h3>
 					<div class="znts-readiness-row">
 						<span class="znts-pill znts-pill-<?php echo esc_attr( $audit_report_verification_status['badge'] ); ?>">
@@ -579,7 +585,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 
 		<section class="znts-card znts-card-secondary">
 			<h2><?php echo esc_html__( 'Latest Preflight Result', 'zignites-sentinel' ); ?></h2>
-			<?php if ( empty( $preflight ) ) : ?>
+			<?php if ( ! $has_preflight_result ) : ?>
 				<p><?php echo esc_html__( 'No preflight scan has been recorded yet.', 'zignites-sentinel' ); ?></p>
 			<?php else : ?>
 				<div class="znts-readiness-row">
@@ -652,7 +658,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 
 		<section class="znts-card znts-card-secondary">
 			<h2><?php echo esc_html__( 'Last Update Plan', 'zignites-sentinel' ); ?></h2>
-			<?php if ( empty( $last_plan ) ) : ?>
+			<?php if ( ! $has_last_update_plan ) : ?>
 				<p><?php echo esc_html__( 'No update plan has been created yet.', 'zignites-sentinel' ); ?></p>
 			<?php else : ?>
 				<div class="znts-readiness-row">
@@ -662,9 +668,9 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<span><?php echo esc_html( $last_update_plan_status['generated_at'] ); ?></span>
 				</div>
 				<p><?php echo esc_html( $last_update_plan_status['note'] ); ?></p>
-				<?php if ( ! empty( $last_plan['snapshot_id'] ) ) : ?>
+				<?php if ( $show_last_update_plan_snapshot_link ) : ?>
 					<p>
-						<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-update-readiness', 'snapshot_id' => (int) $last_plan['snapshot_id'] ), admin_url( 'admin.php' ) ) ); ?>">
+						<a href="<?php echo esc_url( $last_update_plan_snapshot_url ); ?>">
 							<?php echo esc_html__( 'View related snapshot metadata', 'zignites-sentinel' ); ?>
 						</a>
 					</p>
@@ -691,7 +697,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $plan_validation ) ) : ?>
+				<?php if ( $show_plan_validation ) : ?>
 					<h3><?php echo esc_html__( 'Target Source Validation', 'zignites-sentinel' ); ?></h3>
 					<p><?php echo esc_html( $restore_form_state['plan_validation_message'] ); ?></p>
 					<table class="widefat striped">
@@ -814,7 +820,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			<?php endif; ?>
 		</section>
 
-		<?php if ( $snapshot_detail ) : ?>
+		<?php if ( $has_form_snapshot ) : ?>
 			<section class="znts-card znts-card-full znts-card-flat">
 				<div class="znts-section-header">
 					<div>
@@ -882,7 +888,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			</section>
 		<?php endif; ?>
 
-		<?php if ( $snapshot_detail ) : ?>
+		<?php if ( $has_form_snapshot ) : ?>
 			<section class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Snapshot Detail', 'zignites-sentinel' ); ?></h2>
 				<p class="znts-inline-note"><?php echo esc_html__( 'Start with the overview. Open the other sections only when you need deeper component, artifact, or environment detail.', 'zignites-sentinel' ); ?></p>
@@ -1075,7 +1081,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			</section>
 		<?php endif; ?>
 
-		<?php if ( $snapshot_detail && ! empty( $snapshot_comparison ) ) : ?>
+		<?php if ( $show_snapshot_comparison ) : ?>
 			<section class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Snapshot Comparison', 'zignites-sentinel' ); ?></h2>
 				<table class="widefat striped">
@@ -1142,7 +1148,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			</section>
 		<?php endif; ?>
 
-		<?php if ( $snapshot_detail && ! empty( $last_restore_check ) ) : ?>
+		<?php if ( $show_restore_readiness ) : ?>
 			<section class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Restore Readiness Assessment', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
@@ -1174,7 +1180,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						<?php endforeach; ?>
 					</tbody>
 				</table>
-				<?php if ( ! empty( $restore_source_validation ) ) : ?>
+				<?php if ( $show_restore_source_validation ) : ?>
 					<h3><?php echo esc_html__( 'Snapshot Source Validation', 'zignites-sentinel' ); ?></h3>
 					<p><?php echo esc_html( $restore_form_state['restore_source_validation_message'] ); ?></p>
 					<?php if ( ! empty( $restore_source_validation_check_rows ) ) : ?>
@@ -1221,7 +1227,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			</section>
 		<?php endif; ?>
 
-		<?php if ( $snapshot_detail && ! empty( $last_restore_dry_run ) ) : ?>
+		<?php if ( $show_restore_dry_run ) : ?>
 			<section id="znts-restore-dry-run" class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Restore Dry-Run', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
@@ -1256,7 +1262,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			</section>
 		<?php endif; ?>
 
-		<?php if ( $snapshot_detail && ! empty( $last_restore_stage ) ) : ?>
+		<?php if ( $show_restore_stage ) : ?>
 			<section id="znts-restore-stage" class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Staged Restore Validation', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
@@ -1291,7 +1297,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			</section>
 		<?php endif; ?>
 
-		<?php if ( $snapshot_detail && ! empty( $last_restore_plan ) ) : ?>
+		<?php if ( $show_restore_plan ) : ?>
 			<section id="znts-restore-plan" class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Restore Execution Plan', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
@@ -1351,7 +1357,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</tbody>
 					</table>
 				<?php endif; ?>
-				<?php if ( ! empty( $restore_impact_summary ) ) : ?>
+				<?php if ( $show_restore_impact_summary ) : ?>
 					<h3><?php echo esc_html__( 'Restore Impact Summary', 'zignites-sentinel' ); ?></h3>
 					<div class="znts-readiness-row">
 						<span class="znts-pill znts-pill-<?php echo esc_attr( $restore_impact_summary['status'] ); ?>">
@@ -1440,7 +1446,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			</section>
 		<?php endif; ?>
 
-		<?php if ( $snapshot_detail && ! empty( $last_restore_execution ) ) : ?>
+		<?php if ( $show_restore_execution ) : ?>
 			<section class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Restore Execution Result', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
@@ -1613,7 +1619,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			</section>
 		<?php endif; ?>
 
-		<?php if ( $snapshot_detail && ! empty( $last_restore_rollback ) ) : ?>
+		<?php if ( $show_restore_rollback ) : ?>
 			<section class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Restore Rollback Result', 'zignites-sentinel' ); ?></h2>
 				<div class="znts-readiness-row">
