@@ -17,8 +17,9 @@ class ZNTS_Admin_Smoke_Runner {
 				'path'    => 'admin.php?page=zignites-sentinel',
 				'markers' => array(
 					'Site Status',
+					'Restore Readiness Summary',
+					'Event Activity Timeline',
 					'Recent Snapshots',
-					'Recommended action',
 				),
 			),
 			array(
@@ -65,6 +66,8 @@ class ZNTS_Admin_Smoke_Runner {
 				),
 				'markers' => array(
 					'Event Logs',
+					'Investigation Console',
+					'Event Explorer',
 					'Export Filtered CSV',
 					'Filter',
 					'Current filters are active.',
@@ -83,6 +86,8 @@ class ZNTS_Admin_Smoke_Runner {
 				'resolve_optional' => true,
 				'markers'          => array(
 					'Event Logs',
+					'Investigation Console',
+					'Event Explorer',
 					'Export Filtered CSV',
 					'Filter',
 					'Current filters are active.',
@@ -94,8 +99,14 @@ class ZNTS_Admin_Smoke_Runner {
 				'path'    => 'admin.php?page=zignites-sentinel-event-logs',
 				'markers' => array(
 					'Event Logs',
+					'Investigation Console',
+					'Event Explorer',
 					'Export Filtered CSV',
 					'Filter',
+				),
+				'optional_markers' => array(
+					'Operational Events',
+					'Run Summaries',
 				),
 			),
 			array(
@@ -103,6 +114,8 @@ class ZNTS_Admin_Smoke_Runner {
 				'path'    => 'admin.php?page=zignites-sentinel-event-logs&log_search=znts-smoke-empty-state-token-9f3a0d66',
 				'markers' => array(
 					'Event Logs',
+					'Investigation Console',
+					'Event Explorer',
 					'Export Filtered CSV',
 					'Apply Filters',
 					'Reset',
@@ -203,6 +216,8 @@ class ZNTS_Admin_Smoke_Runner {
 				),
 				'markers' => array(
 					'Event Logs',
+					'Investigation Console',
+					'Event Explorer',
 					'Export Filtered CSV',
 					'Filter',
 				),
@@ -219,6 +234,8 @@ class ZNTS_Admin_Smoke_Runner {
 				'resolve_optional' => true,
 				'markers'          => array(
 					'Event Logs',
+					'Investigation Console',
+					'Event Explorer',
 					'Export Filtered CSV',
 					'Filter',
 					'Current filters are active.',

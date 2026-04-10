@@ -556,15 +556,19 @@
   - remaining restore-impact, checkpoint-summary, recent-snapshot, audit-verification, execution, and rollback disclosure visibility now render from prepared booleans instead of inline raw presence checks
   - row-level summary and activity helpers now expose explicit `show_*` flags for notes, links, and secondary copy before the template renders them
   - focused regression coverage now includes the remaining visibility booleans and row-level helper flags so the presentation-state extraction track is complete
-- Current branch prepared for merge:
-  - `feature/admin-smoke-update-readiness-markers`
-- Current branch adds the next admin smoke coverage pass for:
+- Main is now current through the merged Update Readiness admin smoke coverage pass for:
   - Update Readiness live smoke markers now target current operator-workspace and selected-snapshot surfaces instead of only broad page headings
   - selected snapshot smoke checks now require the snapshot activity and detail sections while treating restore-control and restore-impact surfaces as optional live-state markers
   - focused regression coverage now keeps the smoke helper aligned with the current Update Readiness UX so future UI drift is caught earlier
+- Current branch prepared for merge:
+  - `feature/admin-smoke-dashboard-event-markers`
+- Current branch adds the next dashboard/event-log admin smoke coverage pass for:
+  - dashboard smoke markers now require the current restore-readiness and event-activity sections instead of relying on older generic recommendation text
+  - Event Logs smoke markers now require the investigation-console and event-explorer surfaces while tracking operational-events and run-summary disclosures as optional
+  - focused regression coverage now keeps the live smoke helper aligned across all three main admin surfaces: Dashboard, Update Readiness, and Event Logs
 - Next likely restart task after this branch merges:
   - keep manual/admin smoke coverage current as operator-facing surfaces change
-  - widen smoke markers or targeted tests for Dashboard and Event Logs only when those screens materially change
+  - only widen smoke markers further when a screen’s stable section structure changes materially
   - avoid reopening the completed Update Readiness fallback-cleanup track unless a real regression appears
 
 

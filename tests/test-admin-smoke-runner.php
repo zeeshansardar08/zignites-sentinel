@@ -56,6 +56,9 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 	$widget_check                = $checks[13];
 	$widget_markers      = isset( $widget_check['markers'] ) && is_array( $widget_check['markers'] ) ? $widget_check['markers'] : array();
 	$update_readiness_markers = isset( $checks[1]['markers'] ) && is_array( $checks[1]['markers'] ) ? $checks[1]['markers'] : array();
+	$dashboard_markers   = isset( $checks[0]['markers'] ) && is_array( $checks[0]['markers'] ) ? $checks[0]['markers'] : array();
+	$event_logs_markers  = isset( $checks[5]['markers'] ) && is_array( $checks[5]['markers'] ) ? $checks[5]['markers'] : array();
+	$event_logs_optional = isset( $checks[5]['optional_markers'] ) && is_array( $checks[5]['optional_markers'] ) ? $checks[5]['optional_markers'] : array();
 	$contains_sentinel   = in_array( 'Sentinel', $widget_markers, true );
 	$contains_old_marker = in_array( 'Zignites Sentinel', $widget_markers, true );
 	$detail_markers      = isset( $detail_check['markers'] ) && is_array( $detail_check['markers'] ) ? $detail_check['markers'] : array();
@@ -72,9 +75,15 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 
 	znts_assert_true( $contains_sentinel, 'Admin smoke runner should expect the current dashboard widget heading marker.' );
 	znts_assert_true( ! $contains_old_marker, 'Admin smoke runner should not require the stale dashboard widget heading marker.' );
+	znts_assert_true( in_array( 'Restore Readiness Summary', $dashboard_markers, true ), 'Admin smoke runner should require the restore readiness summary on the dashboard.' );
+	znts_assert_true( in_array( 'Event Activity Timeline', $dashboard_markers, true ), 'Admin smoke runner should require the event activity timeline on the dashboard.' );
 	znts_assert_true( in_array( 'Snapshot Summary', $detail_markers, true ), 'Admin smoke runner should include a selected snapshot detail check for snapshot-scoped surfaces.' );
 	znts_assert_true( in_array( 'Snapshot Activity Timeline', $detail_markers, true ), 'Admin smoke runner should require the snapshot activity section on selected snapshot detail pages.' );
 	znts_assert_true( in_array( 'Operational Workspace', $update_readiness_markers, true ), 'Admin smoke runner should require the operator workspace marker on the Update Readiness screen.' );
+	znts_assert_true( in_array( 'Investigation Console', $event_logs_markers, true ), 'Admin smoke runner should require the event log investigation console heading.' );
+	znts_assert_true( in_array( 'Event Explorer', $event_logs_markers, true ), 'Admin smoke runner should require the event explorer section on the Event Logs screen.' );
+	znts_assert_true( in_array( 'Operational Events', $event_logs_optional, true ), 'Admin smoke runner should track the operational-events disclosure as optional on the Event Logs screen.' );
+	znts_assert_true( in_array( 'Run Summaries', $event_logs_optional, true ), 'Admin smoke runner should track the run-summaries disclosure as optional on the Event Logs screen.' );
 	znts_assert_true( in_array( 'Restore Impact Summary', $detail_optional, true ), 'Admin smoke runner should report optional restore impact markers on the selected snapshot detail page.' );
 	znts_assert_true( in_array( 'Restore Control Summary', $detail_optional, true ), 'Admin smoke runner should report optional restore control summary markers on the selected snapshot detail page.' );
 	znts_assert_same( 'admin.php?page=zignites-sentinel-update-readiness', isset( $snapshot_logs_resolve['path'] ) ? $snapshot_logs_resolve['path'] : '', 'Admin smoke runner should discover snapshot-scoped Event Logs from the selected snapshot screen.' );
@@ -104,7 +113,7 @@ function znts_test_admin_smoke_runner_detects_login_fallback_and_missing_markers
 	$check  = array(
 		'label'   => 'Dashboard',
 		'path'    => 'admin.php?page=zignites-sentinel',
-		'markers' => array( 'Site Status', 'Recommended action' ),
+		'markers' => array( 'Site Status', 'Restore Readiness Summary' ),
 	);
 
 	$result = $runner->evaluate_response(
@@ -123,13 +132,13 @@ function znts_test_admin_smoke_runner_passes_when_status_and_markers_match() {
 	$check  = array(
 		'label'   => 'Event Logs',
 		'path'    => 'admin.php?page=zignites-sentinel-event-logs',
-		'markers' => array( 'Event Logs', 'Export Filtered CSV' ),
+		'markers' => array( 'Event Logs', 'Investigation Console', 'Event Explorer', 'Export Filtered CSV' ),
 	);
 
 	$result = $runner->evaluate_response(
 		$check,
 		200,
-		'<html><body><h1>Event Logs</h1><button>Export Filtered CSV</button></body></html>'
+		'<html><body><h1>Event Logs</h1><span>Investigation Console</span><h2>Event Explorer</h2><button>Export Filtered CSV</button></body></html>'
 	);
 
 	znts_assert_true( $result['passed'], 'Admin smoke runner should pass when the response is HTTP 200 and all expected markers are present.' );
@@ -161,13 +170,13 @@ function znts_test_admin_smoke_runner_requires_filtered_state_markers_for_snapsh
 	$check  = array(
 		'label'   => 'Selected Snapshot Event Logs',
 		'path'    => 'admin.php?page=zignites-sentinel-event-logs&snapshot_id=205',
-		'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter', 'Current filters are active.' ),
+		'markers' => array( 'Event Logs', 'Investigation Console', 'Event Explorer', 'Export Filtered CSV', 'Filter', 'Current filters are active.' ),
 	);
 
 	$result = $runner->evaluate_response(
 		$check,
 		200,
-		'<html><body><h1>Event Logs</h1><button>Export Filtered CSV</button><button>Filter</button><p>Current filters are active. Scan the highlighted rows first.</p></body></html>'
+		'<html><body><h1>Event Logs</h1><span>Investigation Console</span><h2>Event Explorer</h2><button>Export Filtered CSV</button><button>Filter</button><p>Current filters are active. Scan the highlighted rows first.</p></body></html>'
 	);
 
 	znts_assert_true( $result['passed'], 'Admin smoke runner should treat the filtered-state guidance as required on snapshot-scoped Event Logs pages.' );
@@ -178,13 +187,13 @@ function znts_test_admin_smoke_runner_requires_empty_state_markers_for_empty_eve
 	$check  = array(
 		'label'   => 'Event Logs Empty State',
 		'path'    => 'admin.php?page=zignites-sentinel-event-logs&log_search=znts-smoke-empty-state-token-9f3a0d66',
-		'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Apply Filters', 'Reset', 'Current filters are active.', 'No event logs match the current filters.' ),
+		'markers' => array( 'Event Logs', 'Investigation Console', 'Event Explorer', 'Export Filtered CSV', 'Apply Filters', 'Reset', 'Current filters are active.', 'No event logs match the current filters.' ),
 	);
 
 	$result = $runner->evaluate_response(
 		$check,
 		200,
-		'<html><body><h1>Event Logs</h1><button>Apply Filters</button><a>Reset</a><button>Export Filtered CSV</button><p>Current filters are active. Scan the highlighted rows first.</p><strong>No event logs match the current filters.</strong></body></html>'
+		'<html><body><h1>Event Logs</h1><span>Investigation Console</span><h2>Event Explorer</h2><button>Apply Filters</button><a>Reset</a><button>Export Filtered CSV</button><p>Current filters are active. Scan the highlighted rows first.</p><strong>No event logs match the current filters.</strong></body></html>'
 	);
 
 	znts_assert_true( $result['passed'], 'Admin smoke runner should require the Event Logs empty-state copy and reset affordance for the deterministic no-match query.' );
