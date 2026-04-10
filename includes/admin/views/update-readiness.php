@@ -96,6 +96,8 @@ $snapshot_health_comparison_rows = isset( $view_data['snapshot_health_comparison
 $snapshot_summary_status_badges = isset( $view_data['snapshot_summary_status_badges'] ) && is_array( $view_data['snapshot_summary_status_badges'] ) ? $view_data['snapshot_summary_status_badges'] : array();
 $snapshot_summary_overview_rows = isset( $view_data['snapshot_summary_overview_rows'] ) && is_array( $view_data['snapshot_summary_overview_rows'] ) ? $view_data['snapshot_summary_overview_rows'] : array();
 $snapshot_summary_evidence_rows = isset( $view_data['snapshot_summary_evidence_rows'] ) && is_array( $view_data['snapshot_summary_evidence_rows'] ) ? $view_data['snapshot_summary_evidence_rows'] : array();
+$snapshot_summary_risks   = isset( $view_data['snapshot_summary_risks'] ) && is_array( $view_data['snapshot_summary_risks'] ) ? $view_data['snapshot_summary_risks'] : array();
+$snapshot_summary_next_steps = isset( $view_data['snapshot_summary_next_steps'] ) && is_array( $view_data['snapshot_summary_next_steps'] ) ? $view_data['snapshot_summary_next_steps'] : array();
 $restore_run_card_rows    = isset( $view_data['restore_run_card_rows'] ) && is_array( $view_data['restore_run_card_rows'] ) ? $view_data['restore_run_card_rows'] : array();
 $restore_action_jump_links = isset( $view_data['restore_action_jump_links'] ) && is_array( $view_data['restore_action_jump_links'] ) ? $view_data['restore_action_jump_links'] : array();
 $snapshot_activity_rows    = isset( $view_data['snapshot_activity_rows'] ) && is_array( $view_data['snapshot_activity_rows'] ) ? $view_data['snapshot_activity_rows'] : array();
@@ -265,10 +267,10 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						<h3><?php echo esc_html( $snapshot_primary_step ); ?></h3>
 						<p class="znts-focus-note"><?php echo esc_html__( 'This is the shortest safe path forward from the current snapshot state.', 'zignites-sentinel' ); ?></p>
 					</section>
-					<section class="znts-focus-panel <?php echo esc_attr( empty( $snapshot_summary['risks'] ) ? 'znts-focus-panel-muted' : 'znts-focus-panel-warning' ); ?>">
+					<section class="znts-focus-panel <?php echo esc_attr( empty( $snapshot_summary_risks ) ? 'znts-focus-panel-muted' : 'znts-focus-panel-warning' ); ?>">
 						<span class="znts-focus-label"><?php echo esc_html__( 'Current Risk', 'zignites-sentinel' ); ?></span>
 						<h3><?php echo esc_html( $snapshot_primary_risk ); ?></h3>
-						<?php if ( ! empty( $snapshot_summary['risks'] ) ) : ?>
+						<?php if ( ! empty( $snapshot_summary_risks ) ) : ?>
 							<p class="znts-focus-note"><?php echo esc_html__( 'Resolve this before treating the snapshot as safely prepared.', 'zignites-sentinel' ); ?></p>
 						<?php endif; ?>
 					</section>
@@ -312,14 +314,14 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					</section>
 					<section class="znts-helper-block znts-helper-block-risk">
 						<h3><?php echo esc_html__( 'Current Risks', 'zignites-sentinel' ); ?></h3>
-						<?php if ( empty( $snapshot_summary['risks'] ) ) : ?>
+						<?php if ( empty( $snapshot_summary_risks ) ) : ?>
 							<div class="znts-empty-state">
 								<strong><?php echo esc_html__( 'No active risk callouts', 'zignites-sentinel' ); ?></strong>
 								<p><?php echo esc_html__( 'The summary does not currently flag an operator-visible risk for this snapshot.', 'zignites-sentinel' ); ?></p>
 							</div>
 						<?php else : ?>
 							<ul class="znts-list">
-								<?php foreach ( $snapshot_summary['risks'] as $risk ) : ?>
+								<?php foreach ( $snapshot_summary_risks as $risk ) : ?>
 									<li><?php echo esc_html( $risk ); ?></li>
 								<?php endforeach; ?>
 							</ul>
@@ -328,7 +330,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<section class="znts-helper-block znts-helper-block-action">
 						<h3><?php echo esc_html__( 'Full Next-Step List', 'zignites-sentinel' ); ?></h3>
 						<ul class="znts-list">
-							<?php foreach ( isset( $snapshot_summary['next_steps'] ) && is_array( $snapshot_summary['next_steps'] ) ? $snapshot_summary['next_steps'] : array() as $step ) : ?>
+							<?php foreach ( $snapshot_summary_next_steps as $step ) : ?>
 								<li><?php echo esc_html( $step ); ?></li>
 							<?php endforeach; ?>
 						</ul>

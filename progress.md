@@ -527,11 +527,14 @@
   - artifact-diff rows and checkpoint summary rows now render from prepared shapes without inline fallback checks
   - normalized status-header and impact-summary rendering now consume prepared status/row keys directly without per-field fallback checks
   - focused regression coverage for selected snapshot badges, restore summary cards, and empty defaults
+- Main is now current through the merged Update Readiness summary detail-state cleanup for:
+  - snapshot summary badge, overview, and evidence rows prepared by `UpdateReadinessStateBuilder`
+  - focused regression coverage for snapshot summary detail rows and empty defaults
 - Current branch prepared for merge:
-  - `feature/update-readiness-overview-detail-state`
+  - `feature/update-readiness-summary-support-state`
 - Next likely restart task after this branch merges:
   - start from `includes/admin/views/update-readiness.php`
-  - extract the next residual summary-support or helper-list fallback seam into the Update Readiness state builder or a focused presenter
+  - extract the next residual snapshot-summary helper block or secondary detail fallback seam into the Update Readiness state builder or a focused presenter
   - avoid new restore behavior; keep this track to presentation-state cleanup and regression coverage
 
 

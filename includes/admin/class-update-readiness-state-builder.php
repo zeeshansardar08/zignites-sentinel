@@ -256,6 +256,12 @@ class UpdateReadinessStateBuilder {
 		$view_data['snapshot_summary_evidence_rows'] = $this->build_snapshot_summary_detail_rows(
 			isset( $snapshot_summary['evidence'] ) && is_array( $snapshot_summary['evidence'] ) ? $snapshot_summary['evidence'] : array()
 		);
+		$view_data['snapshot_summary_risks'] = $this->build_snapshot_summary_string_list(
+			isset( $snapshot_summary['risks'] ) && is_array( $snapshot_summary['risks'] ) ? $snapshot_summary['risks'] : array()
+		);
+		$view_data['snapshot_summary_next_steps'] = $this->build_snapshot_summary_string_list(
+			isset( $snapshot_summary['next_steps'] ) && is_array( $snapshot_summary['next_steps'] ) ? $snapshot_summary['next_steps'] : array()
+		);
 
 		return $view_data;
 	}
@@ -709,6 +715,26 @@ class UpdateReadinessStateBuilder {
 				'value' => isset( $row['value'] ) ? (string) $row['value'] : '',
 				'note'  => isset( $row['note'] ) ? (string) $row['note'] : '',
 			);
+		}
+
+		return $normalized;
+	}
+
+	/**
+	 * Build normalized snapshot summary string lists.
+	 *
+	 * @param array $items Snapshot summary list items.
+	 * @return array
+	 */
+	protected function build_snapshot_summary_string_list( array $items ) {
+		$normalized = array();
+
+		foreach ( $items as $item ) {
+			if ( ! is_scalar( $item ) ) {
+				continue;
+			}
+
+			$normalized[] = (string) $item;
 		}
 
 		return $normalized;

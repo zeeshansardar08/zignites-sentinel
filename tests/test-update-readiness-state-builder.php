@@ -570,6 +570,8 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'Snapshot ready', $state['snapshot_summary_status_badges'][0]['label'], 'Update Readiness state builder should derive snapshot summary badge rows.' );
 	znts_assert_same( 'Restore status', $state['snapshot_summary_overview_rows'][0]['label'], 'Update Readiness state builder should derive snapshot summary overview rows.' );
 	znts_assert_same( 'Baseline status', $state['snapshot_summary_evidence_rows'][0]['label'], 'Update Readiness state builder should derive snapshot summary evidence rows.' );
+	znts_assert_same( 'No active blockers', $state['snapshot_summary_risks'][0], 'Update Readiness state builder should derive snapshot summary risks.' );
+	znts_assert_same( 'Review restore impact', $state['snapshot_summary_next_steps'][0], 'Update Readiness state builder should derive snapshot summary next steps.' );
 	znts_assert_same( 'warning', $state['health_attention_state'], 'Update Readiness state builder should derive the health attention state from baseline status pill.' );
 	znts_assert_same( 'Restore preparation needs attention: the current health baseline is degraded.', $state['health_attention_message'], 'Update Readiness state builder should derive the health attention message.' );
 	znts_assert_same( 'warning', $state['snapshot_health_baseline_status']['badge'], 'Update Readiness state builder should derive health baseline status badges.' );
@@ -701,6 +703,8 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( array(), $state['snapshot_summary_status_badges'], 'Update Readiness state builder should default missing snapshot summary badge rows to an empty array.' );
 	znts_assert_same( array(), $state['snapshot_summary_overview_rows'], 'Update Readiness state builder should default missing snapshot summary overview rows to an empty array.' );
 	znts_assert_same( array(), $state['snapshot_summary_evidence_rows'], 'Update Readiness state builder should default missing snapshot summary evidence rows to an empty array.' );
+	znts_assert_same( array(), $state['snapshot_summary_risks'], 'Update Readiness state builder should default missing snapshot summary risks to an empty array.' );
+	znts_assert_same( array(), $state['snapshot_summary_next_steps'], 'Update Readiness state builder should default missing snapshot summary next steps to an empty array.' );
 	znts_assert_same( array(), $state['restore_run_card_rows'], 'Update Readiness state builder should default missing restore summary card rows to an empty array.' );
 	znts_assert_same( array(), $state['plan_validation_check_rows'], 'Update Readiness state builder should default missing plan validation rows to an empty array.' );
 	znts_assert_same( 'info', $state['restore_readiness_status']['badge'], 'Update Readiness state builder should default missing restore readiness badges to info.' );
