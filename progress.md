@@ -544,15 +544,19 @@
   - selected snapshot IDs, restore execute/resume visibility flags, and validation messages now come from `restore_form_state`
   - the view no longer reaches into raw snapshot detail, checklist, or resume-context arrays for form-post payloads or gating checks
   - focused regression coverage now includes form snapshot IDs, execute/resume booleans, and normalized validation messaging defaults
-- Current branch prepared for merge:
-  - `feature/update-readiness-view-input-normalization`
-- Current branch adds Update Readiness view-input normalization cleanup for:
+- Main is now current through the merged Update Readiness view-input normalization cleanup for:
   - section and link visibility now come from a prepared `view_visibility` state array instead of raw `last_*` payload presence checks
   - the template no longer binds the older raw preflight, plan, restore-result, checkpoint, audit, or snapshot-comparison arrays just to decide whether sections should render
   - focused regression coverage now includes top-level visibility booleans and the update-plan snapshot link URL
+- Current branch prepared for merge:
+  - `feature/update-readiness-nested-helper-state`
+- Current branch adds Update Readiness nested helper-state cleanup for:
+  - snapshot-facing badge rows, risk/empty-state flags, activity-link visibility, artifact diff visibility, and comparison helper lists now render from prepared `view_visibility` booleans
+  - the template no longer binds older raw snapshot-summary, artifact, or health/comparison payload arrays just to decide whether nested helper content should render
+  - focused regression coverage now includes snapshot helper/list visibility defaults and populated-state booleans
 - Next likely restart task after this branch merges:
   - start from `includes/admin/views/update-readiness.php`
-  - finish trimming the last template-level raw checks that still exist for empty-state copy or nested helper visibility
+  - trim the remaining nested helper checks around restore-impact sub-rows, execution/rollback meta subsections, and other minor list/detail disclosures
   - focus next on any remaining direct raw payload reads that are only supporting copy or minor sub-section presence rather than full section rendering
   - avoid new restore behavior; keep this track to presentation-state cleanup and regression coverage
 

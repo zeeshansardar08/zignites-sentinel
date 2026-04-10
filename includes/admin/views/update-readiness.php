@@ -8,13 +8,8 @@
 defined( 'ABSPATH' ) || exit;
 
 $notice                    = isset( $view_data['notice'] ) && is_array( $view_data['notice'] ) ? $view_data['notice'] : array();
-$snapshot_artifacts        = isset( $view_data['snapshot_artifacts'] ) && is_array( $view_data['snapshot_artifacts'] ) ? $view_data['snapshot_artifacts'] : array();
-$artifact_diff            = isset( $view_data['artifact_diff'] ) && is_array( $view_data['artifact_diff'] ) ? $view_data['artifact_diff'] : array();
 $execution_checkpoint_summary_rows = isset( $view_data['execution_checkpoint_summary_rows'] ) && is_array( $view_data['execution_checkpoint_summary_rows'] ) ? $view_data['execution_checkpoint_summary_rows'] : array();
 $rollback_checkpoint_summary_rows = isset( $view_data['rollback_checkpoint_summary_rows'] ) && is_array( $view_data['rollback_checkpoint_summary_rows'] ) ? $view_data['rollback_checkpoint_summary_rows'] : array();
-$snapshot_health_baseline = isset( $view_data['snapshot_health_baseline'] ) && is_array( $view_data['snapshot_health_baseline'] ) ? $view_data['snapshot_health_baseline'] : array();
-$snapshot_health_comparison = isset( $view_data['snapshot_health_comparison'] ) && is_array( $view_data['snapshot_health_comparison'] ) ? $view_data['snapshot_health_comparison'] : array();
-$snapshot_summary       = isset( $view_data['snapshot_summary'] ) && is_array( $view_data['snapshot_summary'] ) ? $view_data['snapshot_summary'] : array();
 $restore_impact_summary  = isset( $view_data['restore_impact_summary'] ) && is_array( $view_data['restore_impact_summary'] ) ? $view_data['restore_impact_summary'] : array();
 $snapshot_activity_url   = isset( $view_data['snapshot_activity_url'] ) ? (string) $view_data['snapshot_activity_url'] : '';
 $snapshot_search         = isset( $view_data['snapshot_search'] ) ? (string) $view_data['snapshot_search'] : '';
@@ -88,6 +83,20 @@ $show_restore_impact_summary = ! empty( $view_visibility['show_restore_impact_su
 $show_restore_execution  = ! empty( $view_visibility['show_restore_execution'] );
 $show_audit_report_verification = ! empty( $view_visibility['show_audit_report_verification'] );
 $show_restore_rollback   = ! empty( $view_visibility['show_restore_rollback'] );
+$show_selected_snapshot_badges = ! empty( $view_visibility['show_selected_snapshot_badges'] );
+$show_snapshot_summary_status_badges = ! empty( $view_visibility['show_snapshot_summary_status_badges'] );
+$has_snapshot_summary_risks = ! empty( $view_visibility['has_snapshot_summary_risks'] );
+$show_snapshot_activity_history_link = ! empty( $view_visibility['show_snapshot_activity_history_link'] );
+$has_snapshot_activity_rows = ! empty( $view_visibility['has_snapshot_activity_rows'] );
+$show_restore_action_jump_links = ! empty( $view_visibility['show_restore_action_jump_links'] );
+$show_snapshot_metadata = ! empty( $view_visibility['show_snapshot_metadata'] );
+$show_component_manifest = ! empty( $view_visibility['show_component_manifest'] );
+$show_snapshot_artifacts = ! empty( $view_visibility['show_snapshot_artifacts'] );
+$show_artifact_diff = ! empty( $view_visibility['show_artifact_diff'] );
+$show_active_plugin_rows = ! empty( $view_visibility['show_active_plugin_rows'] );
+$has_missing_snapshot_plugins = ! empty( $view_visibility['has_missing_snapshot_plugins'] );
+$has_new_current_plugins = ! empty( $view_visibility['has_new_current_plugins'] );
+$has_plugin_version_changes = ! empty( $view_visibility['has_plugin_version_changes'] );
 $component_manifest        = isset( $view_data['component_manifest'] ) && is_array( $view_data['component_manifest'] ) ? $view_data['component_manifest'] : array();
 $selected_snapshot_label   = isset( $view_data['selected_snapshot_label'] ) ? (string) $view_data['selected_snapshot_label'] : '';
 $selected_snapshot_note    = isset( $view_data['selected_snapshot_note'] ) ? (string) $view_data['selected_snapshot_note'] : '';
@@ -141,7 +150,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			<span class="znts-pill znts-pill-<?php echo esc_attr( $workspace_status_badge ); ?>">
 				<?php echo esc_html( $workspace_status_label ); ?>
 			</span>
-			<?php if ( $has_form_snapshot && ! empty( $selected_snapshot_status_badges ) ) : ?>
+			<?php if ( $show_selected_snapshot_badges ) : ?>
 				<div class="znts-badge-row">
 					<?php foreach ( $selected_snapshot_status_badges as $badge ) : ?>
 						<span class="znts-pill znts-pill-<?php echo esc_attr( $badge['badge'] ); ?>">
@@ -260,7 +269,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</form>
 					</div>
 				</div>
-				<?php if ( ! empty( $snapshot_summary_status_badges ) ) : ?>
+				<?php if ( $show_snapshot_summary_status_badges ) : ?>
 					<div class="znts-badge-row znts-card-note">
 						<?php foreach ( $snapshot_summary_status_badges as $badge ) : ?>
 							<span class="znts-pill znts-pill-<?php echo esc_attr( $badge['badge'] ); ?>">
@@ -275,10 +284,10 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						<h3><?php echo esc_html( $snapshot_primary_step ); ?></h3>
 						<p class="znts-focus-note"><?php echo esc_html__( 'This is the shortest safe path forward from the current snapshot state.', 'zignites-sentinel' ); ?></p>
 					</section>
-					<section class="znts-focus-panel <?php echo esc_attr( empty( $snapshot_summary_risks ) ? 'znts-focus-panel-muted' : 'znts-focus-panel-warning' ); ?>">
+					<section class="znts-focus-panel <?php echo esc_attr( $has_snapshot_summary_risks ? 'znts-focus-panel-warning' : 'znts-focus-panel-muted' ); ?>">
 						<span class="znts-focus-label"><?php echo esc_html__( 'Current Risk', 'zignites-sentinel' ); ?></span>
 						<h3><?php echo esc_html( $snapshot_primary_risk ); ?></h3>
-						<?php if ( ! empty( $snapshot_summary_risks ) ) : ?>
+						<?php if ( $has_snapshot_summary_risks ) : ?>
 							<p class="znts-focus-note"><?php echo esc_html__( 'Resolve this before treating the snapshot as safely prepared.', 'zignites-sentinel' ); ?></p>
 						<?php endif; ?>
 					</section>
@@ -322,7 +331,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					</section>
 					<section class="znts-helper-block znts-helper-block-risk">
 						<h3><?php echo esc_html__( 'Current Risks', 'zignites-sentinel' ); ?></h3>
-						<?php if ( empty( $snapshot_summary_risks ) ) : ?>
+						<?php if ( ! $has_snapshot_summary_risks ) : ?>
 							<div class="znts-empty-state">
 								<strong><?php echo esc_html__( 'No active risk callouts', 'zignites-sentinel' ); ?></strong>
 								<p><?php echo esc_html__( 'The summary does not currently flag an operator-visible risk for this snapshot.', 'zignites-sentinel' ); ?></p>
@@ -827,14 +836,14 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						<h2><?php echo esc_html__( 'Snapshot Activity Timeline', 'zignites-sentinel' ); ?></h2>
 						<p><?php echo esc_html__( 'Recent activity tied to this snapshot across readiness checks, staging, planning, execution, rollback, and maintenance events.', 'zignites-sentinel' ); ?></p>
 					</div>
-					<?php if ( '' !== $snapshot_activity_url ) : ?>
+					<?php if ( $show_snapshot_activity_history_link ) : ?>
 						<p><a href="<?php echo esc_url( $snapshot_activity_url ); ?>"><?php echo esc_html__( 'View full event history', 'zignites-sentinel' ); ?></a></p>
 					<?php endif; ?>
 				</div>
 				<details class="znts-disclosure">
 					<summary><?php echo esc_html__( 'View activity details', 'zignites-sentinel' ); ?></summary>
 					<div class="znts-disclosure-body">
-				<?php if ( empty( $snapshot_activity_rows ) ) : ?>
+				<?php if ( ! $has_snapshot_activity_rows ) : ?>
 					<p><?php echo esc_html__( 'No snapshot-scoped events have been recorded yet.', 'zignites-sentinel' ); ?></p>
 				<?php else : ?>
 					<table class="widefat striped">
@@ -892,7 +901,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			<section class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Snapshot Detail', 'zignites-sentinel' ); ?></h2>
 				<p class="znts-inline-note"><?php echo esc_html__( 'Start with the overview. Open the other sections only when you need deeper component, artifact, or environment detail.', 'zignites-sentinel' ); ?></p>
-				<?php if ( ! empty( $selected_snapshot_status_badges ) ) : ?>
+				<?php if ( $show_selected_snapshot_badges ) : ?>
 					<div class="znts-badge-row znts-card-note">
 						<?php foreach ( $selected_snapshot_status_badges as $badge ) : ?>
 							<span class="znts-pill znts-pill-<?php echo esc_attr( $badge['badge'] ); ?>">
@@ -929,7 +938,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				</div>
 				<p class="znts-inline-note">
 					<?php echo esc_html__( 'Each validation action saves its latest result for this snapshot and shows it below on this page.', 'zignites-sentinel' ); ?>
-					<?php if ( ! empty( $restore_action_jump_links ) ) : ?>
+					<?php if ( $show_restore_action_jump_links ) : ?>
 						<span>
 							<?php echo esc_html__( 'Jump to:', 'zignites-sentinel' ); ?>
 							<?php foreach ( $restore_action_jump_links as $index => $jump_link ) : ?>
@@ -954,7 +963,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</table>
 					</div>
 				</details>
-				<?php if ( ! empty( $snapshot_metadata_rows ) ) : ?>
+				<?php if ( $show_snapshot_metadata ) : ?>
 					<details class="znts-disclosure">
 						<summary><?php echo esc_html__( 'Stored Snapshot Data', 'zignites-sentinel' ); ?></summary>
 						<div class="znts-disclosure-body">
@@ -971,7 +980,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</div>
 					</details>
 				<?php endif; ?>
-				<?php if ( ! empty( $component_manifest_rows ) ) : ?>
+				<?php if ( $show_component_manifest ) : ?>
 					<details class="znts-disclosure">
 						<summary><?php echo esc_html__( 'Component Sources At Snapshot Time', 'zignites-sentinel' ); ?></summary>
 						<div class="znts-disclosure-body">
@@ -988,7 +997,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</div>
 					</details>
 				<?php endif; ?>
-				<?php if ( ! empty( $snapshot_artifact_rows ) ) : ?>
+				<?php if ( $show_snapshot_artifacts ) : ?>
 					<details class="znts-disclosure">
 						<summary><?php echo esc_html__( 'Rollback Package Contents', 'zignites-sentinel' ); ?></summary>
 						<div class="znts-disclosure-body">
@@ -1017,7 +1026,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</div>
 					</details>
 				<?php endif; ?>
-				<?php if ( ! empty( $artifact_diff ) ) : ?>
+				<?php if ( $show_artifact_diff ) : ?>
 					<details class="znts-disclosure">
 						<summary><?php echo esc_html__( 'Artifact Mismatch Review', 'zignites-sentinel' ); ?></summary>
 						<div class="znts-disclosure-body">
@@ -1053,7 +1062,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						</div>
 					</details>
 				<?php endif; ?>
-				<?php if ( ! empty( $active_plugin_rows ) ) : ?>
+				<?php if ( $show_active_plugin_rows ) : ?>
 					<details class="znts-disclosure">
 						<summary><?php echo esc_html__( 'Plugins Active At Snapshot Time', 'zignites-sentinel' ); ?></summary>
 						<div class="znts-disclosure-body">
@@ -1097,7 +1106,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<div class="znts-admin-grid znts-subgrid">
 					<section class="znts-card znts-card-soft">
 						<h3><?php echo esc_html__( 'Missing Snapshot Plugins', 'zignites-sentinel' ); ?></h3>
-						<?php if ( empty( $missing_snapshot_plugin_labels ) ) : ?>
+						<?php if ( ! $has_missing_snapshot_plugins ) : ?>
 							<p><?php echo esc_html__( 'None.', 'zignites-sentinel' ); ?></p>
 						<?php else : ?>
 							<ul class="znts-list">
@@ -1109,7 +1118,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					</section>
 					<section class="znts-card znts-card-soft">
 						<h3><?php echo esc_html__( 'New Current Plugins', 'zignites-sentinel' ); ?></h3>
-						<?php if ( empty( $new_current_plugin_labels ) ) : ?>
+						<?php if ( ! $has_new_current_plugins ) : ?>
 							<p><?php echo esc_html__( 'None.', 'zignites-sentinel' ); ?></p>
 						<?php else : ?>
 							<ul class="znts-list">
@@ -1121,7 +1130,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					</section>
 					<section class="znts-card znts-card-soft">
 						<h3><?php echo esc_html__( 'Changed Plugin Versions', 'zignites-sentinel' ); ?></h3>
-						<?php if ( empty( $plugin_version_change_rows ) ) : ?>
+						<?php if ( ! $has_plugin_version_changes ) : ?>
 							<p><?php echo esc_html__( 'None.', 'zignites-sentinel' ); ?></p>
 						<?php else : ?>
 							<table class="widefat striped">

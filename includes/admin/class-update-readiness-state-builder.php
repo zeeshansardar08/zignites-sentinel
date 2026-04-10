@@ -421,6 +421,9 @@ class UpdateReadinessStateBuilder {
 		$audit_report_verification  = $this->array_value( $view_data, 'audit_report_verification' );
 		$has_selected_snapshot      = ! empty( $restore_form_state['has_selected_snapshot'] );
 		$last_plan_snapshot_id      = isset( $last_plan['snapshot_id'] ) ? (int) $last_plan['snapshot_id'] : 0;
+		$selected_snapshot_badges   = $this->array_value( $view_data, 'selected_snapshot_status_badges' );
+		$snapshot_summary_risks     = $this->array_value( $view_data, 'snapshot_summary_risks' );
+		$artifact_diff_state        = $this->array_value( $view_data, 'artifact_diff_state' );
 
 		$view_data['view_visibility'] = array(
 			'has_preflight_result'                 => ! empty( $this->array_value( $view_data, 'last_preflight' ) ),
@@ -442,6 +445,20 @@ class UpdateReadinessStateBuilder {
 			'show_restore_execution'              => $has_selected_snapshot && ! empty( $last_restore_execution ),
 			'show_audit_report_verification'      => ! empty( $audit_report_verification ),
 			'show_restore_rollback'               => $has_selected_snapshot && ! empty( $last_restore_rollback ),
+			'show_selected_snapshot_badges'       => $has_selected_snapshot && ! empty( $selected_snapshot_badges ),
+			'show_snapshot_summary_status_badges' => ! empty( $this->array_value( $view_data, 'snapshot_summary_status_badges' ) ),
+			'has_snapshot_summary_risks'          => ! empty( $snapshot_summary_risks ),
+			'show_snapshot_activity_history_link' => '' !== ( isset( $view_data['snapshot_activity_url'] ) ? (string) $view_data['snapshot_activity_url'] : '' ),
+			'has_snapshot_activity_rows'          => ! empty( $this->array_value( $view_data, 'snapshot_activity_rows' ) ),
+			'show_restore_action_jump_links'      => ! empty( $this->array_value( $view_data, 'restore_action_jump_links' ) ),
+			'show_snapshot_metadata'              => ! empty( $this->array_value( $view_data, 'snapshot_metadata_rows' ) ),
+			'show_component_manifest'             => ! empty( $this->array_value( $view_data, 'component_manifest_rows' ) ),
+			'show_snapshot_artifacts'             => ! empty( $this->array_value( $view_data, 'snapshot_artifact_rows' ) ),
+			'show_artifact_diff'                  => ! empty( $this->array_value( $artifact_diff_state, 'rows' ) ) || '' !== ( isset( $artifact_diff_state['message'] ) ? (string) $artifact_diff_state['message'] : '' ),
+			'show_active_plugin_rows'             => ! empty( $this->array_value( $view_data, 'active_plugin_rows' ) ),
+			'has_missing_snapshot_plugins'        => ! empty( $this->array_value( $view_data, 'missing_snapshot_plugin_labels' ) ),
+			'has_new_current_plugins'             => ! empty( $this->array_value( $view_data, 'new_current_plugin_labels' ) ),
+			'has_plugin_version_changes'          => ! empty( $this->array_value( $view_data, 'plugin_version_change_rows' ) ),
 		);
 
 		return $view_data;
