@@ -26,6 +26,8 @@ class ZNTS_Admin_Smoke_Runner {
 				'path'    => 'admin.php?page=zignites-sentinel-update-readiness',
 				'markers' => array(
 					'Update Readiness',
+					'Operational Workspace',
+					'Pending Update Candidates',
 					'Recent Snapshot Metadata',
 					'Sentinel Settings',
 				),
@@ -41,10 +43,13 @@ class ZNTS_Admin_Smoke_Runner {
 				),
 				'markers' => array(
 					'Snapshot Summary',
+					'Snapshot Activity Timeline',
+					'Snapshot Detail',
 					'Download Summary',
 					'Snapshot Health Baseline',
 				),
 				'optional_markers' => array(
+					'Restore Control Summary',
 					'Health Comparison',
 					'Restore Impact Summary',
 				),
@@ -181,6 +186,7 @@ class ZNTS_Admin_Smoke_Runner {
 				'resolve_optional' => true,
 				'markers'          => array(
 					'Update Readiness',
+					'Operational Workspace',
 					'Recent Snapshot Metadata',
 					'Sentinel Settings',
 					'Snapshot Summary',

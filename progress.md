@@ -552,16 +552,20 @@
   - snapshot-facing badge rows, risk/empty-state flags, activity-link visibility, artifact diff visibility, and comparison helper lists now render from prepared `view_visibility` booleans
   - the template no longer binds older raw snapshot-summary, artifact, or health/comparison payload arrays just to decide whether nested helper content should render
   - focused regression coverage now includes snapshot helper/list visibility defaults and populated-state booleans
-- Current branch prepared for merge:
-  - `feature/update-readiness-final-view-state-cleanup`
-- Current branch adds the final Update Readiness view-state cleanup for:
+- Main is now current through the merged final Update Readiness view-state cleanup for:
   - remaining restore-impact, checkpoint-summary, recent-snapshot, audit-verification, execution, and rollback disclosure visibility now render from prepared booleans instead of inline raw presence checks
   - row-level summary and activity helpers now expose explicit `show_*` flags for notes, links, and secondary copy before the template renders them
-  - focused regression coverage now includes the remaining visibility booleans and row-level helper flags so this cleanup track can close without behavior changes
+  - focused regression coverage now includes the remaining visibility booleans and row-level helper flags so the presentation-state extraction track is complete
+- Current branch prepared for merge:
+  - `feature/admin-smoke-update-readiness-markers`
+- Current branch adds the next admin smoke coverage pass for:
+  - Update Readiness live smoke markers now target current operator-workspace and selected-snapshot surfaces instead of only broad page headings
+  - selected snapshot smoke checks now require the snapshot activity and detail sections while treating restore-control and restore-impact surfaces as optional live-state markers
+  - focused regression coverage now keeps the smoke helper aligned with the current Update Readiness UX so future UI drift is caught earlier
 - Next likely restart task after this branch merges:
-  - treat the Update Readiness presentation-state extraction track as complete
-  - move to the next task from fresh `main` instead of reopening template fallback cleanup
-  - keep any follow-up here limited to bug fixes or behavior work rather than more rendering-shape normalization
+  - keep manual/admin smoke coverage current as operator-facing surfaces change
+  - widen smoke markers or targeted tests for Dashboard and Event Logs only when those screens materially change
+  - avoid reopening the completed Update Readiness fallback-cleanup track unless a real regression appears
 
 
 

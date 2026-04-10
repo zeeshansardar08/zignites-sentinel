@@ -55,6 +55,7 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 	$widget_activity_check       = $checks[12];
 	$widget_check                = $checks[13];
 	$widget_markers      = isset( $widget_check['markers'] ) && is_array( $widget_check['markers'] ) ? $widget_check['markers'] : array();
+	$update_readiness_markers = isset( $checks[1]['markers'] ) && is_array( $checks[1]['markers'] ) ? $checks[1]['markers'] : array();
 	$contains_sentinel   = in_array( 'Sentinel', $widget_markers, true );
 	$contains_old_marker = in_array( 'Zignites Sentinel', $widget_markers, true );
 	$detail_markers      = isset( $detail_check['markers'] ) && is_array( $detail_check['markers'] ) ? $detail_check['markers'] : array();
@@ -72,7 +73,10 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 	znts_assert_true( $contains_sentinel, 'Admin smoke runner should expect the current dashboard widget heading marker.' );
 	znts_assert_true( ! $contains_old_marker, 'Admin smoke runner should not require the stale dashboard widget heading marker.' );
 	znts_assert_true( in_array( 'Snapshot Summary', $detail_markers, true ), 'Admin smoke runner should include a selected snapshot detail check for snapshot-scoped surfaces.' );
+	znts_assert_true( in_array( 'Snapshot Activity Timeline', $detail_markers, true ), 'Admin smoke runner should require the snapshot activity section on selected snapshot detail pages.' );
+	znts_assert_true( in_array( 'Operational Workspace', $update_readiness_markers, true ), 'Admin smoke runner should require the operator workspace marker on the Update Readiness screen.' );
 	znts_assert_true( in_array( 'Restore Impact Summary', $detail_optional, true ), 'Admin smoke runner should report optional restore impact markers on the selected snapshot detail page.' );
+	znts_assert_true( in_array( 'Restore Control Summary', $detail_optional, true ), 'Admin smoke runner should report optional restore control summary markers on the selected snapshot detail page.' );
 	znts_assert_same( 'admin.php?page=zignites-sentinel-update-readiness', isset( $snapshot_logs_resolve['path'] ) ? $snapshot_logs_resolve['path'] : '', 'Admin smoke runner should discover snapshot-scoped Event Logs from the selected snapshot screen.' );
 	znts_assert_true( ! empty( $run_journal_check['resolve_optional'] ), 'Admin smoke runner should treat selected snapshot run-journal discovery as optional when no journal links are present.' );
 	znts_assert_same( 'admin.php?page=zignites-sentinel-update-readiness', isset( $run_journal_resolve['path'] ) ? $run_journal_resolve['path'] : '', 'Admin smoke runner should discover run-journal links from the selected snapshot screen.' );
@@ -137,19 +141,19 @@ function znts_test_admin_smoke_runner_tracks_optional_markers_without_failing_re
 	$check  = array(
 		'label'            => 'Selected Snapshot Detail',
 		'path'             => 'admin.php?page=zignites-sentinel-update-readiness&snapshot_id=12',
-		'markers'          => array( 'Snapshot Summary', 'Snapshot Health Baseline' ),
-		'optional_markers' => array( 'Health Comparison', 'Restore Impact Summary' ),
+		'markers'          => array( 'Snapshot Summary', 'Snapshot Activity Timeline', 'Snapshot Detail', 'Snapshot Health Baseline' ),
+		'optional_markers' => array( 'Restore Control Summary', 'Health Comparison', 'Restore Impact Summary' ),
 	);
 
 	$result = $runner->evaluate_response(
 		$check,
 		200,
-		'<html><body><h2>Snapshot Summary</h2><h2>Snapshot Health Baseline</h2><details><summary>Health Comparison</summary></details></body></html>'
+		'<html><body><h2>Snapshot Summary</h2><h2>Snapshot Activity Timeline</h2><h2>Snapshot Detail</h2><h2>Snapshot Health Baseline</h2><details><summary>Health Comparison</summary></details></body></html>'
 	);
 
 	znts_assert_true( $result['passed'], 'Admin smoke runner should not fail when optional markers are absent but required markers are present.' );
 	znts_assert_same( array( 'Health Comparison' ), $result['observed_optional_markers'], 'Admin smoke runner should report optional markers that were found on the page.' );
-	znts_assert_same( array( 'Restore Impact Summary' ), $result['missing_optional_markers'], 'Admin smoke runner should separately report optional markers that were not found.' );
+	znts_assert_same( array( 'Restore Control Summary', 'Restore Impact Summary' ), $result['missing_optional_markers'], 'Admin smoke runner should separately report optional snapshot markers that were not found.' );
 }
 
 function znts_test_admin_smoke_runner_requires_filtered_state_markers_for_snapshot_logs() {
