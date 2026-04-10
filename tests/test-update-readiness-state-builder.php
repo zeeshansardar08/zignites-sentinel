@@ -634,6 +634,13 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'pass', $state['restore_rollback_journal_rows'][0]['badge'], 'Update Readiness state builder should preserve non-failing rollback journal badges.' );
 	znts_assert_same( 'RESTORE RELEASE 101', $state['restore_form_state']['restore_confirmation_phrase'], 'Update Readiness state builder should expose the restore confirmation phrase for forms.' );
 	znts_assert_same( 'ROLLBACK RELEASE 101', $state['restore_form_state']['rollback_confirmation_phrase'], 'Update Readiness state builder should expose the rollback confirmation phrase for forms.' );
+	znts_assert_same( true, $state['restore_form_state']['has_selected_snapshot'], 'Update Readiness state builder should expose whether forms have a selected snapshot.' );
+	znts_assert_same( '101', $state['restore_form_state']['selected_snapshot_id'], 'Update Readiness state builder should normalize selected snapshot IDs for form payloads.' );
+	znts_assert_same( true, $state['restore_form_state']['can_execute_restore'], 'Update Readiness state builder should derive guarded restore execution visibility.' );
+	znts_assert_same( true, $state['restore_form_state']['can_resume_restore'], 'Update Readiness state builder should derive restore resume visibility.' );
+	znts_assert_same( true, $state['restore_form_state']['can_resume_rollback'], 'Update Readiness state builder should derive rollback resume visibility.' );
+	znts_assert_same( 'Plan validated', $state['restore_form_state']['plan_validation_message'], 'Update Readiness state builder should normalize plan validation messaging for the view.' );
+	znts_assert_same( 'Sources available', $state['restore_form_state']['restore_source_validation_message'], 'Update Readiness state builder should normalize restore source validation messaging for the view.' );
 	znts_assert_same( 'A resumable execution journal exists with 3 completed items across 7 persisted entries.', $state['restore_form_state']['restore_resume_message'], 'Update Readiness state builder should derive the restore resume message.' );
 	znts_assert_same( 'Run ID: restore-resume-101', $state['restore_form_state']['restore_resume_run_label'], 'Update Readiness state builder should derive the restore resume run label.' );
 	znts_assert_same( 'A resumable rollback journal exists with 2 completed items across 5 persisted entries.', $state['restore_form_state']['rollback_resume_message'], 'Update Readiness state builder should derive the rollback resume message.' );
@@ -745,6 +752,13 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( 'info', $state['restore_rollback_status']['badge'], 'Update Readiness state builder should default missing rollback result badges to info.' );
 	znts_assert_same( '', $state['restore_form_state']['restore_confirmation_phrase'], 'Update Readiness state builder should default missing restore confirmation phrases to an empty string.' );
 	znts_assert_same( '', $state['restore_form_state']['rollback_confirmation_phrase'], 'Update Readiness state builder should default missing rollback confirmation phrases to an empty string.' );
+	znts_assert_same( false, $state['restore_form_state']['has_selected_snapshot'], 'Update Readiness state builder should default missing selected-snapshot form state to false.' );
+	znts_assert_same( '', $state['restore_form_state']['selected_snapshot_id'], 'Update Readiness state builder should default missing selected snapshot IDs to an empty string.' );
+	znts_assert_same( false, $state['restore_form_state']['can_execute_restore'], 'Update Readiness state builder should default guarded restore execution visibility to false.' );
+	znts_assert_same( false, $state['restore_form_state']['can_resume_restore'], 'Update Readiness state builder should default restore resume visibility to false.' );
+	znts_assert_same( false, $state['restore_form_state']['can_resume_rollback'], 'Update Readiness state builder should default rollback resume visibility to false.' );
+	znts_assert_same( '', $state['restore_form_state']['plan_validation_message'], 'Update Readiness state builder should default missing plan validation messages to an empty string.' );
+	znts_assert_same( '', $state['restore_form_state']['restore_source_validation_message'], 'Update Readiness state builder should default missing restore source validation messages to an empty string.' );
 	znts_assert_same( 'A resumable execution journal exists with 0 completed items across 0 persisted entries.', $state['restore_form_state']['restore_resume_message'], 'Update Readiness state builder should default missing restore resume counts to zero.' );
 	znts_assert_same( '', $state['restore_form_state']['restore_resume_run_label'], 'Update Readiness state builder should default missing restore resume run labels to an empty string.' );
 	znts_assert_same( 'A resumable rollback journal exists with 0 completed items across 0 persisted entries.', $state['restore_form_state']['rollback_resume_message'], 'Update Readiness state builder should default missing rollback resume counts to zero.' );

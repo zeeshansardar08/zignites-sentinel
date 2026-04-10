@@ -24,12 +24,9 @@ $stage_checkpoint         = isset( $view_data['stage_checkpoint'] ) && is_array(
 $plan_checkpoint          = isset( $view_data['plan_checkpoint'] ) && is_array( $view_data['plan_checkpoint'] ) ? $view_data['plan_checkpoint'] : array();
 $execution_checkpoint_summary_rows = isset( $view_data['execution_checkpoint_summary_rows'] ) && is_array( $view_data['execution_checkpoint_summary_rows'] ) ? $view_data['execution_checkpoint_summary_rows'] : array();
 $rollback_checkpoint_summary_rows = isset( $view_data['rollback_checkpoint_summary_rows'] ) && is_array( $view_data['rollback_checkpoint_summary_rows'] ) ? $view_data['rollback_checkpoint_summary_rows'] : array();
-$restore_resume_context   = isset( $view_data['restore_resume_context'] ) && is_array( $view_data['restore_resume_context'] ) ? $view_data['restore_resume_context'] : array();
-$restore_rollback_resume_context = isset( $view_data['restore_rollback_resume_context'] ) && is_array( $view_data['restore_rollback_resume_context'] ) ? $view_data['restore_rollback_resume_context'] : array();
 $snapshot_health_baseline = isset( $view_data['snapshot_health_baseline'] ) && is_array( $view_data['snapshot_health_baseline'] ) ? $view_data['snapshot_health_baseline'] : array();
 $snapshot_health_comparison = isset( $view_data['snapshot_health_comparison'] ) && is_array( $view_data['snapshot_health_comparison'] ) ? $view_data['snapshot_health_comparison'] : array();
 $snapshot_summary       = isset( $view_data['snapshot_summary'] ) && is_array( $view_data['snapshot_summary'] ) ? $view_data['snapshot_summary'] : array();
-$operator_checklist      = isset( $view_data['operator_checklist'] ) && is_array( $view_data['operator_checklist'] ) ? $view_data['operator_checklist'] : array();
 $restore_impact_summary  = isset( $view_data['restore_impact_summary'] ) && is_array( $view_data['restore_impact_summary'] ) ? $view_data['restore_impact_summary'] : array();
 $audit_report_verification = isset( $view_data['audit_report_verification'] ) && is_array( $view_data['audit_report_verification'] ) ? $view_data['audit_report_verification'] : array();
 $snapshot_activity_url   = isset( $view_data['snapshot_activity_url'] ) ? (string) $view_data['snapshot_activity_url'] : '';
@@ -53,9 +50,7 @@ $preflight_check_rows      = isset( $view_data['preflight_check_rows'] ) && is_a
 $update_candidate_rows     = isset( $view_data['update_candidate_rows'] ) && is_array( $view_data['update_candidate_rows'] ) ? $view_data['update_candidate_rows'] : array();
 $last_update_plan_status   = isset( $view_data['last_update_plan_status'] ) && is_array( $view_data['last_update_plan_status'] ) ? $view_data['last_update_plan_status'] : array();
 $last_update_plan_target_rows = isset( $view_data['last_update_plan_target_rows'] ) && is_array( $view_data['last_update_plan_target_rows'] ) ? $view_data['last_update_plan_target_rows'] : array();
-$plan_validation           = isset( $view_data['plan_validation'] ) && is_array( $view_data['plan_validation'] ) ? $view_data['plan_validation'] : array();
 $plan_validation_check_rows = isset( $view_data['plan_validation_check_rows'] ) && is_array( $view_data['plan_validation_check_rows'] ) ? $view_data['plan_validation_check_rows'] : array();
-$restore_source_validation = isset( $view_data['restore_source_validation'] ) && is_array( $view_data['restore_source_validation'] ) ? $view_data['restore_source_validation'] : array();
 $restore_readiness_status = isset( $view_data['restore_readiness_status'] ) && is_array( $view_data['restore_readiness_status'] ) ? $view_data['restore_readiness_status'] : array();
 $restore_readiness_check_rows = isset( $view_data['restore_readiness_check_rows'] ) && is_array( $view_data['restore_readiness_check_rows'] ) ? $view_data['restore_readiness_check_rows'] : array();
 $restore_source_validation_check_rows = isset( $view_data['restore_source_validation_check_rows'] ) && is_array( $view_data['restore_source_validation_check_rows'] ) ? $view_data['restore_source_validation_check_rows'] : array();
@@ -82,6 +77,11 @@ $restore_rollback_check_rows = isset( $view_data['restore_rollback_check_rows'] 
 $restore_rollback_item_rows = isset( $view_data['restore_rollback_item_rows'] ) && is_array( $view_data['restore_rollback_item_rows'] ) ? $view_data['restore_rollback_item_rows'] : array();
 $restore_rollback_journal_rows = isset( $view_data['restore_rollback_journal_rows'] ) && is_array( $view_data['restore_rollback_journal_rows'] ) ? $view_data['restore_rollback_journal_rows'] : array();
 $restore_form_state    = isset( $view_data['restore_form_state'] ) && is_array( $view_data['restore_form_state'] ) ? $view_data['restore_form_state'] : array();
+$form_snapshot_id        = isset( $restore_form_state['selected_snapshot_id'] ) ? (string) $restore_form_state['selected_snapshot_id'] : '';
+$has_form_snapshot       = ! empty( $restore_form_state['has_selected_snapshot'] );
+$can_execute_restore     = ! empty( $restore_form_state['can_execute_restore'] );
+$can_resume_restore      = ! empty( $restore_form_state['can_resume_restore'] );
+$can_resume_rollback     = ! empty( $restore_form_state['can_resume_rollback'] );
 $component_manifest        = isset( $view_data['component_manifest'] ) && is_array( $view_data['component_manifest'] ) ? $view_data['component_manifest'] : array();
 $selected_snapshot_label   = isset( $view_data['selected_snapshot_label'] ) ? (string) $view_data['selected_snapshot_label'] : '';
 $selected_snapshot_note    = isset( $view_data['selected_snapshot_note'] ) ? (string) $view_data['selected_snapshot_note'] : '';
@@ -242,13 +242,13 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<div class="znts-actions">
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 							<input type="hidden" name="action" value="znts_download_snapshot_summary" />
-							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
+							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
 							<?php wp_nonce_field( 'znts_download_snapshot_summary_action' ); ?>
 							<?php submit_button( __( 'Download Summary', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 						</form>
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 							<input type="hidden" name="action" value="znts_download_snapshot_audit_report" />
-							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
+							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
 							<?php wp_nonce_field( 'znts_download_snapshot_audit_report_action' ); ?>
 							<?php submit_button( __( 'Download Audit Report', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 						</form>
@@ -351,7 +351,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<div class="znts-actions">
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 							<input type="hidden" name="action" value="znts_capture_snapshot_health_baseline" />
-							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
+							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
 							<?php wp_nonce_field( 'znts_capture_snapshot_health_baseline_action' ); ?>
 							<?php submit_button( __( 'Capture Health Baseline', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 						</form>
@@ -416,7 +416,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 							<div class="znts-actions">
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 							<input type="hidden" name="action" value="znts_refresh_restore_gates" />
-							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
+							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
 							<?php wp_nonce_field( 'znts_refresh_restore_gates_action' ); ?>
 							<?php submit_button( __( 'Refresh Checklist Gates', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 						</form>
@@ -459,7 +459,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						<p><?php echo esc_html__( 'Paste a previously downloaded audit report to verify its payload hash, site signature, and snapshot match against this site.', 'zignites-sentinel' ); ?></p>
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 					<input type="hidden" name="action" value="znts_verify_snapshot_audit_report" />
-					<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
+					<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
 					<?php wp_nonce_field( 'znts_verify_snapshot_audit_report_action' ); ?>
 					<p>
 						<label for="znts-audit-report-payload"><?php echo esc_html__( 'Audit report JSON', 'zignites-sentinel' ); ?></label><br />
@@ -693,7 +693,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<?php endif; ?>
 				<?php if ( ! empty( $plan_validation ) ) : ?>
 					<h3><?php echo esc_html__( 'Target Source Validation', 'zignites-sentinel' ); ?></h3>
-					<p><?php echo esc_html( $plan_validation['message'] ); ?></p>
+					<p><?php echo esc_html( $restore_form_state['plan_validation_message'] ); ?></p>
 					<table class="widefat striped">
 						<thead>
 							<tr>
@@ -736,8 +736,8 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			</details>
 			<form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" class="znts-filter-form">
 				<input type="hidden" name="page" value="zignites-sentinel-update-readiness" />
-				<?php if ( $snapshot_detail && ! empty( $snapshot_detail['id'] ) ) : ?>
-					<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
+				<?php if ( $has_form_snapshot ) : ?>
+					<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
 				<?php endif; ?>
 				<p>
 					<label for="znts-snapshot-search"><?php echo esc_html__( 'Filter by label', 'zignites-sentinel' ); ?></label><br />
@@ -898,25 +898,25 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<div class="znts-actions">
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="znts_check_restore_readiness" />
-						<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
+						<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
 						<?php wp_nonce_field( 'znts_check_restore_readiness_action' ); ?>
 						<?php submit_button( __( 'Evaluate Restore Readiness', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 					</form>
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="znts_run_restore_dry_run" />
-						<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
+						<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
 						<?php wp_nonce_field( 'znts_run_restore_dry_run_action' ); ?>
 						<?php submit_button( __( 'Run Restore Dry-Run', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 					</form>
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="znts_run_restore_stage" />
-						<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
+						<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
 						<?php wp_nonce_field( 'znts_run_restore_stage_action' ); ?>
 						<?php submit_button( __( 'Run Staged Restore Validation', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 					</form>
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="znts_build_restore_plan" />
-						<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
+						<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
 						<?php wp_nonce_field( 'znts_build_restore_plan_action' ); ?>
 						<?php submit_button( __( 'Build Restore Plan', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 					</form>
@@ -1176,7 +1176,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				</table>
 				<?php if ( ! empty( $restore_source_validation ) ) : ?>
 					<h3><?php echo esc_html__( 'Snapshot Source Validation', 'zignites-sentinel' ); ?></h3>
-					<p><?php echo esc_html( $restore_source_validation['message'] ); ?></p>
+					<p><?php echo esc_html( $restore_form_state['restore_source_validation_message'] ); ?></p>
 					<?php if ( ! empty( $restore_source_validation_check_rows ) ) : ?>
 						<table class="widefat striped">
 							<thead>
@@ -1393,10 +1393,10 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<?php endif; ?>
 				<h3><?php echo esc_html__( 'Guarded Live Restore', 'zignites-sentinel' ); ?></h3>
 				<p><?php echo esc_html__( 'This writes the staged snapshot payload into live theme and plugin paths. Review the impact summary first. It only runs when staged validation passed for the same snapshot and the confirmation phrase is exact.', 'zignites-sentinel' ); ?></p>
-				<?php if ( ! empty( $operator_checklist['can_execute'] ) ) : ?>
+				<?php if ( $can_execute_restore ) : ?>
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="znts_execute_restore" />
-						<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
+						<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
 						<?php wp_nonce_field( 'znts_execute_restore_action' ); ?>
 						<p>
 							<label for="znts-restore-confirmation"><?php echo esc_html__( 'Type confirmation phrase', 'zignites-sentinel' ); ?></label><br />
@@ -1408,13 +1408,13 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<?php else : ?>
 					<p class="description"><?php echo esc_html__( 'Live restore remains hidden until the operator checklist is complete for this snapshot.', 'zignites-sentinel' ); ?></p>
 				<?php endif; ?>
-				<?php if ( ! empty( $restore_resume_context['can_resume'] ) ) : ?>
+				<?php if ( $can_resume_restore ) : ?>
 					<h3><?php echo esc_html__( 'Resume Restore Execution', 'zignites-sentinel' ); ?></h3>
 					<p><?php echo esc_html( $restore_form_state['restore_resume_message'] ); ?></p>
-					<?php if ( ! empty( $operator_checklist['can_execute'] ) ) : ?>
+					<?php if ( $can_execute_restore ) : ?>
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 							<input type="hidden" name="action" value="znts_resume_restore" />
-							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
+							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
 							<?php wp_nonce_field( 'znts_resume_restore_action' ); ?>
 							<p>
 								<label for="znts-resume-confirmation"><?php echo esc_html__( 'Type confirmation phrase', 'zignites-sentinel' ); ?></label><br />
@@ -1431,7 +1431,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						<p><?php echo esc_html__( 'This removes the preserved execution stage and clears the execution checkpoint. Resume will still be possible from the persisted journal, but stage extraction and health verification reuse will be lost.', 'zignites-sentinel' ); ?></p>
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 							<input type="hidden" name="action" value="znts_discard_restore_execution_checkpoint" />
-							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
+							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
 							<?php wp_nonce_field( 'znts_discard_restore_execution_checkpoint_action' ); ?>
 							<?php submit_button( __( 'Discard Execution Checkpoint', 'zignites-sentinel' ), 'delete', 'submit', false ); ?>
 						</form>
@@ -1582,7 +1582,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 					<p><?php echo esc_html__( 'This restores the previously live payloads from the backup root created during restore execution.', 'zignites-sentinel' ); ?></p>
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="znts_rollback_restore" />
-						<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
+						<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
 						<?php wp_nonce_field( 'znts_rollback_restore_action' ); ?>
 						<p>
 							<label for="znts-rollback-confirmation"><?php echo esc_html__( 'Type rollback confirmation phrase', 'zignites-sentinel' ); ?></label><br />
@@ -1591,7 +1591,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						<p class="description"><?php echo esc_html( $restore_form_state['rollback_confirmation_phrase'] ); ?></p>
 						<?php submit_button( __( 'Run Rollback', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 					</form>
-					<?php if ( ! empty( $restore_rollback_resume_context['can_resume'] ) ) : ?>
+					<?php if ( $can_resume_rollback ) : ?>
 						<h3><?php echo esc_html__( 'Resume Rollback', 'zignites-sentinel' ); ?></h3>
 						<p><?php echo esc_html( $restore_form_state['rollback_resume_message'] ); ?></p>
 						<?php if ( ! empty( $restore_form_state['rollback_checkpoint_message'] ) ) : ?>
@@ -1599,7 +1599,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						<?php endif; ?>
 						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 							<input type="hidden" name="action" value="znts_resume_restore_rollback" />
-							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $snapshot_detail['id'] ); ?>" />
+							<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
 							<?php wp_nonce_field( 'znts_resume_restore_rollback_action' ); ?>
 							<p>
 								<label for="znts-resume-rollback-confirmation"><?php echo esc_html__( 'Type rollback confirmation phrase', 'zignites-sentinel' ); ?></label><br />

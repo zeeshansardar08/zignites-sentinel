@@ -370,6 +370,9 @@ class UpdateReadinessStateBuilder {
 		$last_restore_plan               = $this->array_value( $view_data, 'last_restore_plan' );
 		$last_restore_execution          = $this->array_value( $view_data, 'last_restore_execution' );
 		$execution_checkpoint            = $this->array_value( $view_data, 'execution_checkpoint' );
+		$plan_validation                 = $this->array_value( $view_data, 'plan_validation' );
+		$restore_source_validation       = $this->array_value( $view_data, 'restore_source_validation' );
+		$operator_checklist              = $this->array_value( $view_data, 'operator_checklist' );
 		$restore_resume_context          = $this->array_value( $view_data, 'restore_resume_context' );
 		$restore_rollback_resume_context = $this->array_value( $view_data, 'restore_rollback_resume_context' );
 		$snapshot_id                     = is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) ? (int) $snapshot_detail['id'] : 0;
@@ -378,6 +381,13 @@ class UpdateReadinessStateBuilder {
 		$rollback_confirmation_phrase = isset( $last_restore_execution['rollback_confirmation_phrase'] ) ? (string) $last_restore_execution['rollback_confirmation_phrase'] : ( $snapshot_id > 0 ? sprintf( 'ROLLBACK SNAPSHOT %d', $snapshot_id ) : '' );
 
 		$view_data['restore_form_state'] = array(
+			'has_selected_snapshot'        => $snapshot_id > 0,
+			'selected_snapshot_id'         => $snapshot_id > 0 ? (string) $snapshot_id : '',
+			'can_execute_restore'          => ! empty( $operator_checklist['can_execute'] ),
+			'can_resume_restore'           => ! empty( $restore_resume_context['can_resume'] ),
+			'can_resume_rollback'          => ! empty( $restore_rollback_resume_context['can_resume'] ),
+			'plan_validation_message'      => isset( $plan_validation['message'] ) ? (string) $plan_validation['message'] : '',
+			'restore_source_validation_message' => isset( $restore_source_validation['message'] ) ? (string) $restore_source_validation['message'] : '',
 			'restore_confirmation_phrase'  => $restore_confirmation_phrase,
 			'rollback_confirmation_phrase' => $rollback_confirmation_phrase,
 			'restore_resume_message'       => $this->build_restore_resume_message( $restore_resume_context ),

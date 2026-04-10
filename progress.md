@@ -537,11 +537,19 @@
   - restore execution and rollback secondary result state prepared by `UpdateReadinessStateBuilder`
   - execution/rollback backup-root visibility, run links, resumed-run messaging, and health-section visibility now render from prepared state
   - focused regression coverage for execution/rollback meta state and empty defaults
+- Main is now current through the merged Update Readiness helper-fallback cleanup for:
+  - operator checklist helper copy now renders from prepared state without inline fallback checks
+  - focused regression coverage remains centered on presentation-state extraction rather than restore behavior
 - Current branch prepared for merge:
-  - `feature/update-readiness-remaining-helper-state`
+  - `feature/update-readiness-form-gating-state`
+- Current branch adds Update Readiness form-gating state cleanup for:
+  - selected snapshot IDs, restore execute/resume visibility flags, and validation messages now come from `restore_form_state`
+  - the view no longer reaches into raw snapshot detail, checklist, or resume-context arrays for form-post payloads or gating checks
+  - focused regression coverage now includes form snapshot IDs, execute/resume booleans, and normalized validation messaging defaults
 - Next likely restart task after this branch merges:
   - start from `includes/admin/views/update-readiness.php`
-  - extract the remaining raw gating/form-context seam, especially selected-snapshot form state, resume visibility, and checklist gating booleans, into the Update Readiness state builder or a focused presenter
+  - finish trimming the last top-level raw input normalization in the template so section rendering can rely almost entirely on prepared view-state keys
+  - focus next on any remaining direct raw payload reads that are only supporting visibility, copy, or form-post context rather than section existence
   - avoid new restore behavior; keep this track to presentation-state cleanup and regression coverage
 
 
