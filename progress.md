@@ -339,10 +339,12 @@
   - recent snapshot table rows prepared by `UpdateReadinessStateBuilder`
   - snapshot list empty-state, filter reset, and pagination state prepared before rendering
   - focused regression coverage for snapshot row URLs, badge rows, pagination copy, filter reset URLs, and pagination query args
-- Current branch extends the Update Readiness form-defaults presentation-state cleanup with:
-  - settings form checkbox and numeric defaults prepared by `UpdateReadinessStateBuilder`
-  - restore/rollback confirmation form fields rendering from prepared form state without inline fallback checks
-  - focused regression coverage for settings form values and empty defaults
+- Current branch extends the Update Readiness residual view-fallback cleanup with:
+  - selected snapshot status badge rows prepared by `UpdateReadinessStateBuilder`
+  - restore control summary cards normalized before rendering
+  - artifact-diff rows and checkpoint summary rows now render from prepared shapes without inline fallback checks
+  - normalized status-header and impact-summary rendering now consume prepared status/row keys directly without per-field fallback checks
+  - focused regression coverage for selected snapshot badges, restore summary cards, and empty defaults
 - Live authenticated admin smoke validation has now been run successfully against a real wp-admin session for:
   - Sentinel Dashboard
   - Update Readiness
@@ -520,10 +522,10 @@
 - If work resumes later, treat the current product as a safety-first restore control panel with real restore/rollback capability, not just an advisory plugin
 - The next work should emphasize operator clarity, regression resistance, and validation depth more than new destructive features
 - Current branch prepared for merge:
-  - `feature/update-readiness-form-defaults-state`
+  - `feature/update-readiness-residual-view-fallback-state`
 - Next likely restart task after this branch merges:
   - start from `includes/admin/views/update-readiness.php`
-  - extract the next residual table fallback, run-link, or impact-summary presentation-state seam into the Update Readiness state builder or a focused presenter
+  - extract the next residual overview/detail-list fallback seam into the Update Readiness state builder or a focused presenter
   - avoid new restore behavior; keep this track to presentation-state cleanup and regression coverage
 
 

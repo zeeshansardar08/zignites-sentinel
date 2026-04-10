@@ -507,6 +507,7 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_true( false !== strpos( $state['snapshot_pagination_links_args']['base'], 'snapshot_status_filter=ready' ), 'Update Readiness state builder should preserve snapshot status filters in pagination links.' );
 	znts_assert_same( 101, $state['snapshot_detail']['id'], 'Update Readiness state builder should preserve the selected snapshot detail.' );
 	znts_assert_same( 'Ready', $state['selected_snapshot_status']['status_badges'][0]['label'], 'Update Readiness state builder should derive selected snapshot status from the status index.' );
+	znts_assert_same( 'Ready', $state['selected_snapshot_status_badges'][0]['label'], 'Update Readiness state builder should derive selected snapshot badge rows.' );
 	znts_assert_same( 'Plan validated', $state['plan_validation']['message'], 'Update Readiness state builder should derive update-plan validation state.' );
 	znts_assert_same( 'Plugin package', $state['plan_validation_check_rows'][0]['label'], 'Update Readiness state builder should derive plan validation check rows.' );
 	znts_assert_same( 'pass', $state['plan_validation_check_rows'][0]['badge'], 'Update Readiness state builder should preserve non-failing validation check badges.' );
@@ -557,6 +558,9 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( false, $state['open_health_validation'], 'Update Readiness state builder should close health validation details when checklist gates can execute.' );
 	znts_assert_same( 'Next: confirm the impact summary, verify the checklist is still current, and only then move into guarded restore review.', $state['workspace_flow_message'], 'Update Readiness state builder should derive ready-state workflow guidance.' );
 	znts_assert_same( 'Checklist gates are currently satisfied for this snapshot.', $state['workspace_confidence'], 'Update Readiness state builder should derive ready-state workspace confidence.' );
+	znts_assert_same( 'Plan', $state['restore_run_card_rows'][0]['title'], 'Update Readiness state builder should derive restore summary card titles.' );
+	znts_assert_same( 'info', $state['restore_run_card_rows'][0]['badge'], 'Update Readiness state builder should default missing restore summary card badges to info.' );
+	znts_assert_same( '', $state['restore_run_card_rows'][0]['link_label'], 'Update Readiness state builder should default missing restore summary card link labels to an empty string.' );
 	znts_assert_same( 'warning', $state['restore_dry_run_status']['badge'], 'Update Readiness state builder should derive caution restore result badges.' );
 	znts_assert_same( 'Caution', $state['restore_dry_run_status']['status_label'], 'Update Readiness state builder should derive dry-run status labels.' );
 	znts_assert_same( 'Dry-run package', $state['restore_dry_run_check_rows'][0]['label'], 'Update Readiness state builder should derive dry-run check rows.' );
@@ -670,6 +674,8 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( array(), $state['audit_report_verification_check_rows'], 'Update Readiness state builder should default missing audit verification check rows to an empty array.' );
 	znts_assert_same( array(), $state['restore_action_jump_links'], 'Update Readiness state builder should default missing restore action jump links to an empty array.' );
 	znts_assert_same( array(), $state['snapshot_activity_rows'], 'Update Readiness state builder should default missing snapshot activity rows to an empty array.' );
+	znts_assert_same( array(), $state['selected_snapshot_status_badges'], 'Update Readiness state builder should default missing selected snapshot badge rows to an empty array.' );
+	znts_assert_same( array(), $state['restore_run_card_rows'], 'Update Readiness state builder should default missing restore summary card rows to an empty array.' );
 	znts_assert_same( array(), $state['plan_validation_check_rows'], 'Update Readiness state builder should default missing plan validation rows to an empty array.' );
 	znts_assert_same( 'info', $state['restore_readiness_status']['badge'], 'Update Readiness state builder should default missing restore readiness badges to info.' );
 	znts_assert_same( array(), $state['restore_readiness_check_rows'], 'Update Readiness state builder should default missing restore readiness check rows to an empty array.' );

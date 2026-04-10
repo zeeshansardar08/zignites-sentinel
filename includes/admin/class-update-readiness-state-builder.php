@@ -62,6 +62,7 @@ class UpdateReadinessStateBuilder {
 		);
 
 		$view_data = $this->with_workspace_state( $view_data );
+		$view_data = $this->with_restore_control_summary_state( $view_data );
 		$view_data = $this->with_snapshot_list_state( $view_data );
 		$view_data = $this->with_settings_form_state( $view_data );
 		$view_data = $this->with_health_state( $view_data );
@@ -139,6 +140,7 @@ class UpdateReadinessStateBuilder {
 		$health_attention_state   = empty( $snapshot_health_baseline ) ? 'critical' : ( isset( $snapshot_health_baseline['status_pill'] ) ? (string) $snapshot_health_baseline['status_pill'] : 'info' );
 
 		$view_data['selected_snapshot_status'] = $snapshot_id > 0 && isset( $snapshot_status_index[ $snapshot_id ] ) && is_array( $snapshot_status_index[ $snapshot_id ] ) ? $snapshot_status_index[ $snapshot_id ] : array();
+		$view_data['selected_snapshot_status_badges'] = $this->build_snapshot_status_badge_rows( $view_data['selected_snapshot_status'] );
 		$view_data['plan_validation'] = isset( $last_plan['validation'] ) && is_array( $last_plan['validation'] ) ? $last_plan['validation'] : array();
 		$view_data['restore_source_validation'] = isset( $last_restore_check['source_validation'] ) && is_array( $last_restore_check['source_validation'] ) ? $last_restore_check['source_validation'] : array();
 		$view_data['plan_validation_check_rows'] = $this->build_check_rows( $view_data['plan_validation'] );
@@ -182,6 +184,18 @@ class UpdateReadinessStateBuilder {
 		$view_data['workspace_confidence'] = ! empty( $operator_checklist['can_execute'] )
 			? __( 'Checklist gates are currently satisfied for this snapshot.', 'zignites-sentinel' )
 			: __( 'The workspace is showing the shortest safe path, not every technical detail at once.', 'zignites-sentinel' );
+
+		return $view_data;
+	}
+
+	/**
+	 * Add normalized restore control summary cards.
+	 *
+	 * @param array $view_data Normalized screen state.
+	 * @return array
+	 */
+	protected function with_restore_control_summary_state( array $view_data ) {
+		$view_data['restore_run_card_rows'] = $this->build_restore_run_card_rows( $this->array_value( $view_data, 'restore_run_cards' ) );
 
 		return $view_data;
 	}
@@ -645,6 +659,32 @@ class UpdateReadinessStateBuilder {
 			'message' => isset( $artifact_diff['message'] ) ? (string) $artifact_diff['message'] : '',
 			'rows'    => $rows,
 		);
+	}
+
+	/**
+	 * Build normalized restore summary card rows.
+	 *
+	 * @param array $cards Restore summary cards.
+	 * @return array
+	 */
+	protected function build_restore_run_card_rows( array $cards ) {
+		$rows = array();
+
+		foreach ( $cards as $card ) {
+			$rows[] = array(
+				'title'        => isset( $card['title'] ) ? (string) $card['title'] : '',
+				'status'       => isset( $card['status'] ) ? (string) $card['status'] : '',
+				'badge'        => isset( $card['badge'] ) ? (string) $card['badge'] : 'info',
+				'status_label' => isset( $card['status_label'] ) ? (string) $card['status_label'] : '',
+				'timestamp'    => isset( $card['timestamp'] ) ? (string) $card['timestamp'] : '',
+				'primary'      => isset( $card['primary'] ) ? (string) $card['primary'] : '',
+				'secondary'    => isset( $card['secondary'] ) ? (string) $card['secondary'] : '',
+				'link_url'     => isset( $card['link_url'] ) ? (string) $card['link_url'] : '',
+				'link_label'   => isset( $card['link_label'] ) ? (string) $card['link_label'] : '',
+			);
+		}
+
+		return $rows;
 	}
 
 	/**
