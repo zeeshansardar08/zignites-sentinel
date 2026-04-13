@@ -630,6 +630,14 @@ class Admin {
 		$snapshot_search        = $this->get_snapshot_search_term();
 		$snapshot_status_filter = $this->get_snapshot_status_filter();
 		$snapshot_list_state    = $this->get_snapshot_list_state( $snapshot_search, $snapshot_status_filter );
+		$trust_snapshots        = $this->get_trust_snapshot_collection( $snapshot_detail );
+		$trust_status_index     = $this->snapshot_status_resolver->build_snapshot_status_index( $trust_snapshots );
+		$system_health          = $this->snapshot_status_resolver->build_system_health_card( $this->health_score->calculate(), $trust_snapshots, $trust_status_index, $snapshot_detail );
+		$snapshot_intelligence  = $this->snapshot_status_resolver->build_snapshot_intelligence( $trust_snapshots, $trust_status_index, $snapshot_detail );
+		$operator_timeline      = $this->snapshot_status_resolver->build_operator_timeline( $trust_snapshots );
+		$selected_trust_status  = is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) && isset( $trust_status_index[ (int) $snapshot_detail['id'] ] ) && is_array( $trust_status_index[ (int) $snapshot_detail['id'] ] )
+			? $trust_status_index[ (int) $snapshot_detail['id'] ]
+			: array();
 
 		return $this->update_readiness_state_builder->build_screen_state(
 			array(
@@ -669,6 +677,10 @@ class Admin {
 				'audit_report_verification' => $this->get_audit_report_verification( $snapshot_detail ),
 				'snapshot_activity'       => $this->get_snapshot_activity( $snapshot_detail ),
 				'snapshot_activity_url'   => $this->get_snapshot_activity_url( is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) ? (int) $snapshot_detail['id'] : 0 ),
+				'system_health'          => $system_health,
+				'snapshot_intelligence'  => $snapshot_intelligence,
+				'operator_timeline'      => $operator_timeline,
+				'selected_snapshot_trust_status' => $selected_trust_status,
 				'notice'                  => $this->get_notice_message(),
 			)
 		);
@@ -1923,6 +1935,32 @@ class Admin {
 			$this->snapshots,
 			$this->snapshot_status_resolver
 		);
+	}
+
+	/**
+	 * Build the snapshot collection used by the trust layer.
+	 *
+	 * @param array|null $selected_snapshot Selected snapshot detail.
+	 * @return array
+	 */
+	protected function get_trust_snapshot_collection( $selected_snapshot ) {
+		$snapshots = $this->snapshots->get_recent( 12 );
+
+		if ( ! is_array( $selected_snapshot ) || empty( $selected_snapshot['id'] ) ) {
+			return $snapshots;
+		}
+
+		$selected_id = (int) $selected_snapshot['id'];
+
+		foreach ( $snapshots as $snapshot ) {
+			if ( ! empty( $snapshot['id'] ) && $selected_id === (int) $snapshot['id'] ) {
+				return $snapshots;
+			}
+		}
+
+		array_unshift( $snapshots, $selected_snapshot );
+
+		return $snapshots;
 	}
 
 	/**

@@ -141,6 +141,11 @@ $show_rollback_health_section = ! empty( $view_visibility['show_rollback_health_
 $show_rollback_checks = ! empty( $view_visibility['show_rollback_checks'] );
 $show_rollback_items = ! empty( $view_visibility['show_rollback_items'] );
 $show_rollback_journal = ! empty( $view_visibility['show_rollback_journal'] );
+$show_system_health_rows = ! empty( $view_visibility['show_system_health_rows'] );
+$show_snapshot_intelligence_warnings = ! empty( $view_visibility['show_snapshot_intelligence_warnings'] );
+$show_recommended_snapshot_card = ! empty( $view_visibility['show_recommended_snapshot_card'] );
+$show_last_known_good_card = ! empty( $view_visibility['show_last_known_good_card'] );
+$show_operator_timeline_rows = ! empty( $view_visibility['show_operator_timeline_rows'] );
 $show_workspace_primary_action = ! empty( $view_visibility['show_workspace_primary_action'] );
 $component_manifest        = isset( $view_data['component_manifest'] ) && is_array( $view_data['component_manifest'] ) ? $view_data['component_manifest'] : array();
 $selected_snapshot_label   = isset( $view_data['selected_snapshot_label'] ) ? (string) $view_data['selected_snapshot_label'] : '';
@@ -176,6 +181,12 @@ $plugin_version_change_rows = isset( $view_data['plugin_version_change_rows'] ) 
 $open_health_validation    = ! empty( $view_data['open_health_validation'] );
 $workspace_flow_message    = isset( $view_data['workspace_flow_message'] ) ? (string) $view_data['workspace_flow_message'] : '';
 $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (string) $view_data['workspace_confidence'] : '';
+$system_health_status      = isset( $view_data['system_health_status'] ) && is_array( $view_data['system_health_status'] ) ? $view_data['system_health_status'] : array();
+$system_health_rows        = isset( $view_data['system_health_rows'] ) && is_array( $view_data['system_health_rows'] ) ? $view_data['system_health_rows'] : array();
+$recommended_snapshot_card = isset( $view_data['recommended_snapshot_card'] ) && is_array( $view_data['recommended_snapshot_card'] ) ? $view_data['recommended_snapshot_card'] : array();
+$last_known_good_card      = isset( $view_data['last_known_good_card'] ) && is_array( $view_data['last_known_good_card'] ) ? $view_data['last_known_good_card'] : array();
+$snapshot_intelligence_warnings = isset( $view_data['snapshot_intelligence_warnings'] ) && is_array( $view_data['snapshot_intelligence_warnings'] ) ? $view_data['snapshot_intelligence_warnings'] : array();
+$operator_timeline_rows    = isset( $view_data['operator_timeline_rows'] ) && is_array( $view_data['operator_timeline_rows'] ) ? $view_data['operator_timeline_rows'] : array();
 ?>
 <div class="wrap znts-admin-page">
 	<div class="znts-page-header">
@@ -195,6 +206,12 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 			<span class="znts-pill znts-pill-<?php echo esc_attr( $workspace_status_badge ); ?>">
 				<?php echo esc_html( $workspace_status_label ); ?>
 			</span>
+			<?php if ( ! empty( $system_health_status ) ) : ?>
+				<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $system_health_status['badge'] ) ? $system_health_status['badge'] : 'info' ); ?>">
+					<?php echo esc_html( isset( $system_health_status['title'] ) ? $system_health_status['title'] : __( 'System Health', 'zignites-sentinel' ) ); ?>:
+					<?php echo esc_html( isset( $system_health_status['status_label'] ) ? $system_health_status['status_label'] : '' ); ?>
+				</span>
+			<?php endif; ?>
 			<?php if ( $show_selected_snapshot_badges ) : ?>
 				<div class="znts-badge-row">
 					<?php foreach ( $selected_snapshot_status_badges as $badge ) : ?>
@@ -209,24 +226,24 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 		<p class="znts-hero-subtitle"><?php echo esc_html( $selected_snapshot_note ); ?></p>
 		<div class="znts-summary-strip">
 			<div class="znts-summary-item">
+				<span><?php echo esc_html__( 'System health', 'zignites-sentinel' ); ?></span>
+				<strong><?php echo esc_html( isset( $system_health_status['status_label'] ) ? $system_health_status['status_label'] : __( 'Unknown', 'zignites-sentinel' ) ); ?></strong>
+				<p><?php echo esc_html( isset( $system_health_status['note'] ) ? $system_health_status['note'] : '' ); ?></p>
+			</div>
+			<div class="znts-summary-item">
+				<span><?php echo esc_html__( 'Recommended snapshot', 'zignites-sentinel' ); ?></span>
+				<strong><?php echo esc_html( ! empty( $recommended_snapshot_card['label'] ) ? $recommended_snapshot_card['label'] : __( 'Not available', 'zignites-sentinel' ) ); ?></strong>
+				<p><?php echo esc_html( ! empty( $recommended_snapshot_card['note'] ) ? $recommended_snapshot_card['note'] : __( 'Sentinel has not found a fully trusted snapshot yet.', 'zignites-sentinel' ) ); ?></p>
+			</div>
+			<div class="znts-summary-item">
+				<span><?php echo esc_html__( 'Last known good', 'zignites-sentinel' ); ?></span>
+				<strong><?php echo esc_html( ! empty( $last_known_good_card['label'] ) ? $last_known_good_card['label'] : __( 'Not identified', 'zignites-sentinel' ) ); ?></strong>
+				<p><?php echo esc_html( ! empty( $last_known_good_card['note'] ) ? $last_known_good_card['note'] : __( 'No historical good state has been inferred yet.', 'zignites-sentinel' ) ); ?></p>
+			</div>
+			<div class="znts-summary-item">
 				<span><?php echo esc_html__( 'Current state', 'zignites-sentinel' ); ?></span>
 				<strong><?php echo esc_html( $workspace_status_label ); ?></strong>
 				<p><?php echo esc_html( $workspace_next_action ); ?></p>
-			</div>
-			<div class="znts-summary-item">
-				<span><?php echo esc_html__( 'Snapshot matches', 'zignites-sentinel' ); ?></span>
-				<strong><?php echo esc_html( (string) $snapshot_match_count ); ?></strong>
-				<p><?php echo esc_html__( 'Use filters to narrow the working snapshot set before reviewing details.', 'zignites-sentinel' ); ?></p>
-			</div>
-			<div class="znts-summary-item">
-				<span><?php echo esc_html__( 'Checklist gates', 'zignites-sentinel' ); ?></span>
-				<strong><?php echo esc_html( $operator_checklist_status['check_count_label'] ); ?></strong>
-				<p><?php echo esc_html__( 'Baseline, stage validation, and plan freshness determine whether guarded restore is offered.', 'zignites-sentinel' ); ?></p>
-			</div>
-			<div class="znts-summary-item">
-				<span><?php echo esc_html__( 'Primary path', 'zignites-sentinel' ); ?></span>
-				<strong><?php echo esc_html__( 'Scan, snapshot, review', 'zignites-sentinel' ); ?></strong>
-				<p><?php echo esc_html__( 'Keep live restore controls gated until readiness evidence is current.', 'zignites-sentinel' ); ?></p>
 			</div>
 		</div>
 		<div class="znts-flow-note">
@@ -243,10 +260,63 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 				<?php if ( ! empty( $workspace_primary_action['href'] ) ) : ?>
 					<p><a class="button button-primary" href="<?php echo esc_url( $workspace_primary_action['href'] ); ?>"><?php echo esc_html( isset( $workspace_primary_action['button_label'] ) ? $workspace_primary_action['button_label'] : __( 'Review', 'zignites-sentinel' ) ); ?></a></p>
 				<?php endif; ?>
+				<?php if ( '' !== $workspace_confidence ) : ?>
+					<p class="description"><?php echo esc_html( $workspace_confidence ); ?></p>
+				<?php endif; ?>
 			</div>
 		<?php endif; ?>
-		<p class="znts-summary-confidence"><?php echo esc_html( $workspace_confidence ); ?></p>
 	</section>
+
+	<?php if ( $show_system_health_rows || $show_snapshot_intelligence_warnings || $show_operator_timeline_rows ) : ?>
+		<div class="znts-admin-grid znts-readiness-grid">
+			<section class="znts-card znts-card-full znts-card-flat">
+				<h2><?php echo esc_html__( 'Trust Layer', 'zignites-sentinel' ); ?></h2>
+				<?php if ( $show_system_health_rows ) : ?>
+					<table class="widefat striped">
+						<tbody>
+							<?php foreach ( $system_health_rows as $row ) : ?>
+								<tr>
+									<th scope="row"><?php echo esc_html( $row['label'] ); ?></th>
+									<td>
+										<?php echo esc_html( $row['value'] ); ?>
+										<?php if ( ! empty( $row['show_note'] ) ) : ?>
+											<p class="description"><?php echo esc_html( $row['note'] ); ?></p>
+										<?php endif; ?>
+									</td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				<?php endif; ?>
+				<?php if ( $show_snapshot_intelligence_warnings ) : ?>
+					<div class="znts-alert-panel znts-alert-panel-warning">
+						<strong><?php echo esc_html__( 'Snapshot Warnings', 'zignites-sentinel' ); ?></strong>
+						<ul class="znts-list">
+							<?php foreach ( $snapshot_intelligence_warnings as $warning ) : ?>
+								<li><?php echo esc_html( $warning ); ?></li>
+							<?php endforeach; ?>
+						</ul>
+					</div>
+				<?php endif; ?>
+				<?php if ( $show_operator_timeline_rows ) : ?>
+					<h3><?php echo esc_html__( 'Operator Timeline', 'zignites-sentinel' ); ?></h3>
+					<ul class="znts-timeline-list">
+						<?php foreach ( $operator_timeline_rows as $timeline_row ) : ?>
+							<li class="znts-timeline-item">
+								<div class="znts-timeline-meta">
+									<span class="znts-pill znts-pill-<?php echo esc_attr( $timeline_row['badge'] ); ?>">
+										<?php echo esc_html( $timeline_row['title'] ); ?>
+									</span>
+									<span><?php echo esc_html( $timeline_row['timestamp'] ); ?></span>
+								</div>
+								<p><?php echo esc_html( $timeline_row['message'] ); ?></p>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+				<?php endif; ?>
+			</section>
+		</div>
+	<?php endif; ?>
 
 	<div class="znts-admin-grid znts-readiness-grid">
 		<?php if ( $show_restore_control_summary ) : ?>
@@ -843,6 +913,7 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 						<tr>
 							<th><?php echo esc_html__( 'Created', 'zignites-sentinel' ); ?></th>
 							<th><?php echo esc_html__( 'Label', 'zignites-sentinel' ); ?></th>
+							<th><?php echo esc_html__( 'Trust', 'zignites-sentinel' ); ?></th>
 							<th><?php echo esc_html__( 'Readiness', 'zignites-sentinel' ); ?></th>
 							<th><?php echo esc_html__( 'Core', 'zignites-sentinel' ); ?></th>
 							<th><?php echo esc_html__( 'PHP', 'zignites-sentinel' ); ?></th>
@@ -856,6 +927,14 @@ $workspace_confidence      = isset( $view_data['workspace_confidence'] ) ? (stri
 									<a href="<?php echo esc_url( $snapshot['detail_url'] ); ?>">
 										<?php echo esc_html( $snapshot['label'] ); ?>
 									</a>
+									<?php if ( ! empty( $snapshot['relationship'] ) ) : ?>
+										<p class="description"><?php echo esc_html( $snapshot['relationship'] ); ?></p>
+									<?php endif; ?>
+								</td>
+								<td>
+									<span class="znts-pill znts-pill-<?php echo esc_attr( $snapshot['trust_badge'] ); ?>">
+										<?php echo esc_html( $snapshot['trust_label'] ); ?>
+									</span>
 								</td>
 								<td>
 									<div class="znts-badge-row">

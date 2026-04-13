@@ -45,13 +45,61 @@ class DashboardSummaryPresenter {
 			$site_status_card['primary_action'] = $primary_action;
 		}
 
+		$system_health         = isset( $site_status_card['system_health'] ) && is_array( $site_status_card['system_health'] ) ? $site_status_card['system_health'] : array();
+		$snapshot_intelligence = isset( $site_status_card['snapshot_intelligence'] ) && is_array( $site_status_card['snapshot_intelligence'] ) ? $site_status_card['snapshot_intelligence'] : array();
+
+		if ( ! empty( $snapshot_intelligence ) ) {
+			$snapshot_intelligence['recommended_snapshot'] = $this->add_snapshot_reference_urls(
+				isset( $snapshot_intelligence['recommended_snapshot'] ) && is_array( $snapshot_intelligence['recommended_snapshot'] ) ? $snapshot_intelligence['recommended_snapshot'] : array(),
+				$update_page_slug
+			);
+			$snapshot_intelligence['last_known_good'] = $this->add_snapshot_reference_urls(
+				isset( $snapshot_intelligence['last_known_good'] ) && is_array( $snapshot_intelligence['last_known_good'] ) ? $snapshot_intelligence['last_known_good'] : array(),
+				$update_page_slug
+			);
+			$site_status_card['snapshot_intelligence'] = $snapshot_intelligence;
+		}
+
 		return array(
 			'recent_snapshots'      => $recent_snapshots,
 			'health_score'          => $health_score,
 			'restore_health_strip'  => $restore_health_strip,
 			'snapshot_status_index' => $snapshot_status_index,
+			'system_health'         => $system_health,
+			'snapshot_intelligence' => $snapshot_intelligence,
+			'operator_timeline'     => isset( $site_status_card['operator_timeline'] ) && is_array( $site_status_card['operator_timeline'] ) ? $site_status_card['operator_timeline'] : array(),
 			'site_status_card'      => $site_status_card,
 		);
+	}
+
+	/**
+	 * Add readiness and activity URLs to a snapshot reference payload.
+	 *
+	 * @param array  $snapshot         Snapshot reference payload.
+	 * @param string $update_page_slug Update readiness page slug.
+	 * @return array
+	 */
+	protected function add_snapshot_reference_urls( array $snapshot, $update_page_slug ) {
+		if ( empty( $snapshot['id'] ) ) {
+			return $snapshot;
+		}
+
+		$snapshot['detail_url'] = add_query_arg(
+			array(
+				'page'        => (string) $update_page_slug,
+				'snapshot_id' => (int) $snapshot['id'],
+			),
+			admin_url( 'admin.php' )
+		);
+		$snapshot['activity_url'] = add_query_arg(
+			array(
+				'page'        => 'zignites-sentinel-event-logs',
+				'snapshot_id' => (int) $snapshot['id'],
+			),
+			admin_url( 'admin.php' )
+		);
+
+		return $snapshot;
 	}
 
 	/**

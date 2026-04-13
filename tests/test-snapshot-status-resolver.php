@@ -187,8 +187,8 @@ function znts_test_snapshot_filters_and_site_status_detect_missing_package() {
 	);
 
 	$snapshots = array(
-		array( 'id' => 21, 'label' => 'No package snapshot' ),
-		array( 'id' => 22, 'label' => 'Fresh package snapshot' ),
+		array( 'id' => 21, 'label' => 'No package snapshot', 'created_at' => gmdate( 'Y-m-d H:i:s', time() - 600 ) ),
+		array( 'id' => 22, 'label' => 'Fresh package snapshot', 'created_at' => gmdate( 'Y-m-d H:i:s', time() - 1200 ) ),
 	);
 
 	$fixture['artifacts']->artifacts_by_snapshot[22] = array(
@@ -406,6 +406,7 @@ function znts_test_site_status_is_stable_when_latest_snapshot_is_ready() {
 		array(
 			'id'    => 61,
 			'label' => 'Stable snapshot',
+			'created_at' => gmdate( 'Y-m-d H:i:s', time() - 600 ),
 		),
 	);
 	$index     = $fixture['resolver']->build_snapshot_status_index( $snapshots );
@@ -430,4 +431,85 @@ function znts_test_site_status_is_stable_when_latest_snapshot_is_ready() {
 		'Stable site status should surface the guarded restore review as the next operator action.'
 	);
 	znts_assert_same( 'Open Update Readiness', $site_card['primary_action']['button_label'], 'Stable status should keep Update Readiness as the next destination.' );
+}
+
+function znts_test_snapshot_intelligence_prefers_latest_safe_snapshot() {
+	$GLOBALS['znts_test_options'] = array(
+		ZNTS_OPTION_SETTINGS => array(
+			'restore_checkpoint_max_age_hours' => 24,
+		),
+		ZNTS_OPTION_LAST_SNAPSHOT_HEALTH_BASELINE => array(
+			'snapshot_id'  => 71,
+			'generated_at' => gmdate( 'Y-m-d H:i:s', time() - 300 ),
+			'status'       => 'healthy',
+		),
+	);
+
+	$fixture = znts_build_resolver_fixture();
+
+	$fixture['checkpoints']->stage[71] = array(
+		'snapshot_id'  => 71,
+		'generated_at' => gmdate( 'Y-m-d H:i:s', time() - 300 ),
+		'status'       => 'ready',
+	);
+	$fixture['checkpoints']->plan[71] = array(
+		'snapshot_id'  => 71,
+		'generated_at' => gmdate( 'Y-m-d H:i:s', time() - 300 ),
+		'status'       => 'ready',
+	);
+	$fixture['artifacts']->artifacts_by_snapshot[71] = array(
+		array(
+			'snapshot_id'   => 71,
+			'artifact_type' => 'package',
+		),
+	);
+
+	$snapshots = array(
+		array(
+			'id'         => 71,
+			'label'      => 'Recommended snapshot',
+			'created_at' => gmdate( 'Y-m-d H:i:s', time() - 600 ),
+		),
+		array(
+			'id'         => 70,
+			'label'      => 'Older snapshot',
+			'created_at' => gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS ),
+		),
+	);
+
+	$index         = $fixture['resolver']->build_snapshot_status_index( $snapshots );
+	$intelligence  = $fixture['resolver']->build_snapshot_intelligence( $snapshots, $index, $snapshots[1] );
+
+	znts_assert_same( 71, (int) $intelligence['recommended_snapshot']['id'], 'Snapshot intelligence should recommend the latest safe snapshot.' );
+	znts_assert_same( 'older', $intelligence['selected_snapshot']['relation'], 'Selecting an older snapshot should be called out as older than the recommendation.' );
+	znts_assert_true( false !== strpos( $intelligence['selected_snapshot']['message'], 'older' ), 'Selected older snapshots should surface an older-workspace warning.' );
+}
+
+function znts_test_system_health_becomes_risky_without_trusted_snapshot() {
+	$GLOBALS['znts_test_options'] = array(
+		ZNTS_OPTION_SETTINGS => array(
+			'restore_checkpoint_max_age_hours' => 24,
+		),
+	);
+
+	$fixture   = znts_build_resolver_fixture();
+	$snapshots = array(
+		array(
+			'id'         => 81,
+			'label'      => 'Unverified snapshot',
+			'created_at' => gmdate( 'Y-m-d H:i:s', time() - ( 30 * DAY_IN_SECONDS ) ),
+		),
+	);
+	$index     = $fixture['resolver']->build_snapshot_status_index( $snapshots );
+	$health    = $fixture['resolver']->build_system_health_card(
+		array(
+			'score' => 72,
+		),
+		$snapshots,
+		$index
+	);
+
+	znts_assert_same( 'risky', $health['status'], 'System health should become risky when the only available snapshot is stale and unvalidated.' );
+	znts_assert_same( 'stale', $health['logic']['freshness'], 'System health should report stale freshness in its scoring logic.' );
+	znts_assert_same( 'warning', $health['logic']['readiness'], 'System health should report warning readiness when validation evidence is incomplete but the primary risk comes from stale freshness.' );
 }

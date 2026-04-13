@@ -28,6 +28,21 @@ function znts_test_dashboard_summary_presenter_adds_latest_snapshot_links() {
 		array(
 			'status'          => 'stable',
 			'label'           => 'Stable',
+			'system_health'   => array(
+				'status' => 'safe',
+				'label'  => 'Safe',
+			),
+			'snapshot_intelligence' => array(
+				'recommended_snapshot' => array(
+					'id'    => 91,
+					'label' => 'Latest snapshot',
+				),
+			),
+			'operator_timeline' => array(
+				'items' => array(
+					array( 'title' => 'Snapshot taken' ),
+				),
+			),
 			'latest_snapshot' => array(
 				'id' => 91,
 			),
@@ -42,6 +57,9 @@ function znts_test_dashboard_summary_presenter_adds_latest_snapshot_links() {
 	znts_assert_true( false !== strpos( $payload['site_status_card']['detail_url'], 'page=zignites-sentinel-update-readiness' ), 'Dashboard summary presenter should add an update-readiness detail URL for the latest snapshot.' );
 	znts_assert_true( false !== strpos( $payload['site_status_card']['detail_url'], 'snapshot_id=91' ), 'Dashboard summary presenter should add the latest snapshot ID to the detail URL.' );
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=91', $payload['site_status_card']['activity_url'], 'Dashboard summary presenter should preserve the snapshot activity URL for the latest snapshot.' );
+	znts_assert_same( 'Safe', $payload['system_health']['label'], 'Dashboard summary presenter should expose the system-health payload.' );
+	znts_assert_true( false !== strpos( $payload['snapshot_intelligence']['recommended_snapshot']['detail_url'], 'snapshot_id=91' ), 'Dashboard summary presenter should add readiness links to recommended snapshots.' );
+	znts_assert_same( 'Snapshot taken', $payload['operator_timeline']['items'][0]['title'], 'Dashboard summary presenter should preserve the operator timeline payload.' );
 }
 
 function znts_test_dashboard_summary_presenter_builds_restore_summary_rows_and_urls() {

@@ -4,7 +4,7 @@
 - Plugin version: `1.32.0`
 - Database version: `1.4.0`
 - Status: advanced MVP / controlled-restore product foundation
-- Current objective achieved: the plugin now covers snapshot capture, advisory readiness, staged validation, restore planning, guarded live restore, guarded rollback, health verification, audit reporting, checkpointing, resumability, and operator-facing admin workflows
+- Current objective achieved: the plugin now covers snapshot capture, advisory readiness, staged validation, restore planning, guarded live restore, guarded rollback, health verification, audit reporting, checkpointing, resumability, operator-facing admin workflows, and trust-layer guidance around system health, snapshot quality, and historical recovery confidence
 
 ## What Is Implemented
 
@@ -355,6 +355,29 @@
   - `wp_upload_dir()`
   - `trailingslashit()`
 
+### 16. System Intelligence and Trust Layer
+- Dashboard now exposes a global System Health indicator derived from:
+  - snapshot freshness
+  - readiness status
+  - unresolved failures
+  - the most recent restore or rollback outcome
+- Update Readiness now surfaces the same trust indicator at the top of the workspace before operators act on restore controls
+- Snapshot intelligence now identifies:
+  - a recommended snapshot
+  - a last known good state
+  - per-snapshot trust and risk indicators such as stale, unverified, or partial evidence
+- Dashboard and Update Readiness now warn when operators select an older or riskier snapshot than the current recommendation
+- Condensed operator timeline state now summarizes:
+  - snapshot capture
+  - restore attempt
+  - restore success or failure
+  - rollback execution
+- Confidence messaging now appears near primary actions so operators get short human-readable guidance without reading the full logs first
+- Trust-layer state now degrades safely for:
+  - no available snapshots
+  - conflicting snapshot candidates
+  - missing journal or run-history data
+
 ## Important Safety Characteristics
 - Most destructive operations are guarded by nonce + capability + explicit operator confirmation
 - Settings export/import only touches `znts_settings` and explicitly excludes runtime restore state
@@ -527,6 +550,12 @@
   - artifact-diff rows and checkpoint summary rows now render from prepared shapes without inline fallback checks
   - normalized status-header and impact-summary rendering now consume prepared status/row keys directly without per-field fallback checks
   - focused regression coverage for selected snapshot badges, restore summary cards, and empty defaults
+- Main is now current through the merged operator-flow safety hardening pass for:
+  - Dashboard primary action state and URL resolution
+  - dedicated pre-restore safety assessment and server-side live-restore gating for stale readiness evidence and unresolved partial restore state
+  - Update Readiness recovery guidance for partial or blocked restore outcomes
+  - Event Logs run outcome summaries with duration, key actions, and execution-story messaging
+  - focused regression coverage for dashboard action emphasis, pre-restore safety state, failure recovery messaging, rollback confirmation context, and event-log outcome summaries
 - Main is now current through the merged Update Readiness summary detail-state cleanup for:
   - snapshot summary badge, overview, and evidence rows prepared by `UpdateReadinessStateBuilder`
   - focused regression coverage for snapshot summary detail rows and empty defaults
@@ -560,19 +589,25 @@
   - Update Readiness live smoke markers now target current operator-workspace and selected-snapshot surfaces instead of only broad page headings
   - selected snapshot smoke checks now require the snapshot activity and detail sections while treating restore-control and restore-impact surfaces as optional live-state markers
   - focused regression coverage now keeps the smoke helper aligned with the current Update Readiness UX so future UI drift is caught earlier
+- Main is now current through the merged operator-flow safety hardening pass for:
+  - Dashboard primary action state and URL resolution
+  - dedicated pre-restore safety assessment and server-side live-restore gating for stale readiness evidence and unresolved partial restore state
+  - Update Readiness recovery guidance for partial or blocked restore outcomes
+  - Event Logs run outcome summaries with duration, key actions, and execution-story messaging
+  - focused regression coverage for dashboard action emphasis, pre-restore safety state, failure recovery messaging, rollback confirmation context, and event-log outcome summaries
 - Current branch prepared for merge:
-  - `feature/operator-flow-safety-hardening`
-- Current branch adds Phase operator-flow clarity and safety hardening for:
-  - Dashboard now exposes one dominant operator action at a time with explicit context instead of generic recommendation text
-  - Update Readiness now exposes a prepared primary action, a dedicated pre-restore checklist block, actionable safety warnings, a visible partial-restore recovery summary, and rollback confirmation context before destructive recovery
-  - live restore execution is now blocked server-side by a dedicated pre-restore safety layer that requires current readiness evidence and no unresolved partial or blocked restore state
-  - Event Logs now exposes a run outcome summary with status, duration, key actions, and execution-story copy so operators do not need to infer outcome from raw rows alone
-  - focused regression coverage now includes dashboard primary-action URLs, pre-restore safety state, restore failure recovery summaries, rollback confirmation context, and event-log operator outcome summaries
+  - `feature/system-intelligence-trust-layer`
+- Current branch adds the System Intelligence + Trust Layer phase for:
+  - a global System Health score that reduces overall trust to Safe, Warning, or Risky based on freshness, readiness, unresolved failures, and recent recovery outcomes
+  - snapshot intelligence that identifies the recommended snapshot, last known good state, and per-snapshot risk indicators before operators act
+  - condensed operator timeline state so Dashboard and Update Readiness can narrate site history without forcing operators into raw logs
+  - short confidence messages and context-aware insights near primary actions so operators understand whether the system is safe to proceed
+  - focused regression coverage for health scoring, snapshot recommendation, timeline presentation, trust messaging, and older-snapshot warning behavior
 - Next likely restart task after this branch merges:
-  - run a live admin smoke pass to validate the new operator guidance copy and section hierarchy against the real WordPress admin output
-  - tune any copy or section emphasis issues discovered in live usage before adding more product scope
+  - run a live admin smoke pass to validate the new trust score, recommendation messaging, and timeline hierarchy against the real WordPress admin output
+  - tune any copy, trust weighting, or section emphasis issues discovered in live usage before adding more product scope
   - only widen smoke markers further when a screen’s stable section structure changes materially
-  - keep this phase limited to clarity and safety hardening rather than introducing new restore mechanisms
+  - keep the next phase centered on intelligence and operator trust rather than widening destructive restore behavior
 
 
 

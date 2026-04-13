@@ -515,6 +515,56 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 				),
 			),
 			'snapshot_activity_url' => 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=101',
+			'system_health' => array(
+				'status'  => 'warning',
+				'label'   => 'Warning',
+				'badge'   => 'warning',
+				'title'   => 'System Health',
+				'summary' => 'System trust needs review before continuing.',
+				'rows'    => array(
+					array(
+						'label' => 'Snapshot freshness',
+						'value' => 'Aging snapshot',
+					),
+				),
+			),
+			'snapshot_intelligence' => array(
+				'recommended_snapshot' => array(
+					'id'     => 105,
+					'label'  => 'Safer snapshot',
+					'reason' => 'Latest safe and validated snapshot.',
+				),
+				'last_known_good' => array(
+					'id'     => 104,
+					'label'  => 'Last known good',
+					'reason' => 'Last known good state is based on Successful rollback.',
+				),
+				'selected_snapshot' => array(
+					'id'       => 101,
+					'relation' => 'older',
+					'message'  => 'You are reviewing an older or lower-confidence snapshot than Sentinel recommends.',
+				),
+				'warnings' => array(
+					'The current workspace is not the recommended snapshot.',
+				),
+			),
+			'operator_timeline' => array(
+				'items' => array(
+					array(
+						'title'     => 'Snapshot taken',
+						'badge'     => 'info',
+						'timestamp' => '2026-04-09 10:00:00',
+						'message'   => 'Release snapshot (#101) was captured as a restore reference.',
+					),
+				),
+			),
+			'selected_snapshot_trust_status' => array(
+				'trust' => array(
+					'key'   => 'warning',
+					'badge' => 'warning',
+					'label' => 'Review snapshot',
+				),
+			),
 			'notice' => array(
 				'type'    => 'success',
 				'message' => 'Saved',
@@ -586,13 +636,20 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'new/current.php', $state['new_current_plugin_labels'][0], 'Update Readiness state builder should fall back to new plugin paths.' );
 	znts_assert_same( 'Example Plugin', $state['plugin_version_change_rows'][0]['name'], 'Update Readiness state builder should derive plugin version change rows.' );
 	znts_assert_same( 'Release snapshot', $state['selected_snapshot_label'], 'Update Readiness state builder should derive the selected snapshot label.' );
-	znts_assert_same( 'Snapshot #101 captured on 2026-04-09 10:00:00 is the active restore workspace.', $state['selected_snapshot_note'], 'Update Readiness state builder should derive the selected snapshot workspace note.' );
+	znts_assert_true( false !== strpos( $state['selected_snapshot_note'], 'Snapshot #101 captured on 2026-04-09 10:00:00 is the active restore workspace.' ), 'Update Readiness state builder should derive the selected snapshot workspace note.' );
+	znts_assert_true( false !== strpos( $state['selected_snapshot_note'], 'older or lower-confidence snapshot' ), 'Update Readiness state builder should append selected-snapshot trust guidance to the workspace note.' );
 	znts_assert_same( 25, $state['snapshot_match_count'], 'Update Readiness state builder should derive snapshot match count from pagination.' );
 	znts_assert_same( 'Restore ready', $state['workspace_status_label'], 'Update Readiness state builder should derive the workspace status label from checklist readiness.' );
 	znts_assert_same( 'info', $state['workspace_status_badge'], 'Update Readiness state builder should derive the workspace status badge from checklist readiness.' );
-	znts_assert_same( 'Review the impact summary, then continue with guarded restore only if the plan still matches your intent.', $state['workspace_next_action'], 'Update Readiness state builder should derive ready-state workspace guidance.' );
-	znts_assert_same( 'No active blockers', $state['snapshot_primary_risk'], 'Update Readiness state builder should derive the primary snapshot risk.' );
+	znts_assert_same( 'Switch to the recommended snapshot Safer snapshot or confirm why an older workspace is required.', $state['workspace_next_action'], 'Update Readiness state builder should surface older-workspace guidance when a newer recommended snapshot exists.' );
+	znts_assert_same( 'The current workspace is not the recommended snapshot.', $state['snapshot_primary_risk'], 'Update Readiness state builder should prioritize trust-layer warnings as the primary snapshot risk.' );
 	znts_assert_same( 'Review restore impact', $state['snapshot_primary_step'], 'Update Readiness state builder should derive the primary snapshot next step.' );
+	znts_assert_same( 'Next: compare this workspace against the recommended snapshot, then proceed only if the older state is intentionally required.', $state['workspace_flow_message'], 'Update Readiness state builder should surface older-workspace workflow guidance when a newer recommendation exists.' );
+	znts_assert_same( 'Warning', $state['system_health_status']['status_label'], 'Update Readiness state builder should normalize the system-health status payload.' );
+	znts_assert_same( 'Safer snapshot', $state['recommended_snapshot_card']['label'], 'Update Readiness state builder should expose the recommended snapshot card.' );
+	znts_assert_same( 'Last known good', $state['last_known_good_card']['label'], 'Update Readiness state builder should expose the last-known-good snapshot card.' );
+	znts_assert_same( 'The current workspace is not the recommended snapshot.', $state['snapshot_intelligence_warnings'][0], 'Update Readiness state builder should expose snapshot intelligence warnings.' );
+	znts_assert_same( 'Snapshot taken', $state['operator_timeline_rows'][0]['title'], 'Update Readiness state builder should expose condensed operator timeline rows.' );
 	znts_assert_same( 'Snapshot ready', $state['snapshot_summary_status_badges'][0]['label'], 'Update Readiness state builder should derive snapshot summary badge rows.' );
 	znts_assert_same( 'Restore status', $state['snapshot_summary_overview_rows'][0]['label'], 'Update Readiness state builder should derive snapshot summary overview rows.' );
 	znts_assert_same( true, $state['snapshot_summary_overview_rows'][0]['show_note'], 'Update Readiness state builder should expose snapshot summary overview note visibility.' );
@@ -609,8 +666,8 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( '4', $state['snapshot_health_comparison_rows'][0]['pass_count'], 'Update Readiness state builder should normalize health comparison pass counts.' );
 	znts_assert_same( 'No change', $state['snapshot_health_comparison_rows'][0]['delta'], 'Update Readiness state builder should derive health comparison deltas.' );
 	znts_assert_same( false, $state['open_health_validation'], 'Update Readiness state builder should close health validation details when checklist gates can execute.' );
-	znts_assert_same( 'Next: confirm the impact summary, verify the checklist is still current, and only then move into guarded restore review.', $state['workspace_flow_message'], 'Update Readiness state builder should derive ready-state workflow guidance.' );
-	znts_assert_same( 'Checklist gates are currently satisfied for this snapshot.', $state['workspace_confidence'], 'Update Readiness state builder should derive ready-state workspace confidence.' );
+	znts_assert_same( 'Next: compare this workspace against the recommended snapshot, then proceed only if the older state is intentionally required.', $state['workspace_flow_message'], 'Update Readiness state builder should derive older-workspace workflow guidance when a safer recommendation exists.' );
+	znts_assert_same( 'You are reviewing an older or lower-confidence snapshot than Sentinel recommends.', $state['workspace_confidence'], 'Update Readiness state builder should surface the selected-snapshot confidence message near the primary action.' );
 	znts_assert_same( 'Plan', $state['restore_run_card_rows'][0]['title'], 'Update Readiness state builder should derive restore summary card titles.' );
 	znts_assert_same( 'info', $state['restore_run_card_rows'][0]['badge'], 'Update Readiness state builder should default missing restore summary card badges to info.' );
 	znts_assert_same( false, $state['restore_run_card_rows'][0]['show_secondary'], 'Update Readiness state builder should expose restore summary secondary-copy visibility.' );
@@ -939,6 +996,11 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( false, $state['view_visibility']['show_rollback_checks'], 'Update Readiness state builder should default rollback check visibility to false.' );
 	znts_assert_same( false, $state['view_visibility']['show_rollback_items'], 'Update Readiness state builder should default rollback item visibility to false.' );
 	znts_assert_same( false, $state['view_visibility']['show_rollback_journal'], 'Update Readiness state builder should default rollback journal visibility to false.' );
+	znts_assert_same( false, $state['view_visibility']['show_system_health_rows'], 'Update Readiness state builder should default system-health detail visibility to false.' );
+	znts_assert_same( false, $state['view_visibility']['show_snapshot_intelligence_warnings'], 'Update Readiness state builder should default snapshot intelligence warning visibility to false.' );
+	znts_assert_same( false, $state['view_visibility']['show_recommended_snapshot_card'], 'Update Readiness state builder should default recommended snapshot visibility to false.' );
+	znts_assert_same( false, $state['view_visibility']['show_last_known_good_card'], 'Update Readiness state builder should default last-known-good visibility to false.' );
+	znts_assert_same( false, $state['view_visibility']['show_operator_timeline_rows'], 'Update Readiness state builder should default operator timeline visibility to false.' );
 	znts_assert_same( 'A resumable execution journal exists with 0 completed items across 0 persisted entries.', $state['restore_form_state']['restore_resume_message'], 'Update Readiness state builder should default missing restore resume counts to zero.' );
 	znts_assert_same( '', $state['restore_form_state']['restore_resume_run_label'], 'Update Readiness state builder should default missing restore resume run labels to an empty string.' );
 	znts_assert_same( 'A resumable rollback journal exists with 0 completed items across 0 persisted entries.', $state['restore_form_state']['rollback_resume_message'], 'Update Readiness state builder should default missing rollback resume counts to zero.' );

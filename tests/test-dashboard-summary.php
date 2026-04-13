@@ -29,6 +29,9 @@ class ZNTS_Fake_Dashboard_Health_Score {
 class ZNTS_Fake_Dashboard_Status_Resolver {
 	public $status_index = array();
 	public $site_status_card = array();
+	public $system_health_card = array();
+	public $snapshot_intelligence = array();
+	public $operator_timeline = array();
 	public $received_snapshots = array();
 	public $received_health_score = array();
 
@@ -42,6 +45,18 @@ class ZNTS_Fake_Dashboard_Status_Resolver {
 		$this->received_health_score = $health_score;
 
 		return $this->site_status_card;
+	}
+
+	public function build_system_health_card( array $health_score, array $recent_snapshots, array $status_index, $selected_snapshot = null ) {
+		return $this->system_health_card;
+	}
+
+	public function build_snapshot_intelligence( array $recent_snapshots, array $status_index, $selected_snapshot = null ) {
+		return $this->snapshot_intelligence;
+	}
+
+	public function build_operator_timeline( array $recent_snapshots, $limit = 8 ) {
+		return $this->operator_timeline;
 	}
 }
 
@@ -84,6 +99,18 @@ class ZNTS_Testable_Dashboard_Admin extends Admin {
 
 	public function set_site_status_card( array $site_status_card ) {
 		$this->snapshot_status_resolver->site_status_card = $site_status_card;
+	}
+
+	public function set_system_health_card( array $system_health_card ) {
+		$this->snapshot_status_resolver->system_health_card = $system_health_card;
+	}
+
+	public function set_snapshot_intelligence( array $snapshot_intelligence ) {
+		$this->snapshot_status_resolver->snapshot_intelligence = $snapshot_intelligence;
+	}
+
+	public function set_operator_timeline( array $operator_timeline ) {
+		$this->snapshot_status_resolver->operator_timeline = $operator_timeline;
 	}
 
 	protected function get_restore_dashboard_health_strip() {
@@ -189,6 +216,29 @@ function znts_test_dashboard_summary_payload_adds_latest_snapshot_links() {
 			),
 		)
 	);
+	$admin->set_system_health_card(
+		array(
+			'status' => 'safe',
+			'label'  => 'Safe',
+		)
+	);
+	$admin->set_snapshot_intelligence(
+		array(
+			'recommended_snapshot' => array(
+				'id'    => 91,
+				'label' => 'Latest snapshot',
+			),
+		)
+	);
+	$admin->set_operator_timeline(
+		array(
+			'items' => array(
+				array(
+					'title' => 'Snapshot taken',
+				),
+			),
+		)
+	);
 	$admin->fixture['health_strip'] = array(
 		'rows' => array(
 			array( 'label' => 'Baseline', 'status' => 'healthy' ),
@@ -204,6 +254,9 @@ function znts_test_dashboard_summary_payload_adds_latest_snapshot_links() {
 	znts_assert_true( false !== strpos( $payload['site_status_card']['activity_url'], 'snapshot_id=91' ), 'Dashboard payload should add the snapshot activity URL for the latest snapshot.' );
 	znts_assert_same( $payload['site_status_card']['detail_url'], $payload['site_status_card']['primary_action']['url'], 'Dashboard payload should resolve the primary action URL from the target metadata.' );
 	znts_assert_same( $admin->fixture['health_strip'], $payload['restore_health_strip'], 'Dashboard payload should include the health strip payload.' );
+	znts_assert_same( 'Safe', $payload['system_health']['label'], 'Dashboard payload should expose the system-health payload.' );
+	znts_assert_true( false !== strpos( $payload['snapshot_intelligence']['recommended_snapshot']['detail_url'], 'snapshot_id=91' ), 'Dashboard payload should add readiness URLs to the recommended snapshot reference.' );
+	znts_assert_same( 'Snapshot taken', $payload['operator_timeline']['items'][0]['title'], 'Dashboard payload should expose the operator timeline payload.' );
 }
 
 function znts_test_restore_dashboard_summary_reports_blocked_operator_state() {

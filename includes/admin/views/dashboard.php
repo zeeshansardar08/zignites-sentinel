@@ -14,9 +14,13 @@ $recent_snapshots      = isset( $view_data['recent_snapshots'] ) && is_array( $v
 $recent_logs           = isset( $view_data['recent_logs'] ) && is_array( $view_data['recent_logs'] ) ? $view_data['recent_logs'] : array();
 $recent_conflicts      = isset( $view_data['recent_conflicts'] ) && is_array( $view_data['recent_conflicts'] ) ? $view_data['recent_conflicts'] : array();
 $health_score          = isset( $view_data['health_score'] ) && is_array( $view_data['health_score'] ) ? $view_data['health_score'] : array();
+$system_health         = isset( $view_data['system_health'] ) && is_array( $view_data['system_health'] ) ? $view_data['system_health'] : array();
+$snapshot_intelligence = isset( $view_data['snapshot_intelligence'] ) && is_array( $view_data['snapshot_intelligence'] ) ? $view_data['snapshot_intelligence'] : array();
+$operator_timeline     = isset( $view_data['operator_timeline'] ) && is_array( $view_data['operator_timeline'] ) ? $view_data['operator_timeline'] : array();
 $latest_snapshot       = ! empty( $recent_snapshots[0] ) ? $recent_snapshots[0] : array();
 $latest_snapshot_state = ( ! empty( $latest_snapshot['id'] ) && isset( $snapshot_status_index[ (int) $latest_snapshot['id'] ] ) ) ? $snapshot_status_index[ (int) $latest_snapshot['id'] ] : array();
 $hero_signals          = isset( $site_status_card['signals'] ) && is_array( $site_status_card['signals'] ) ? $site_status_card['signals'] : array();
+$hero_insights         = isset( $site_status_card['insights'] ) && is_array( $site_status_card['insights'] ) ? $site_status_card['insights'] : array();
 $hero_signals_primary  = array_slice( $hero_signals, 0, 3 );
 $hero_signals_extra    = array_slice( $hero_signals, 3 );
 $primary_action        = isset( $site_status_card['primary_action'] ) && is_array( $site_status_card['primary_action'] ) ? $site_status_card['primary_action'] : array();
@@ -24,12 +28,17 @@ $primary_action_title  = isset( $primary_action['title'] ) ? (string) $primary_a
 $primary_action_note   = isset( $primary_action['description'] ) ? (string) $primary_action['description'] : '';
 $primary_action_label  = isset( $primary_action['button_label'] ) ? (string) $primary_action['button_label'] : __( 'Open Update Readiness', 'zignites-sentinel' );
 $primary_action_url    = isset( $primary_action['url'] ) ? (string) $primary_action['url'] : '';
+$recommended_snapshot  = isset( $snapshot_intelligence['recommended_snapshot'] ) && is_array( $snapshot_intelligence['recommended_snapshot'] ) ? $snapshot_intelligence['recommended_snapshot'] : array();
+$last_known_good       = isset( $snapshot_intelligence['last_known_good'] ) && is_array( $snapshot_intelligence['last_known_good'] ) ? $snapshot_intelligence['last_known_good'] : array();
+$confidence_message    = isset( $site_status_card['confidence_message'] ) ? (string) $site_status_card['confidence_message'] : '';
 $dashboard_flow_note   = ! empty( $latest_snapshot_state['restore_ready'] )
 	? __( 'Next: confirm the latest snapshot, review impact on Update Readiness, and proceed only if the guarded plan still matches your intent.', 'zignites-sentinel' )
 	: __( 'Next: open Update Readiness, complete the missing preparation steps, and return here once the latest snapshot is ready.', 'zignites-sentinel' );
-$dashboard_confidence  = ! empty( $latest_snapshot_state['restore_ready'] )
-	? __( 'Restore preparation is currently in a reusable state for the latest snapshot.', 'zignites-sentinel' )
-	: __( 'The system is guiding you toward the next safe preparation step.', 'zignites-sentinel' );
+$dashboard_confidence  = '' !== $confidence_message
+	? $confidence_message
+	: ( ! empty( $latest_snapshot_state['restore_ready'] )
+		? __( 'Restore preparation is currently in a reusable state for the latest snapshot.', 'zignites-sentinel' )
+		: __( 'The system is guiding you toward the next safe preparation step.', 'zignites-sentinel' ) );
 ?>
 <div class="wrap znts-admin-page">
 	<div class="znts-page-header">
@@ -40,7 +49,7 @@ $dashboard_confidence  = ! empty( $latest_snapshot_state['restore_ready'] )
 	<div class="znts-dashboard-shell">
 		<div class="znts-hero-grid">
 			<section class="znts-hero-main">
-				<span class="znts-eyebrow"><?php echo esc_html__( 'Site Status', 'zignites-sentinel' ); ?></span>
+				<span class="znts-eyebrow"><?php echo esc_html__( 'System Trust', 'zignites-sentinel' ); ?></span>
 				<?php if ( empty( $site_status_card ) ) : ?>
 					<h2 class="znts-hero-title"><?php echo esc_html__( 'No site summary is available yet.', 'zignites-sentinel' ); ?></h2>
 					<p class="znts-hero-subtitle"><?php echo esc_html__( 'Create a snapshot and capture baseline data to populate the operational dashboard.', 'zignites-sentinel' ); ?></p>
@@ -49,23 +58,53 @@ $dashboard_confidence  = ! empty( $latest_snapshot_state['restore_ready'] )
 						<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $site_status_card['badge'] ) ? $site_status_card['badge'] : 'info' ); ?>">
 							<?php echo esc_html( isset( $site_status_card['label'] ) ? $site_status_card['label'] : '' ); ?>
 						</span>
+						<?php if ( ! empty( $system_health ) ) : ?>
+							<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $system_health['badge'] ) ? $system_health['badge'] : 'info' ); ?>">
+								<?php echo esc_html__( 'System Health', 'zignites-sentinel' ); ?>:
+								<?php echo esc_html( isset( $system_health['label'] ) ? $system_health['label'] : '' ); ?>
+							</span>
+						<?php endif; ?>
 						<?php if ( ! empty( $site_status_card['latest_snapshot']['label'] ) ) : ?>
 							<span class="znts-inline-note"><?php echo esc_html( $site_status_card['latest_snapshot']['label'] ); ?></span>
 						<?php endif; ?>
 					</div>
 					<h2 class="znts-hero-title"><?php echo esc_html( $primary_action_title ); ?></h2>
-					<p class="znts-hero-subtitle"><?php echo esc_html__( 'This summary reflects current conflict signals, the latest snapshot posture, and whether restore preparation is in a usable state.', 'zignites-sentinel' ); ?></p>
+					<p class="znts-hero-subtitle"><?php echo esc_html( isset( $system_health['summary'] ) ? $system_health['summary'] : __( 'This summary reflects snapshot trust, readiness, and recent restore history.', 'zignites-sentinel' ) ); ?></p>
 					<div class="znts-hero-recommendation">
 						<strong><?php echo esc_html__( 'Recommended Action', 'zignites-sentinel' ); ?></strong>
 						<?php echo esc_html( $primary_action_title ); ?>
 						<?php if ( '' !== $primary_action_note ) : ?>
 							<p class="description"><?php echo esc_html( $primary_action_note ); ?></p>
 						<?php endif; ?>
+						<?php if ( '' !== $dashboard_confidence ) : ?>
+							<p class="description"><?php echo esc_html( $dashboard_confidence ); ?></p>
+						<?php endif; ?>
 					</div>
+					<?php if ( ! empty( $recommended_snapshot ) || ! empty( $last_known_good ) ) : ?>
+						<div class="znts-summary-strip">
+							<div class="znts-summary-item">
+								<span><?php echo esc_html__( 'Recommended snapshot', 'zignites-sentinel' ); ?></span>
+								<strong><?php echo esc_html( ! empty( $recommended_snapshot['label'] ) ? $recommended_snapshot['label'] : __( 'Not available', 'zignites-sentinel' ) ); ?></strong>
+								<p><?php echo esc_html( ! empty( $recommended_snapshot['reason'] ) ? $recommended_snapshot['reason'] : __( 'Sentinel has not found a fully safe validated snapshot yet.', 'zignites-sentinel' ) ); ?></p>
+							</div>
+							<div class="znts-summary-item">
+								<span><?php echo esc_html__( 'Last known good', 'zignites-sentinel' ); ?></span>
+								<strong><?php echo esc_html( ! empty( $last_known_good['label'] ) ? $last_known_good['label'] : __( 'Not identified', 'zignites-sentinel' ) ); ?></strong>
+								<p><?php echo esc_html( ! empty( $last_known_good['reason'] ) ? $last_known_good['reason'] : __( 'No historical good state has been inferred yet.', 'zignites-sentinel' ) ); ?></p>
+							</div>
+						</div>
+					<?php endif; ?>
 					<div class="znts-flow-note">
 						<strong><?php echo esc_html__( 'Workflow', 'zignites-sentinel' ); ?></strong>
 						<span><?php echo esc_html( $dashboard_flow_note ); ?></span>
 					</div>
+					<?php if ( ! empty( $hero_insights ) ) : ?>
+						<div class="znts-hero-signals">
+							<?php foreach ( $hero_insights as $insight ) : ?>
+								<div class="znts-signal-chip"><?php echo esc_html( $insight ); ?></div>
+							<?php endforeach; ?>
+						</div>
+					<?php endif; ?>
 					<?php if ( ! empty( $hero_signals_primary ) ) : ?>
 						<div class="znts-hero-signals">
 							<?php foreach ( $hero_signals_primary as $signal ) : ?>
@@ -90,14 +129,14 @@ $dashboard_confidence  = ! empty( $latest_snapshot_state['restore_ready'] )
 
 			<div class="znts-hero-side">
 				<section class="znts-stat-tile">
-					<span class="znts-stat-label"><?php echo esc_html__( 'Stability Score', 'zignites-sentinel' ); ?></span>
-					<strong class="znts-stat-value"><?php echo esc_html( isset( $health_score['score'] ) ? (string) $health_score['score'] : '0' ); ?></strong>
-					<p class="znts-stat-note"><?php echo esc_html( isset( $health_score['summary'] ) ? $health_score['summary'] : '' ); ?></p>
+					<span class="znts-stat-label"><?php echo esc_html__( 'System Health', 'zignites-sentinel' ); ?></span>
+					<strong class="znts-stat-value"><?php echo esc_html( isset( $system_health['label'] ) ? $system_health['label'] : __( 'Unknown', 'zignites-sentinel' ) ); ?></strong>
+					<p class="znts-stat-note"><?php echo esc_html( isset( $system_health['summary'] ) ? $system_health['summary'] : '' ); ?></p>
 				</section>
 				<section class="znts-stat-tile">
-					<span class="znts-stat-label"><?php echo esc_html__( 'Latest Snapshot', 'zignites-sentinel' ); ?></span>
-					<strong class="znts-stat-value"><?php echo esc_html( ! empty( $latest_snapshot['label'] ) ? $latest_snapshot['label'] : __( 'None yet', 'zignites-sentinel' ) ); ?></strong>
-					<p class="znts-stat-note"><?php echo esc_html( ! empty( $latest_snapshot['created_at'] ) ? $latest_snapshot['created_at'] : __( 'Create a snapshot before planning update or restore work.', 'zignites-sentinel' ) ); ?></p>
+					<span class="znts-stat-label"><?php echo esc_html__( 'Recommended Snapshot', 'zignites-sentinel' ); ?></span>
+					<strong class="znts-stat-value"><?php echo esc_html( ! empty( $recommended_snapshot['label'] ) ? $recommended_snapshot['label'] : __( 'None yet', 'zignites-sentinel' ) ); ?></strong>
+					<p class="znts-stat-note"><?php echo esc_html( ! empty( $recommended_snapshot['reason'] ) ? $recommended_snapshot['reason'] : __( 'Create and validate a snapshot before Sentinel can recommend one.', 'zignites-sentinel' ) ); ?></p>
 					<p class="znts-inline-note"><?php echo esc_html( $dashboard_confidence ); ?></p>
 				</section>
 				<section class="znts-card znts-card-secondary znts-action-panel">
@@ -256,32 +295,25 @@ $dashboard_confidence  = ! empty( $latest_snapshot_state['restore_ready'] )
 			<section class="znts-card znts-card-flat">
 				<div class="znts-table-header">
 					<div>
-						<h2><?php echo esc_html__( 'Event Activity Timeline', 'zignites-sentinel' ); ?></h2>
-						<p><?php echo esc_html__( 'Recent Sentinel events, ordered by time, with direct links to the full investigation view.', 'zignites-sentinel' ); ?></p>
+						<h2><?php echo esc_html__( 'Operator Timeline', 'zignites-sentinel' ); ?></h2>
+						<p><?php echo esc_html__( 'A condensed site history showing snapshot captures, restore attempts, and rollback milestones.', 'zignites-sentinel' ); ?></p>
 					</div>
 					<p><a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs' ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html__( 'Open Event Logs', 'zignites-sentinel' ); ?></a></p>
 				</div>
-				<?php if ( empty( $recent_logs ) ) : ?>
+				<?php if ( empty( $operator_timeline['items'] ) ) : ?>
 					<div class="znts-empty-state">
-						<strong><?php echo esc_html__( 'No recent events are available.', 'zignites-sentinel' ); ?></strong>
-						<p><?php echo esc_html__( 'Sentinel event activity will appear here after scans, restore checks, and logging operations run.', 'zignites-sentinel' ); ?></p>
+						<strong><?php echo esc_html__( 'No recent site history is available.', 'zignites-sentinel' ); ?></strong>
+						<p><?php echo esc_html( isset( $operator_timeline['empty_message'] ) ? $operator_timeline['empty_message'] : __( 'Snapshot and execution milestones will appear here once Sentinel records them.', 'zignites-sentinel' ) ); ?></p>
 					</div>
 				<?php else : ?>
 					<ul class="znts-timeline-list">
-						<?php foreach ( array_slice( $recent_logs, 0, 4 ) as $log ) : ?>
+						<?php foreach ( array_slice( $operator_timeline['items'], 0, 6 ) as $timeline_item ) : ?>
 							<li class="znts-timeline-item">
 								<div class="znts-timeline-meta">
-									<span class="znts-pill znts-pill-<?php echo esc_attr( $log['severity'] ); ?>"><?php echo esc_html( ucfirst( $log['severity'] ) ); ?></span>
-									<span><?php echo esc_html( $log['created_at'] ); ?></span>
-									<span><?php echo esc_html( $log['source'] ); ?></span>
+									<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $timeline_item['badge'] ) ? $timeline_item['badge'] : 'info' ); ?>"><?php echo esc_html( isset( $timeline_item['title'] ) ? $timeline_item['title'] : '' ); ?></span>
+									<span><?php echo esc_html( isset( $timeline_item['timestamp'] ) ? $timeline_item['timestamp'] : '' ); ?></span>
 								</div>
-								<h3><a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs', 'log_id' => (int) $log['id'] ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( $log['event_type'] ); ?></a></h3>
-								<details class="znts-disclosure znts-disclosure-inline">
-									<summary><span class="znts-message-preview"><?php echo esc_html( $log['message'] ); ?></span></summary>
-									<div class="znts-disclosure-body">
-										<p class="znts-message-full"><?php echo esc_html( $log['message'] ); ?></p>
-									</div>
-								</details>
+								<p><?php echo esc_html( isset( $timeline_item['message'] ) ? $timeline_item['message'] : '' ); ?></p>
 							</li>
 						<?php endforeach; ?>
 					</ul>
@@ -348,6 +380,7 @@ $dashboard_confidence  = ! empty( $latest_snapshot_state['restore_ready'] )
 							<tr>
 								<th><?php echo esc_html__( 'Created', 'zignites-sentinel' ); ?></th>
 								<th><?php echo esc_html__( 'Label', 'zignites-sentinel' ); ?></th>
+								<th><?php echo esc_html__( 'Trust', 'zignites-sentinel' ); ?></th>
 								<th><?php echo esc_html__( 'Readiness', 'zignites-sentinel' ); ?></th>
 								<th><?php echo esc_html__( 'Type', 'zignites-sentinel' ); ?></th>
 								<th><?php echo esc_html__( 'Activity', 'zignites-sentinel' ); ?></th>
@@ -356,9 +389,22 @@ $dashboard_confidence  = ! empty( $latest_snapshot_state['restore_ready'] )
 						<tbody>
 							<?php foreach ( $recent_snapshots as $snapshot ) : ?>
 								<?php $snapshot_status = isset( $snapshot_status_index[ (int) $snapshot['id'] ] ) ? $snapshot_status_index[ (int) $snapshot['id'] ] : array(); ?>
+								<?php $snapshot_id = (int) $snapshot['id']; ?>
 								<tr>
 									<td><?php echo esc_html( $snapshot['created_at'] ); ?></td>
-									<td><a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-update-readiness', 'snapshot_id' => (int) $snapshot['id'] ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( $snapshot['label'] ); ?></a></td>
+									<td>
+										<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-update-readiness', 'snapshot_id' => $snapshot_id ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( $snapshot['label'] ); ?></a>
+										<?php if ( ! empty( $recommended_snapshot['id'] ) && $snapshot_id === (int) $recommended_snapshot['id'] ) : ?>
+											<p class="description"><?php echo esc_html__( 'Recommended snapshot', 'zignites-sentinel' ); ?></p>
+										<?php elseif ( ! empty( $last_known_good['id'] ) && $snapshot_id === (int) $last_known_good['id'] ) : ?>
+											<p class="description"><?php echo esc_html__( 'Last known good', 'zignites-sentinel' ); ?></p>
+										<?php endif; ?>
+									</td>
+									<td>
+										<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $snapshot_status['trust']['badge'] ) ? $snapshot_status['trust']['badge'] : 'info' ); ?>">
+											<?php echo esc_html( isset( $snapshot_status['trust']['label'] ) ? $snapshot_status['trust']['label'] : __( 'Unknown', 'zignites-sentinel' ) ); ?>
+										</span>
+									</td>
 									<td>
 										<div class="znts-badge-row">
 											<?php foreach ( isset( $snapshot_status['status_badges'] ) && is_array( $snapshot_status['status_badges'] ) ? $snapshot_status['status_badges'] : array() as $badge ) : ?>

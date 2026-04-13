@@ -59,6 +59,10 @@ class UpdateReadinessStateBuilder {
 			'audit_report_verification' => $this->array_value( $state, 'audit_report_verification' ),
 			'snapshot_activity'       => $this->array_value( $state, 'snapshot_activity' ),
 			'snapshot_activity_url'   => isset( $state['snapshot_activity_url'] ) ? (string) $state['snapshot_activity_url'] : '',
+			'system_health'           => $this->array_value( $state, 'system_health' ),
+			'snapshot_intelligence'   => $this->array_value( $state, 'snapshot_intelligence' ),
+			'operator_timeline'       => $this->array_value( $state, 'operator_timeline' ),
+			'selected_snapshot_trust_status' => $this->array_value( $state, 'selected_snapshot_trust_status' ),
 			'notice'                  => $this->array_value( $state, 'notice' ),
 		);
 
@@ -94,7 +98,8 @@ class UpdateReadinessStateBuilder {
 
 		$view_data['recent_snapshot_rows'] = $this->build_recent_snapshot_rows(
 			$this->array_value( $view_data, 'recent_snapshots' ),
-			$this->array_value( $view_data, 'snapshot_status_index' )
+			$this->array_value( $view_data, 'snapshot_status_index' ),
+			$this->array_value( $view_data, 'snapshot_intelligence' )
 		);
 		$view_data['snapshot_empty_message'] = '' !== $snapshot_search || '' !== $snapshot_status_filter
 			? __( 'No snapshots matched the current filters.', 'zignites-sentinel' )
@@ -133,6 +138,7 @@ class UpdateReadinessStateBuilder {
 	protected function with_workspace_state( array $view_data ) {
 		$snapshot_detail          = $this->nullable_array_value( $view_data, 'snapshot_detail' );
 		$snapshot_status_index    = $this->array_value( $view_data, 'snapshot_status_index' );
+		$selected_trust_status    = $this->array_value( $view_data, 'selected_snapshot_trust_status' );
 		$last_plan                = $this->array_value( $view_data, 'last_update_plan' );
 		$last_restore_check       = $this->array_value( $view_data, 'last_restore_check' );
 		$snapshot_pagination      = $this->array_value( $view_data, 'snapshot_pagination' );
@@ -140,10 +146,19 @@ class UpdateReadinessStateBuilder {
 		$operator_checklist       = $this->array_value( $view_data, 'operator_checklist' );
 		$snapshot_summary         = $this->array_value( $view_data, 'snapshot_summary' );
 		$snapshot_health_baseline = $this->array_value( $view_data, 'snapshot_health_baseline' );
+		$system_health            = $this->array_value( $view_data, 'system_health' );
+		$snapshot_intelligence    = $this->array_value( $view_data, 'snapshot_intelligence' );
+		$operator_timeline        = $this->array_value( $view_data, 'operator_timeline' );
 		$snapshot_id              = is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) ? (int) $snapshot_detail['id'] : 0;
 		$health_attention_state   = empty( $snapshot_health_baseline ) ? 'critical' : ( isset( $snapshot_health_baseline['status_pill'] ) ? (string) $snapshot_health_baseline['status_pill'] : 'info' );
+		$selected_intelligence    = isset( $snapshot_intelligence['selected_snapshot'] ) && is_array( $snapshot_intelligence['selected_snapshot'] ) ? $snapshot_intelligence['selected_snapshot'] : array();
+		$recommended_snapshot     = isset( $snapshot_intelligence['recommended_snapshot'] ) && is_array( $snapshot_intelligence['recommended_snapshot'] ) ? $snapshot_intelligence['recommended_snapshot'] : array();
+		$last_known_good          = isset( $snapshot_intelligence['last_known_good'] ) && is_array( $snapshot_intelligence['last_known_good'] ) ? $snapshot_intelligence['last_known_good'] : array();
 
-		$view_data['selected_snapshot_status'] = $snapshot_id > 0 && isset( $snapshot_status_index[ $snapshot_id ] ) && is_array( $snapshot_status_index[ $snapshot_id ] ) ? $snapshot_status_index[ $snapshot_id ] : array();
+		$base_selected_status = $snapshot_id > 0 && isset( $snapshot_status_index[ $snapshot_id ] ) && is_array( $snapshot_status_index[ $snapshot_id ] ) ? $snapshot_status_index[ $snapshot_id ] : array();
+		$view_data['selected_snapshot_status'] = ! empty( $selected_trust_status )
+			? array_replace( $base_selected_status, $selected_trust_status )
+			: $base_selected_status;
 		$view_data['selected_snapshot_status_badges'] = $this->build_snapshot_status_badge_rows( $view_data['selected_snapshot_status'] );
 		$view_data['plan_validation'] = isset( $last_plan['validation'] ) && is_array( $last_plan['validation'] ) ? $last_plan['validation'] : array();
 		$view_data['restore_source_validation'] = isset( $last_restore_check['source_validation'] ) && is_array( $last_restore_check['source_validation'] ) ? $last_restore_check['source_validation'] : array();
@@ -163,14 +178,25 @@ class UpdateReadinessStateBuilder {
 				isset( $snapshot_detail['created_at'] ) ? (string) $snapshot_detail['created_at'] : ''
 			)
 			: __( 'Choose a snapshot from the list below to inspect readiness, planning, and restore controls.', 'zignites-sentinel' );
+		if ( ! empty( $selected_intelligence['message'] ) ) {
+			$view_data['selected_snapshot_note'] .= ' ' . (string) $selected_intelligence['message'];
+		}
 		$view_data['snapshot_match_count'] = isset( $snapshot_pagination['total_items'] ) ? (int) $snapshot_pagination['total_items'] : count( $recent_snapshots );
-		$view_data['workspace_status_label'] = ! empty( $operator_checklist['can_execute'] ) ? __( 'Restore ready', 'zignites-sentinel' ) : ( is_array( $snapshot_detail ) ? __( 'Needs attention', 'zignites-sentinel' ) : __( 'Awaiting snapshot', 'zignites-sentinel' ) );
-		$view_data['workspace_status_badge'] = ! empty( $operator_checklist['can_execute'] ) ? 'info' : ( is_array( $snapshot_detail ) ? 'warning' : 'critical' );
-		$view_data['workspace_next_action'] = ! empty( $operator_checklist['can_execute'] )
-			? __( 'Review the impact summary, then continue with guarded restore only if the plan still matches your intent.', 'zignites-sentinel' )
-			: ( is_array( $snapshot_detail ) ? __( 'Complete the missing checklist items or refresh restore gates before continuing.', 'zignites-sentinel' ) : __( 'Run a preflight scan or create a snapshot to begin update-readiness work.', 'zignites-sentinel' ) );
-		$view_data['snapshot_primary_risk'] = ! empty( $snapshot_summary['risks'][0] ) ? (string) $snapshot_summary['risks'][0] : __( 'No active risk callouts are currently highlighted for this snapshot.', 'zignites-sentinel' );
-		$view_data['snapshot_primary_step'] = ! empty( $snapshot_summary['next_steps'][0] ) ? (string) $snapshot_summary['next_steps'][0] : __( 'No immediate follow-up step is currently required.', 'zignites-sentinel' );
+		$view_data['workspace_status_label'] = $this->build_workspace_status_label( $snapshot_detail, $system_health, $selected_intelligence, $operator_checklist );
+		$view_data['workspace_status_badge'] = $this->build_workspace_status_badge( $snapshot_detail, $system_health, $selected_intelligence, $operator_checklist );
+		$view_data['workspace_next_action'] = $this->build_workspace_next_action( $snapshot_detail, $selected_intelligence, $recommended_snapshot, $operator_checklist );
+		$view_data['snapshot_primary_risk'] = ! empty( $snapshot_intelligence['warnings'][0] )
+			? (string) $snapshot_intelligence['warnings'][0]
+			: ( ! empty( $snapshot_summary['risks'][0] ) ? (string) $snapshot_summary['risks'][0] : __( 'No active risk callouts are currently highlighted for this snapshot.', 'zignites-sentinel' ) );
+		$view_data['snapshot_primary_step'] = ! empty( $snapshot_summary['next_steps'][0] )
+			? (string) $snapshot_summary['next_steps'][0]
+			: ( ! empty( $recommended_snapshot['label'] )
+				? sprintf(
+					/* translators: %s: recommended snapshot label */
+					__( 'Review the recommended snapshot %s before using a different workspace.', 'zignites-sentinel' ),
+					(string) $recommended_snapshot['label']
+				)
+				: __( 'No immediate follow-up step is currently required.', 'zignites-sentinel' ) );
 		$view_data['health_attention_state'] = $health_attention_state;
 		$view_data['health_attention_message'] = empty( $snapshot_health_baseline )
 			? __( 'Restore not safe yet: capture a baseline before any guarded restore work.', 'zignites-sentinel' )
@@ -180,14 +206,20 @@ class UpdateReadinessStateBuilder {
 					? __( 'Restore preparation needs attention: the current health baseline is degraded.', 'zignites-sentinel' )
 					: __( 'Baseline status is recorded for this snapshot.', 'zignites-sentinel' ) ) );
 		$view_data['open_health_validation'] = empty( $operator_checklist['can_execute'] );
-		$view_data['workspace_flow_message'] = ! empty( $operator_checklist['can_execute'] )
-			? __( 'Next: confirm the impact summary, verify the checklist is still current, and only then move into guarded restore review.', 'zignites-sentinel' )
-			: ( is_array( $snapshot_detail )
-				? __( 'Next: focus on the highlighted risk and next-step guidance below, then open detail panels only where you need deeper proof.', 'zignites-sentinel' )
-				: __( 'Next: run a scan or choose a snapshot, then let the summary below guide the next safe step.', 'zignites-sentinel' ) );
-		$view_data['workspace_confidence'] = ! empty( $operator_checklist['can_execute'] )
-			? __( 'Checklist gates are currently satisfied for this snapshot.', 'zignites-sentinel' )
-			: __( 'The workspace is showing the shortest safe path, not every technical detail at once.', 'zignites-sentinel' );
+		$view_data['workspace_flow_message'] = $this->build_workspace_flow_message( $snapshot_detail, $selected_intelligence, $recommended_snapshot, $operator_checklist );
+		$view_data['workspace_confidence'] = ! empty( $selected_intelligence['message'] )
+			? (string) $selected_intelligence['message']
+			: ( isset( $system_health['confidence_message'] ) ? (string) $system_health['confidence_message'] : __( 'The workspace is showing the shortest safe path, not every technical detail at once.', 'zignites-sentinel' ) );
+		$view_data['system_health_status'] = $this->build_system_health_status( $system_health );
+		$view_data['system_health_rows'] = $this->build_snapshot_summary_detail_rows(
+			isset( $system_health['rows'] ) && is_array( $system_health['rows'] ) ? $system_health['rows'] : array()
+		);
+		$view_data['recommended_snapshot_card'] = $this->build_snapshot_recommendation_card( $recommended_snapshot );
+		$view_data['last_known_good_card'] = $this->build_snapshot_recommendation_card( $last_known_good );
+		$view_data['snapshot_intelligence_warnings'] = $this->build_snapshot_summary_string_list(
+			isset( $snapshot_intelligence['warnings'] ) && is_array( $snapshot_intelligence['warnings'] ) ? $snapshot_intelligence['warnings'] : array()
+		);
+		$view_data['operator_timeline_rows'] = $this->build_operator_timeline_rows( $operator_timeline );
 
 		return $view_data;
 	}
@@ -550,10 +582,193 @@ class UpdateReadinessStateBuilder {
 			'show_rollback_checks'                => ! empty( $this->array_value( $view_data, 'restore_rollback_check_rows' ) ),
 			'show_rollback_items'                 => ! empty( $this->array_value( $view_data, 'restore_rollback_item_rows' ) ),
 			'show_rollback_journal'               => ! empty( $this->array_value( $view_data, 'restore_rollback_journal_rows' ) ),
+			'show_system_health_rows'            => ! empty( $this->array_value( $view_data, 'system_health_rows' ) ),
+			'show_snapshot_intelligence_warnings' => ! empty( $this->array_value( $view_data, 'snapshot_intelligence_warnings' ) ),
+			'show_recommended_snapshot_card'     => ! empty( $this->array_value( $view_data, 'recommended_snapshot_card' ) ),
+			'show_last_known_good_card'          => ! empty( $this->array_value( $view_data, 'last_known_good_card' ) ),
+			'show_operator_timeline_rows'        => ! empty( $this->array_value( $view_data, 'operator_timeline_rows' ) ),
 			'show_workspace_primary_action'      => ! empty( $this->array_value( $view_data, 'workspace_primary_action' ) ),
 		);
 
 		return $view_data;
+	}
+
+	/**
+	 * Build workspace status label for the hero.
+	 *
+	 * @param array|null $snapshot_detail        Selected snapshot.
+	 * @param array      $system_health          System health payload.
+	 * @param array      $selected_intelligence  Selected snapshot intelligence.
+	 * @param array      $operator_checklist     Operator checklist.
+	 * @return string
+	 */
+	protected function build_workspace_status_label( $snapshot_detail, array $system_health, array $selected_intelligence, array $operator_checklist ) {
+		if ( ! is_array( $snapshot_detail ) || empty( $snapshot_detail['id'] ) ) {
+			return __( 'Awaiting snapshot', 'zignites-sentinel' );
+		}
+
+		if ( 'recommended' === ( isset( $selected_intelligence['relation'] ) ? (string) $selected_intelligence['relation'] : '' ) && ! empty( $operator_checklist['can_execute'] ) ) {
+			return __( 'Trusted workspace', 'zignites-sentinel' );
+		}
+
+		if ( 'last_known_good' === ( isset( $selected_intelligence['relation'] ) ? (string) $selected_intelligence['relation'] : '' ) ) {
+			return __( 'Last known good', 'zignites-sentinel' );
+		}
+
+		if ( 'risky' === ( isset( $system_health['status'] ) ? (string) $system_health['status'] : '' ) ) {
+			return __( 'Review required', 'zignites-sentinel' );
+		}
+
+		return ! empty( $operator_checklist['can_execute'] ) ? __( 'Restore ready', 'zignites-sentinel' ) : __( 'Needs attention', 'zignites-sentinel' );
+	}
+
+	/**
+	 * Build workspace status badge for the hero.
+	 *
+	 * @param array|null $snapshot_detail       Selected snapshot.
+	 * @param array      $system_health         System health payload.
+	 * @param array      $selected_intelligence Selected snapshot intelligence.
+	 * @param array      $operator_checklist    Operator checklist.
+	 * @return string
+	 */
+	protected function build_workspace_status_badge( $snapshot_detail, array $system_health, array $selected_intelligence, array $operator_checklist ) {
+		if ( ! is_array( $snapshot_detail ) || empty( $snapshot_detail['id'] ) ) {
+			return 'critical';
+		}
+
+		if ( 'recommended' === ( isset( $selected_intelligence['relation'] ) ? (string) $selected_intelligence['relation'] : '' ) && ! empty( $operator_checklist['can_execute'] ) ) {
+			return 'info';
+		}
+
+		if ( 'last_known_good' === ( isset( $selected_intelligence['relation'] ) ? (string) $selected_intelligence['relation'] : '' ) ) {
+			return 'info';
+		}
+
+		if ( 'risky' === ( isset( $system_health['status'] ) ? (string) $system_health['status'] : '' ) ) {
+			return 'critical';
+		}
+
+		return ! empty( $operator_checklist['can_execute'] ) ? 'info' : 'warning';
+	}
+
+	/**
+	 * Build the workspace next-action line.
+	 *
+	 * @param array|null $snapshot_detail       Selected snapshot.
+	 * @param array      $selected_intelligence Selected snapshot intelligence.
+	 * @param array      $recommended_snapshot  Recommended snapshot.
+	 * @param array      $operator_checklist    Operator checklist.
+	 * @return string
+	 */
+	protected function build_workspace_next_action( $snapshot_detail, array $selected_intelligence, array $recommended_snapshot, array $operator_checklist ) {
+		if ( ! is_array( $snapshot_detail ) || empty( $snapshot_detail['id'] ) ) {
+			return __( 'Run a preflight scan or create a snapshot to begin update-readiness work.', 'zignites-sentinel' );
+		}
+
+		if ( 'older' === ( isset( $selected_intelligence['relation'] ) ? (string) $selected_intelligence['relation'] : '' ) && ! empty( $recommended_snapshot['label'] ) ) {
+			return sprintf(
+				/* translators: %s: recommended snapshot label */
+				__( 'Switch to the recommended snapshot %s or confirm why an older workspace is required.', 'zignites-sentinel' ),
+				(string) $recommended_snapshot['label']
+			);
+		}
+
+		if ( 'last_known_good' === ( isset( $selected_intelligence['relation'] ) ? (string) $selected_intelligence['relation'] : '' ) ) {
+			return __( 'Review the recovery context and confirm that this last known good state still matches your rollback goal.', 'zignites-sentinel' );
+		}
+
+		if ( ! empty( $operator_checklist['can_execute'] ) ) {
+			return __( 'Review the impact summary, then continue with guarded restore only if the plan still matches your intent.', 'zignites-sentinel' );
+		}
+
+		return __( 'Complete the missing checklist items or refresh restore gates before continuing.', 'zignites-sentinel' );
+	}
+
+	/**
+	 * Build the workspace flow message.
+	 *
+	 * @param array|null $snapshot_detail       Selected snapshot.
+	 * @param array      $selected_intelligence Selected snapshot intelligence.
+	 * @param array      $recommended_snapshot  Recommended snapshot.
+	 * @param array      $operator_checklist    Operator checklist.
+	 * @return string
+	 */
+	protected function build_workspace_flow_message( $snapshot_detail, array $selected_intelligence, array $recommended_snapshot, array $operator_checklist ) {
+		if ( ! is_array( $snapshot_detail ) || empty( $snapshot_detail['id'] ) ) {
+			return __( 'Next: run a scan or choose a snapshot, then let the trust layer guide the next safe step.', 'zignites-sentinel' );
+		}
+
+		if ( 'older' === ( isset( $selected_intelligence['relation'] ) ? (string) $selected_intelligence['relation'] : '' ) && ! empty( $recommended_snapshot['label'] ) ) {
+			return __( 'Next: compare this workspace against the recommended snapshot, then proceed only if the older state is intentionally required.', 'zignites-sentinel' );
+		}
+
+		if ( ! empty( $operator_checklist['can_execute'] ) ) {
+			return __( 'Next: confirm the impact summary, verify the checklist is still current, and only then move into guarded restore review.', 'zignites-sentinel' );
+		}
+
+		return __( 'Next: focus on the highlighted trust warnings below, then open detail panels only where you need deeper proof.', 'zignites-sentinel' );
+	}
+
+	/**
+	 * Build normalized system-health status metadata.
+	 *
+	 * @param array $system_health System health payload.
+	 * @return array
+	 */
+	protected function build_system_health_status( array $system_health ) {
+		$status = isset( $system_health['status'] ) ? (string) $system_health['status'] : '';
+
+		return array(
+			'status'       => $status,
+			'status_label' => isset( $system_health['label'] ) ? (string) $system_health['label'] : $this->humanize_status( $status ),
+			'badge'        => isset( $system_health['badge'] ) ? (string) $system_health['badge'] : ( 'risky' === $status ? 'critical' : ( 'warning' === $status ? 'warning' : 'info' ) ),
+			'title'        => isset( $system_health['title'] ) ? (string) $system_health['title'] : __( 'System Health', 'zignites-sentinel' ),
+			'note'         => isset( $system_health['summary'] ) ? (string) $system_health['summary'] : '',
+		);
+	}
+
+	/**
+	 * Build a compact snapshot recommendation card.
+	 *
+	 * @param array $snapshot Snapshot reference.
+	 * @return array
+	 */
+	protected function build_snapshot_recommendation_card( array $snapshot ) {
+		if ( empty( $snapshot ) ) {
+			return array();
+		}
+
+		return array(
+			'label'       => isset( $snapshot['label'] ) ? (string) $snapshot['label'] : '',
+			'created_at'  => isset( $snapshot['created_at'] ) ? (string) $snapshot['created_at'] : '',
+			'status_label'=> isset( $snapshot['trust_label'] ) ? (string) $snapshot['trust_label'] : '',
+			'badge'       => isset( $snapshot['trust_badge'] ) ? (string) $snapshot['trust_badge'] : 'info',
+			'note'        => isset( $snapshot['reason'] ) ? (string) $snapshot['reason'] : '',
+			'freshness'   => isset( $snapshot['freshness_label'] ) ? (string) $snapshot['freshness_label'] : '',
+		);
+	}
+
+	/**
+	 * Build normalized operator timeline rows.
+	 *
+	 * @param array $timeline Operator timeline payload.
+	 * @return array
+	 */
+	protected function build_operator_timeline_rows( array $timeline ) {
+		$items = isset( $timeline['items'] ) && is_array( $timeline['items'] ) ? $timeline['items'] : array();
+		$rows  = array();
+
+		foreach ( $items as $item ) {
+			$rows[] = array(
+				'type'      => isset( $item['type'] ) ? (string) $item['type'] : '',
+				'badge'     => isset( $item['badge'] ) ? (string) $item['badge'] : 'info',
+				'title'     => isset( $item['title'] ) ? (string) $item['title'] : '',
+				'timestamp' => isset( $item['timestamp'] ) ? (string) $item['timestamp'] : '',
+				'message'   => isset( $item['message'] ) ? (string) $item['message'] : '',
+			);
+		}
+
+		return $rows;
 	}
 
 	/**
@@ -1408,16 +1623,26 @@ class UpdateReadinessStateBuilder {
 	/**
 	 * Build normalized snapshot list rows.
 	 *
-	 * @param array $recent_snapshots Snapshot list items.
-	 * @param array $status_index     Snapshot status index keyed by snapshot ID.
+	 * @param array $recent_snapshots     Snapshot list items.
+	 * @param array $status_index         Snapshot status index keyed by snapshot ID.
+	 * @param array $snapshot_intelligence Snapshot intelligence payload.
 	 * @return array
 	 */
-	protected function build_recent_snapshot_rows( array $recent_snapshots, array $status_index ) {
-		$rows = array();
+	protected function build_recent_snapshot_rows( array $recent_snapshots, array $status_index, array $snapshot_intelligence = array() ) {
+		$rows                    = array();
+		$recommended_snapshot_id = isset( $snapshot_intelligence['recommended_snapshot']['id'] ) ? (int) $snapshot_intelligence['recommended_snapshot']['id'] : 0;
+		$last_known_good_id      = isset( $snapshot_intelligence['last_known_good']['id'] ) ? (int) $snapshot_intelligence['last_known_good']['id'] : 0;
 
 		foreach ( $recent_snapshots as $snapshot ) {
 			$snapshot_id     = isset( $snapshot['id'] ) ? (int) $snapshot['id'] : 0;
 			$snapshot_status = isset( $status_index[ $snapshot_id ] ) && is_array( $status_index[ $snapshot_id ] ) ? $status_index[ $snapshot_id ] : array();
+			$relationship    = '';
+
+			if ( $recommended_snapshot_id > 0 && $snapshot_id === $recommended_snapshot_id ) {
+				$relationship = __( 'Recommended snapshot', 'zignites-sentinel' );
+			} elseif ( $last_known_good_id > 0 && $snapshot_id === $last_known_good_id ) {
+				$relationship = __( 'Last known good', 'zignites-sentinel' );
+			}
 
 			$rows[] = array(
 				'id'            => $snapshot_id,
@@ -1425,6 +1650,9 @@ class UpdateReadinessStateBuilder {
 				'label'         => isset( $snapshot['label'] ) ? (string) $snapshot['label'] : '',
 				'detail_url'    => $this->build_snapshot_detail_url( $snapshot_id ),
 				'status_badges' => $this->build_snapshot_status_badge_rows( $snapshot_status ),
+				'trust_label'   => isset( $snapshot_status['trust']['label'] ) ? (string) $snapshot_status['trust']['label'] : '',
+				'trust_badge'   => isset( $snapshot_status['trust']['badge'] ) ? (string) $snapshot_status['trust']['badge'] : 'info',
+				'relationship'  => $relationship,
 				'core_version'  => isset( $snapshot['core_version'] ) ? (string) $snapshot['core_version'] : '',
 				'php_version'   => isset( $snapshot['php_version'] ) ? (string) $snapshot['php_version'] : '',
 			);
