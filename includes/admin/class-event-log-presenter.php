@@ -39,23 +39,30 @@ class EventLogPresenter {
 	 * @return array
 	 */
 	public function build_view_payload( array $recent_logs, array $log_filters, array $run_summaries, array $operational_events, array $run_journal, array $pagination ) {
+		$active_filter_count = $this->count_active_filters( $log_filters );
+		$total_logs          = isset( $pagination['total_logs'] ) ? (int) $pagination['total_logs'] : 0;
+
 		return array(
 			'base_args'           => $this->build_base_args( $log_filters ),
-			'active_filter_count' => $this->count_active_filters( $log_filters ),
+			'active_filter_count' => $active_filter_count,
 			'severity_counts'     => $this->count_severity_rows( $recent_logs ),
 			'recent_logs'         => $this->decorate_log_rows( $recent_logs ),
 			'operational_events'  => $this->decorate_log_rows( $operational_events ),
 			'run_summaries'       => $this->decorate_run_summaries( $run_summaries ),
 			'run_journal'         => $this->decorate_run_journal( $run_journal ),
 			'run_outcome_summary' => $this->build_run_outcome_summary( $run_journal ),
+			'guidance_panels'     => $this->build_guidance_panels( $active_filter_count, $total_logs ),
+			'empty_state'         => $this->build_empty_state( $active_filter_count, $total_logs ),
+			'history_empty_state' => $this->build_history_empty_state( $operational_events, $run_summaries, $run_journal ),
+			'positioning_note'    => $this->build_positioning_note(),
 			'summary_tiles'       => array(
 				array(
 					'label' => __( 'Matching Events', 'zignites-sentinel' ),
-					'value' => isset( $pagination['total_logs'] ) ? (string) $pagination['total_logs'] : '0',
+					'value' => (string) $total_logs,
 				),
 				array(
 					'label' => __( 'Active Filters', 'zignites-sentinel' ),
-					'value' => (string) $this->count_active_filters( $log_filters ),
+					'value' => (string) $active_filter_count,
 				),
 				array(
 					'label' => __( 'Run Summaries', 'zignites-sentinel' ),
@@ -66,6 +73,99 @@ class EventLogPresenter {
 					'value' => (string) count( $operational_events ),
 				),
 			),
+		);
+	}
+
+	/**
+	 * Build concise Event Logs guidance panels.
+	 *
+	 * @param int $active_filter_count Active filter count.
+	 * @param int $total_logs          Total matching logs.
+	 * @return array
+	 */
+	protected function build_guidance_panels( $active_filter_count, $total_logs ) {
+		return array(
+			array(
+				'title' => __( 'How to use this screen', 'zignites-sentinel' ),
+				'body'  => $total_logs > 0
+					? __( 'Start with the filter bar, review the top matching events, then open a run journal only when you need the full execution trail.', 'zignites-sentinel' )
+					: __( 'This screen becomes your investigation trail once Sentinel starts recording restore, rollback, and readiness activity.', 'zignites-sentinel' ),
+			),
+			array(
+				'title' => __( 'What this status means', 'zignites-sentinel' ),
+				'body'  => __( 'Event Logs stores structured evidence around readiness checks, restores, rollbacks, and supporting maintenance actions so operators can review what happened with context.', 'zignites-sentinel' ),
+			),
+			array(
+				'title' => __( 'What to do next', 'zignites-sentinel' ),
+				'body'  => $active_filter_count > 0
+					? __( 'Keep the current filters if they isolate the issue, or reset them to return to the full event stream.', 'zignites-sentinel' )
+					: __( 'Use Update Readiness to create a snapshot and run the first checks. Event history will become more useful as Sentinel records activity.', 'zignites-sentinel' ),
+			),
+		);
+	}
+
+	/**
+	 * Build the primary Event Explorer empty state.
+	 *
+	 * @param int $active_filter_count Active filter count.
+	 * @param int $total_logs          Total matching logs.
+	 * @return array
+	 */
+	protected function build_empty_state( $active_filter_count, $total_logs ) {
+		if ( $active_filter_count > 0 ) {
+			return array(
+				'title'       => __( 'No events match the current filters.', 'zignites-sentinel' ),
+				'description' => __( 'The filters are working, but nothing in the recorded history matches this exact view yet.', 'zignites-sentinel' ),
+				'next_step'   => __( 'Reset or broaden the filters to bring more of the event stream back into view.', 'zignites-sentinel' ),
+			);
+		}
+
+		if ( $total_logs < 1 ) {
+			return array(
+				'title'       => __( 'No event history has been recorded yet.', 'zignites-sentinel' ),
+				'description' => __( 'This screen will show the operator trail for readiness checks, restores, rollbacks, and supporting maintenance events once Sentinel has activity to record.', 'zignites-sentinel' ),
+				'next_step'   => __( 'Create a snapshot and run the first readiness checks to start building an investigation history.', 'zignites-sentinel' ),
+			);
+		}
+
+		return array(
+			'title'       => __( 'No events are visible right now.', 'zignites-sentinel' ),
+			'description' => __( 'The event stream is available, but nothing is showing in the current result set.', 'zignites-sentinel' ),
+			'next_step'   => __( 'Review the filters or page selection to return to the main event stream.', 'zignites-sentinel' ),
+		);
+	}
+
+	/**
+	 * Build an empty state for timeline/history sections.
+	 *
+	 * @param array $operational_events Operational events.
+	 * @param array $run_summaries      Run summaries.
+	 * @param array $run_journal        Run journal payload.
+	 * @return array
+	 */
+	protected function build_history_empty_state( array $operational_events, array $run_summaries, array $run_journal ) {
+		$has_journal = ! empty( $run_journal['entries'] ) && is_array( $run_journal['entries'] );
+
+		if ( ! empty( $operational_events ) || ! empty( $run_summaries ) || $has_journal ) {
+			return array();
+		}
+
+		return array(
+			'title'       => __( 'No restore or rollback history yet.', 'zignites-sentinel' ),
+			'description' => __( 'Run summaries and journals appear here after Sentinel records a restore or rollback attempt, so you can review the story without digging through raw entries first.', 'zignites-sentinel' ),
+			'next_step'   => __( 'Use snapshots and readiness checks first. This history layer will fill in as the controlled restore workflow is used.', 'zignites-sentinel' ),
+		);
+	}
+
+	/**
+	 * Build a concise Event Logs positioning note.
+	 *
+	 * @return array
+	 */
+	protected function build_positioning_note() {
+		return array(
+			'title' => __( 'What this history is for', 'zignites-sentinel' ),
+			'body'  => __( 'Sentinel records controlled restore evidence so operators can review readiness and recovery decisions with confidence. The journal is for traceability, not a claim of atomic restore execution.', 'zignites-sentinel' ),
 		);
 	}
 

@@ -24,26 +24,46 @@ $active_filter_count = isset( $event_log_ui['active_filter_count'] ) ? (int) $ev
 $severity_counts     = isset( $event_log_ui['severity_counts'] ) && is_array( $event_log_ui['severity_counts'] ) ? $event_log_ui['severity_counts'] : array();
 $summary_tiles       = isset( $event_log_ui['summary_tiles'] ) && is_array( $event_log_ui['summary_tiles'] ) ? $event_log_ui['summary_tiles'] : array();
 $run_outcome_summary = isset( $event_log_ui['run_outcome_summary'] ) && is_array( $event_log_ui['run_outcome_summary'] ) ? $event_log_ui['run_outcome_summary'] : array();
+$guidance_panels     = isset( $event_log_ui['guidance_panels'] ) && is_array( $event_log_ui['guidance_panels'] ) ? $event_log_ui['guidance_panels'] : array();
+$empty_state         = isset( $event_log_ui['empty_state'] ) && is_array( $event_log_ui['empty_state'] ) ? $event_log_ui['empty_state'] : array();
+$history_empty_state = isset( $event_log_ui['history_empty_state'] ) && is_array( $event_log_ui['history_empty_state'] ) ? $event_log_ui['history_empty_state'] : array();
+$positioning_note    = isset( $event_log_ui['positioning_note'] ) && is_array( $event_log_ui['positioning_note'] ) ? $event_log_ui['positioning_note'] : array();
 $log_summary_tiles   = array_slice( $summary_tiles, 0, 4 );
 $log_flow_note       = $active_filter_count > 0
-	? __( 'Current filters are active. Scan the highlighted rows first, then expand individual messages only when you need more detail.', 'zignites-sentinel' )
-	: __( 'Start by narrowing the stream with filters, then scan highlighted rows and expand only the events you need to inspect.', 'zignites-sentinel' );
+	? __( 'Current filters are active. Review the matching evidence first, then open full messages only when you need deeper context.', 'zignites-sentinel' )
+	: __( 'Start with filters, scan the highlighted evidence, and open run journals only when you need the full recovery story.', 'zignites-sentinel' );
 ?>
 <div class="wrap znts-admin-page">
 	<div class="znts-page-header">
 		<h1><?php echo esc_html__( 'Event Logs', 'zignites-sentinel' ); ?></h1>
-		<p class="znts-page-intro"><?php echo esc_html__( 'Investigate Sentinel activity with filters, run history, and structured event context in one place.', 'zignites-sentinel' ); ?></p>
+		<p class="znts-page-intro"><?php echo esc_html__( 'Review Sentinel history in one place with filters, run summaries, and structured evidence for readiness, restore, and rollback activity.', 'zignites-sentinel' ); ?></p>
 	</div>
 
 	<div class="znts-log-stack">
 		<section class="znts-summary-hero">
 			<span class="znts-eyebrow"><?php echo esc_html__( 'Investigation Console', 'zignites-sentinel' ); ?></span>
-			<h2 class="znts-hero-title"><?php echo esc_html__( 'Filter, inspect, and export operational evidence.', 'zignites-sentinel' ); ?></h2>
-			<p class="znts-hero-subtitle"><?php echo esc_html__( 'Use severity, source, run, snapshot, and text filters to narrow the event stream, then jump into run journals or single-event detail.', 'zignites-sentinel' ); ?></p>
+			<h2 class="znts-hero-title"><?php echo esc_html__( 'Filter, review, and export restore history with context.', 'zignites-sentinel' ); ?></h2>
+			<p class="znts-hero-subtitle"><?php echo esc_html__( 'Use severity, source, run, snapshot, and text filters to narrow the history, then jump into run summaries or single-event detail when you need proof.', 'zignites-sentinel' ); ?></p>
 			<div class="znts-flow-note">
 				<strong><?php echo esc_html__( 'Workflow', 'zignites-sentinel' ); ?></strong>
 				<span><?php echo esc_html( $log_flow_note ); ?></span>
 			</div>
+			<?php if ( ! empty( $guidance_panels ) ) : ?>
+				<div class="znts-summary-strip">
+					<?php foreach ( $guidance_panels as $panel ) : ?>
+						<div class="znts-summary-item">
+							<span><?php echo esc_html( isset( $panel['title'] ) ? $panel['title'] : '' ); ?></span>
+							<p><?php echo esc_html( isset( $panel['body'] ) ? $panel['body'] : '' ); ?></p>
+						</div>
+					<?php endforeach; ?>
+				</div>
+			<?php endif; ?>
+			<?php if ( ! empty( $positioning_note ) ) : ?>
+				<div class="znts-flow-note">
+					<strong><?php echo esc_html( isset( $positioning_note['title'] ) ? $positioning_note['title'] : __( 'Positioning', 'zignites-sentinel' ) ); ?></strong>
+					<span><?php echo esc_html( isset( $positioning_note['body'] ) ? $positioning_note['body'] : '' ); ?></span>
+				</div>
+			<?php endif; ?>
 				<div class="znts-investigation-grid">
 					<?php foreach ( $log_summary_tiles as $tile ) : ?>
 						<div class="znts-investigation-tile">
@@ -68,8 +88,8 @@ $log_flow_note       = $active_filter_count > 0
 			<div class="znts-toolbar">
 				<div class="znts-toolbar-head">
 					<div>
-						<h2><?php echo esc_html__( 'Event Explorer', 'zignites-sentinel' ); ?></h2>
-						<p><?php echo esc_html__( 'Refine the event stream, then export the current result set without leaving the screen.', 'zignites-sentinel' ); ?></p>
+						<h2><?php echo esc_html__( 'Event Stream', 'zignites-sentinel' ); ?></h2>
+						<p><?php echo esc_html__( 'Refine the event stream, inspect the strongest signals first, and export the current result set without leaving the screen.', 'zignites-sentinel' ); ?></p>
 					</div>
 					<p class="znts-inline-note">
 						<?php
@@ -121,12 +141,12 @@ $log_flow_note       = $active_filter_count > 0
 						<input id="znts-log-search" type="search" name="log_search" value="<?php echo esc_attr( isset( $log_filters['search'] ) ? $log_filters['search'] : '' ); ?>" />
 					</p>
 					<p class="znts-filter-actions">
-						<?php submit_button( __( 'Apply Filters', 'zignites-sentinel' ), 'secondary', '', false ); ?>
+						<?php submit_button( __( 'Update View', 'zignites-sentinel' ), 'secondary', '', false ); ?>
 						<a class="button button-link" href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs' ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html__( 'Reset', 'zignites-sentinel' ); ?></a>
 					</p>
 				</form>
 				<div class="znts-log-toolbar-actions">
-					<p class="znts-inline-note"><?php echo esc_html__( 'CSV export includes the current filters and up to 5,000 matching rows, including run and snapshot context when available.', 'zignites-sentinel' ); ?></p>
+					<p class="znts-inline-note"><?php echo esc_html__( 'CSV export follows the current filters and includes up to 5,000 matching rows with run and snapshot context when available.', 'zignites-sentinel' ); ?></p>
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 						<input type="hidden" name="action" value="znts_export_event_logs" />
 						<input type="hidden" name="severity" value="<?php echo esc_attr( isset( $log_filters['severity'] ) ? $log_filters['severity'] : '' ); ?>" />
@@ -135,15 +155,16 @@ $log_flow_note       = $active_filter_count > 0
 						<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( ! empty( $log_filters['snapshot_id'] ) ? (string) $log_filters['snapshot_id'] : '' ); ?>" />
 						<input type="hidden" name="log_search" value="<?php echo esc_attr( isset( $log_filters['search'] ) ? $log_filters['search'] : '' ); ?>" />
 						<?php wp_nonce_field( 'znts_export_event_logs_action' ); ?>
-						<?php submit_button( __( 'Export Filtered CSV', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
+						<?php submit_button( __( 'Export CSV', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 					</form>
 				</div>
 			</div>
 
 			<?php if ( empty( $recent_logs ) ) : ?>
 				<div class="znts-empty-state">
-					<strong><?php echo esc_html__( 'No event logs match the current filters.', 'zignites-sentinel' ); ?></strong>
-					<p><?php echo esc_html__( 'Clear the active filters or broaden the search to bring events back into view.', 'zignites-sentinel' ); ?></p>
+					<strong><?php echo esc_html( isset( $empty_state['title'] ) ? $empty_state['title'] : __( 'No event logs match the current filters.', 'zignites-sentinel' ) ); ?></strong>
+					<p><?php echo esc_html( isset( $empty_state['description'] ) ? $empty_state['description'] : __( 'Clear the active filters or broaden the search to bring events back into view.', 'zignites-sentinel' ) ); ?></p>
+					<p class="description"><?php echo esc_html( isset( $empty_state['next_step'] ) ? $empty_state['next_step'] : '' ); ?></p>
 				</div>
 			<?php else : ?>
 				<table class="widefat striped znts-log-table">
@@ -235,6 +256,14 @@ $log_flow_note       = $active_filter_count > 0
 						</table>
 					</div>
 				</details>
+			</section>
+		<?php elseif ( ! empty( $history_empty_state ) ) : ?>
+			<section class="znts-card znts-card-full znts-card-flat">
+				<div class="znts-empty-state">
+					<strong><?php echo esc_html( isset( $history_empty_state['title'] ) ? $history_empty_state['title'] : __( 'No restore or rollback history yet.', 'zignites-sentinel' ) ); ?></strong>
+					<p><?php echo esc_html( isset( $history_empty_state['description'] ) ? $history_empty_state['description'] : '' ); ?></p>
+					<p class="description"><?php echo esc_html( isset( $history_empty_state['next_step'] ) ? $history_empty_state['next_step'] : '' ); ?></p>
+				</div>
 			</section>
 		<?php endif; ?>
 

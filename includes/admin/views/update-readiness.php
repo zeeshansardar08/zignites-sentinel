@@ -187,11 +187,17 @@ $recommended_snapshot_card = isset( $view_data['recommended_snapshot_card'] ) &&
 $last_known_good_card      = isset( $view_data['last_known_good_card'] ) && is_array( $view_data['last_known_good_card'] ) ? $view_data['last_known_good_card'] : array();
 $snapshot_intelligence_warnings = isset( $view_data['snapshot_intelligence_warnings'] ) && is_array( $view_data['snapshot_intelligence_warnings'] ) ? $view_data['snapshot_intelligence_warnings'] : array();
 $operator_timeline_rows    = isset( $view_data['operator_timeline_rows'] ) && is_array( $view_data['operator_timeline_rows'] ) ? $view_data['operator_timeline_rows'] : array();
+$snapshot_empty_state      = isset( $view_data['snapshot_empty_state'] ) && is_array( $view_data['snapshot_empty_state'] ) ? $view_data['snapshot_empty_state'] : array();
+$first_run_notice          = isset( $view_data['first_run_notice'] ) && is_array( $view_data['first_run_notice'] ) ? $view_data['first_run_notice'] : array();
+$readiness_history_empty_state = isset( $view_data['readiness_history_empty_state'] ) && is_array( $view_data['readiness_history_empty_state'] ) ? $view_data['readiness_history_empty_state'] : array();
+$restore_history_empty_state = isset( $view_data['restore_history_empty_state'] ) && is_array( $view_data['restore_history_empty_state'] ) ? $view_data['restore_history_empty_state'] : array();
+$workspace_help_panels     = isset( $view_data['workspace_help_panels'] ) && is_array( $view_data['workspace_help_panels'] ) ? $view_data['workspace_help_panels'] : array();
+$workspace_positioning_note = isset( $view_data['workspace_positioning_note'] ) && is_array( $view_data['workspace_positioning_note'] ) ? $view_data['workspace_positioning_note'] : array();
 ?>
 <div class="wrap znts-admin-page">
 	<div class="znts-page-header">
 		<h1><?php echo esc_html__( 'Update Readiness', 'zignites-sentinel' ); ?></h1>
-		<p class="znts-page-intro"><?php echo esc_html__( 'Use this workspace to answer one question quickly: is the site prepared for safe update work, and what should happen next?', 'zignites-sentinel' ); ?></p>
+		<p class="znts-page-intro"><?php echo esc_html__( 'Use this workspace to judge controlled restore readiness, understand the trust level of a snapshot, and decide the next safe operator action with confidence.', 'zignites-sentinel' ); ?></p>
 	</div>
 
 	<?php if ( $show_notice ) : ?>
@@ -201,7 +207,7 @@ $operator_timeline_rows    = isset( $view_data['operator_timeline_rows'] ) && is
 	<?php endif; ?>
 
 	<section class="znts-summary-hero">
-		<span class="znts-eyebrow"><?php echo esc_html__( 'Operational Workspace', 'zignites-sentinel' ); ?></span>
+		<span class="znts-eyebrow"><?php echo esc_html__( 'Restore Workspace', 'zignites-sentinel' ); ?></span>
 		<div class="znts-readiness-row">
 			<span class="znts-pill znts-pill-<?php echo esc_attr( $workspace_status_badge ); ?>">
 				<?php echo esc_html( $workspace_status_label ); ?>
@@ -252,7 +258,7 @@ $operator_timeline_rows    = isset( $view_data['operator_timeline_rows'] ) && is
 		</div>
 		<?php if ( $show_workspace_primary_action ) : ?>
 			<div class="znts-hero-recommendation">
-				<strong><?php echo esc_html__( 'Recommended Next Action', 'zignites-sentinel' ); ?></strong>
+				<strong><?php echo esc_html__( 'Best Next Step', 'zignites-sentinel' ); ?></strong>
 				<?php echo esc_html( isset( $workspace_primary_action['title'] ) ? $workspace_primary_action['title'] : '' ); ?>
 				<?php if ( ! empty( $workspace_primary_action['description'] ) ) : ?>
 					<p class="description"><?php echo esc_html( $workspace_primary_action['description'] ); ?></p>
@@ -265,12 +271,18 @@ $operator_timeline_rows    = isset( $view_data['operator_timeline_rows'] ) && is
 				<?php endif; ?>
 			</div>
 		<?php endif; ?>
+		<?php if ( ! empty( $first_run_notice ) ) : ?>
+			<div class="znts-flow-note">
+				<strong><?php echo esc_html( isset( $first_run_notice['title'] ) ? $first_run_notice['title'] : __( 'First run', 'zignites-sentinel' ) ); ?></strong>
+				<span><?php echo esc_html( isset( $first_run_notice['description'] ) ? $first_run_notice['description'] : '' ); ?> <?php echo esc_html( isset( $first_run_notice['next_step'] ) ? $first_run_notice['next_step'] : '' ); ?></span>
+			</div>
+		<?php endif; ?>
 	</section>
 
-	<?php if ( $show_system_health_rows || $show_snapshot_intelligence_warnings || $show_operator_timeline_rows ) : ?>
+	<?php if ( $show_system_health_rows || $show_snapshot_intelligence_warnings || $show_operator_timeline_rows || ! empty( $restore_history_empty_state ) ) : ?>
 		<div class="znts-admin-grid znts-readiness-grid">
 			<section class="znts-card znts-card-full znts-card-flat">
-				<h2><?php echo esc_html__( 'Trust Layer', 'zignites-sentinel' ); ?></h2>
+				<h2><?php echo esc_html__( 'System Trust', 'zignites-sentinel' ); ?></h2>
 				<?php if ( $show_system_health_rows ) : ?>
 					<table class="widefat striped">
 						<tbody>
@@ -313,6 +325,12 @@ $operator_timeline_rows    = isset( $view_data['operator_timeline_rows'] ) && is
 							</li>
 						<?php endforeach; ?>
 					</ul>
+				<?php elseif ( ! empty( $restore_history_empty_state ) ) : ?>
+					<div class="znts-empty-state">
+						<strong><?php echo esc_html( isset( $restore_history_empty_state['title'] ) ? $restore_history_empty_state['title'] : __( 'No restore or rollback history yet.', 'zignites-sentinel' ) ); ?></strong>
+						<p><?php echo esc_html( isset( $restore_history_empty_state['description'] ) ? $restore_history_empty_state['description'] : '' ); ?></p>
+						<p class="description"><?php echo esc_html( isset( $restore_history_empty_state['next_step'] ) ? $restore_history_empty_state['next_step'] : '' ); ?></p>
+					</div>
 				<?php endif; ?>
 			</section>
 		</div>
@@ -322,6 +340,13 @@ $operator_timeline_rows    = isset( $view_data['operator_timeline_rows'] ) && is
 		<?php if ( $show_restore_control_summary ) : ?>
 			<section class="znts-card znts-card-full znts-card-primary znts-card-hero">
 				<h2><?php echo esc_html__( 'Restore Control Summary', 'zignites-sentinel' ); ?></h2>
+				<?php if ( ! empty( $readiness_history_empty_state ) ) : ?>
+					<div class="znts-empty-state">
+						<strong><?php echo esc_html( isset( $readiness_history_empty_state['title'] ) ? $readiness_history_empty_state['title'] : __( 'No readiness history yet.', 'zignites-sentinel' ) ); ?></strong>
+						<p><?php echo esc_html( isset( $readiness_history_empty_state['description'] ) ? $readiness_history_empty_state['description'] : '' ); ?></p>
+						<p class="description"><?php echo esc_html( isset( $readiness_history_empty_state['next_step'] ) ? $readiness_history_empty_state['next_step'] : '' ); ?></p>
+					</div>
+				<?php endif; ?>
 				<div class="znts-status-grid">
 					<?php foreach ( $restore_run_card_rows as $card ) : ?>
 						<section class="znts-status-card">
@@ -863,8 +888,8 @@ $operator_timeline_rows    = isset( $view_data['operator_timeline_rows'] ) && is
 		</section>
 
 		<section class="znts-card znts-card-secondary">
-			<h2><?php echo esc_html__( 'Recent Snapshot Metadata', 'zignites-sentinel' ); ?></h2>
-			<p class="description"><?php echo esc_html__( 'Use snapshot status filters to find snapshots with a baseline, a saved rollback package, fresh restore gates, or recent restore activity.', 'zignites-sentinel' ); ?></p>
+			<h2><?php echo esc_html__( 'Snapshot Library', 'zignites-sentinel' ); ?></h2>
+			<p class="description"><?php echo esc_html__( 'Use snapshot filters to find the restore reference you want to trust, compare, or review before taking action.', 'zignites-sentinel' ); ?></p>
 			<details class="znts-disclosure znts-disclosure-inline">
 				<summary><?php echo esc_html__( 'Status guide', 'zignites-sentinel' ); ?></summary>
 				<div class="znts-disclosure-body">
@@ -903,7 +928,11 @@ $operator_timeline_rows    = isset( $view_data['operator_timeline_rows'] ) && is
 				</p>
 			</form>
 			<?php if ( ! $has_recent_snapshot_rows ) : ?>
-				<p><?php echo esc_html( $snapshot_empty_message ); ?></p>
+				<div class="znts-empty-state">
+					<strong><?php echo esc_html( isset( $snapshot_empty_state['title'] ) ? $snapshot_empty_state['title'] : __( 'No snapshots found.', 'zignites-sentinel' ) ); ?></strong>
+					<p><?php echo esc_html( isset( $snapshot_empty_state['description'] ) ? $snapshot_empty_state['description'] : $snapshot_empty_message ); ?></p>
+					<p class="description"><?php echo esc_html( isset( $snapshot_empty_state['next_step'] ) ? $snapshot_empty_state['next_step'] : '' ); ?></p>
+				</div>
 			<?php else : ?>
 				<?php if ( '' !== $snapshot_pagination_summary ) : ?>
 					<p class="description"><?php echo esc_html( $snapshot_pagination_summary ); ?></p>
@@ -1963,11 +1992,29 @@ $operator_timeline_rows    = isset( $view_data['operator_timeline_rows'] ) && is
 		<?php endif; ?>
 
 		<section class="znts-card znts-card-muted">
-			<h2><?php echo esc_html__( 'Readiness Scope', 'zignites-sentinel' ); ?></h2>
+			<h2><?php echo esc_html__( 'Operator Guidance', 'zignites-sentinel' ); ?></h2>
+			<div class="znts-summary-strip">
+				<?php foreach ( $workspace_help_panels as $panel ) : ?>
+					<div class="znts-summary-item">
+						<span><?php echo esc_html( isset( $panel['title'] ) ? $panel['title'] : '' ); ?></span>
+						<p><?php echo esc_html( isset( $panel['body'] ) ? $panel['body'] : '' ); ?></p>
+					</div>
+				<?php endforeach; ?>
+			</div>
+			<?php if ( ! empty( $workspace_positioning_note ) ) : ?>
+				<div class="znts-flow-note">
+					<strong><?php echo esc_html( isset( $workspace_positioning_note['title'] ) ? $workspace_positioning_note['title'] : __( 'Positioning', 'zignites-sentinel' ) ); ?></strong>
+					<span><?php echo esc_html( isset( $workspace_positioning_note['body'] ) ? $workspace_positioning_note['body'] : '' ); ?></span>
+				</div>
+			<?php endif; ?>
+		</section>
+
+		<section class="znts-card znts-card-muted">
+			<h2><?php echo esc_html__( 'Sentinel Boundaries', 'zignites-sentinel' ); ?></h2>
 			<ul class="znts-list">
-				<li><?php echo esc_html__( 'This scan checks for common operational blockers and warnings before manual update activity.', 'zignites-sentinel' ); ?></li>
-				<li><?php echo esc_html__( 'Snapshot records created here store metadata about the current site state, not full file backups.', 'zignites-sentinel' ); ?></li>
-				<li><?php echo esc_html__( 'Manual update plans are review artifacts only and do not execute updates or restores.', 'zignites-sentinel' ); ?></li>
+				<li><?php echo esc_html__( 'This workspace checks for common blockers, trust gaps, and recovery warnings before an operator approves restore-related work.', 'zignites-sentinel' ); ?></li>
+				<li><?php echo esc_html__( 'Sentinel prepares controlled restore evidence and rollback context, but it does not claim fully transactional or atomic restore behavior.', 'zignites-sentinel' ); ?></li>
+				<li><?php echo esc_html__( 'Snapshot records and plans are operator review artifacts designed to support safer decisions, not unattended update automation.', 'zignites-sentinel' ); ?></li>
 			</ul>
 		</section>
 	</div>

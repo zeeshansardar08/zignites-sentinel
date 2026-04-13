@@ -45,6 +45,9 @@ class DashboardSummaryStateBuilder {
 			'system_health'         => is_array( $system_health ) ? $system_health : array(),
 			'snapshot_intelligence' => is_array( $snapshot_intelligence ) ? $snapshot_intelligence : array(),
 			'operator_timeline'     => is_array( $operator_timeline ) ? $operator_timeline : array(),
+			'help_panels'           => array(),
+			'empty_states'          => array(),
+			'positioning_note'      => array(),
 			'activity_url'          => (string) $activity_url,
 		);
 	}
@@ -140,6 +143,9 @@ class DashboardSummaryStateBuilder {
 			'system_health'         => isset( $summary_state['system_health'] ) && is_array( $summary_state['system_health'] ) ? $summary_state['system_health'] : array(),
 			'snapshot_intelligence' => isset( $summary_state['snapshot_intelligence'] ) && is_array( $summary_state['snapshot_intelligence'] ) ? $summary_state['snapshot_intelligence'] : array(),
 			'operator_timeline'     => isset( $summary_state['operator_timeline'] ) && is_array( $summary_state['operator_timeline'] ) ? $summary_state['operator_timeline'] : array(),
+			'help_panels'           => isset( $summary_state['help_panels'] ) && is_array( $summary_state['help_panels'] ) ? $summary_state['help_panels'] : array(),
+			'empty_states'          => isset( $summary_state['empty_states'] ) && is_array( $summary_state['empty_states'] ) ? $summary_state['empty_states'] : array(),
+			'positioning_note'      => isset( $summary_state['positioning_note'] ) && is_array( $summary_state['positioning_note'] ) ? $summary_state['positioning_note'] : array(),
 			'restore_health_strip'  => $restore_health_strip,
 			'activity_url'          => (string) $activity_url,
 		);
@@ -171,6 +177,9 @@ class DashboardSummaryStateBuilder {
 			'system_health'         => isset( $summary['system_health'] ) && is_array( $summary['system_health'] ) ? $summary['system_health'] : array(),
 			'snapshot_intelligence' => isset( $summary['snapshot_intelligence'] ) && is_array( $summary['snapshot_intelligence'] ) ? $summary['snapshot_intelligence'] : array(),
 			'operator_timeline'     => isset( $summary['operator_timeline'] ) && is_array( $summary['operator_timeline'] ) ? $summary['operator_timeline'] : array(),
+			'help_panels'           => isset( $summary['help_panels'] ) && is_array( $summary['help_panels'] ) ? $summary['help_panels'] : array(),
+			'empty_states'          => isset( $summary['empty_states'] ) && is_array( $summary['empty_states'] ) ? $summary['empty_states'] : array(),
+			'positioning_note'      => isset( $summary['positioning_note'] ) && is_array( $summary['positioning_note'] ) ? $summary['positioning_note'] : array(),
 		);
 	}
 }

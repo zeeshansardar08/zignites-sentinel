@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Zignites Sentinel
  * Plugin URI:  https://zignites.com/
- * Description: Stability diagnostics, update safeguards, and rollback foundations for WordPress sites.
+ * Description: Controlled restore readiness, snapshot trust guidance, and rollback safety for WordPress operators.
  * Version:     1.32.0
  * Author:      Zignites
  * Text Domain: zignites-sentinel

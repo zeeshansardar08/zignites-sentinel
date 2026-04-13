@@ -4,7 +4,7 @@
 - Plugin version: `1.32.0`
 - Database version: `1.4.0`
 - Status: advanced MVP / controlled-restore product foundation
-- Current objective achieved: the plugin now covers snapshot capture, advisory readiness, staged validation, restore planning, guarded live restore, guarded rollback, health verification, audit reporting, checkpointing, resumability, operator-facing admin workflows, and trust-layer guidance around system health, snapshot quality, and historical recovery confidence
+- Current objective achieved: the plugin now covers snapshot capture, advisory readiness, staged validation, restore planning, guarded live restore, guarded rollback, health verification, audit reporting, checkpointing, resumability, operator-facing admin workflows, trust-layer guidance around system health, snapshot quality, and historical recovery confidence, plus launch-facing product polish across first-run UX, in-product guidance, public positioning, screenshot readiness, and repository launch assets
 
 ## What Is Implemented
 
@@ -378,6 +378,50 @@
   - conflicting snapshot candidates
   - missing journal or run-history data
 
+### 17. Productization and Launch Readiness
+- Dashboard, Update Readiness, and Event Logs now include more polished first-run and empty-state guidance for:
+  - no snapshots yet
+  - no readiness history yet
+  - no restore or rollback history yet
+- Launch-facing admin copy now presents Sentinel more consistently as:
+  - a controlled restore workspace
+  - a restore-readiness review tool
+  - a rollback-safety layer for WordPress operators
+- Inline operator guidance now appears inside the product through concise panels explaining:
+  - how to use each screen
+  - what the current status means
+  - what to do next
+- Product-positioning notes now make the boundaries clearer without undercutting confidence:
+  - Sentinel helps operators prepare and recover carefully
+  - Sentinel does not claim fully transactional or atomic restore behavior
+- WordPress.org launch copy now exists in `readme.txt` with:
+  - short description
+  - longer overview
+  - feature framing
+  - FAQs
+  - limitations and expectations
+  - screenshot captions
+
+### 18. Visual Polish, Screenshot Readiness, and Launch Assets
+- Shared admin styling across Dashboard, Update Readiness, and Event Logs now uses a calmer premium surface system with:
+  - softer borders
+  - stronger hero emphasis
+  - cleaner spacing
+  - more balanced stat and summary tiles
+- Empty and first-run states now hold visual weight better in demos and screenshots through:
+  - richer empty-state containers
+  - improved section rhythm
+  - more consistent card hierarchy even when real activity data is missing
+- Primary labels and section headings were tightened to feel shorter, clearer, and more public-facing:
+  - `Review Workspace`
+  - `Best Next Step`
+  - `System Trust`
+  - `Snapshot Library`
+  - `Event Stream`
+- Launch assets now include:
+  - a polished `readme.txt` screenshot plan aligned to WordPress.org listing needs
+  - a GitHub-facing `README.md` overview with product positioning and screenshot placeholders
+
 ## Important Safety Characteristics
 - Most destructive operations are guarded by nonce + capability + explicit operator confirmation
 - Settings export/import only touches `znts_settings` and explicitly excludes runtime restore state
@@ -596,18 +640,18 @@
   - Event Logs run outcome summaries with duration, key actions, and execution-story messaging
   - focused regression coverage for dashboard action emphasis, pre-restore safety state, failure recovery messaging, rollback confirmation context, and event-log outcome summaries
 - Current branch prepared for merge:
-  - `feature/system-intelligence-trust-layer`
-- Current branch adds the System Intelligence + Trust Layer phase for:
-  - a global System Health score that reduces overall trust to Safe, Warning, or Risky based on freshness, readiness, unresolved failures, and recent recovery outcomes
-  - snapshot intelligence that identifies the recommended snapshot, last known good state, and per-snapshot risk indicators before operators act
-  - condensed operator timeline state so Dashboard and Update Readiness can narrate site history without forcing operators into raw logs
-  - short confidence messages and context-aware insights near primary actions so operators understand whether the system is safe to proceed
-  - focused regression coverage for health scoring, snapshot recommendation, timeline presentation, trust messaging, and older-snapshot warning behavior
+  - `feature/productization-launch-readiness`
+- Current branch adds the Productization + Launch Readiness phase for:
+  - polished first-run and empty-state messaging across Dashboard, Update Readiness, and Event Logs
+  - concise in-product guidance panels for screen usage, status meaning, and next-step recommendations
+  - clearer launch-facing product positioning so Sentinel reads as a controlled restore and rollback-safety plugin rather than an atomic restore engine
+  - WordPress.org-ready launch copy in `readme.txt` covering overview, FAQs, limitations, and screenshot captions
+  - focused regression coverage for structured empty-state and guidance payloads rather than brittle static copy assertions
 - Next likely restart task after this branch merges:
-  - run a live admin smoke pass to validate the new trust score, recommendation messaging, and timeline hierarchy against the real WordPress admin output
-  - tune any copy, trust weighting, or section emphasis issues discovered in live usage before adding more product scope
+  - run a live admin smoke pass and capture final WordPress.org screenshots using the new empty states, guidance panels, and launch copy
+  - polish any remaining copy or hierarchy issues discovered during screenshots and demo recording
   - only widen smoke markers further when a screen’s stable section structure changes materially
-  - keep the next phase centered on intelligence and operator trust rather than widening destructive restore behavior
+  - keep future work centered on product packaging, validation discipline, and documentation quality rather than expanding destructive restore scope
 
 
 

@@ -597,6 +597,7 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'Page 1 of 2, 25 snapshots matched.', $state['snapshot_pagination_summary'], 'Update Readiness state builder should derive snapshot pagination summary copy.' );
 	znts_assert_same( true, $state['show_snapshot_filter_clear'], 'Update Readiness state builder should expose snapshot filter reset visibility.' );
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness&snapshot_id=101', $state['snapshot_filter_clear_url'], 'Update Readiness state builder should derive snapshot filter reset URLs.' );
+	znts_assert_same( 'No snapshots match this view.', $state['snapshot_empty_state']['title'], 'Update Readiness state builder should build a polished filtered empty state for snapshot lists.' );
 	znts_assert_same( 1, $state['snapshot_pagination_links_args']['current'], 'Update Readiness state builder should derive snapshot pagination current page.' );
 	znts_assert_same( 2, $state['snapshot_pagination_links_args']['total'], 'Update Readiness state builder should derive snapshot pagination total pages.' );
 	znts_assert_true( false !== strpos( $state['snapshot_pagination_links_args']['base'], 'snapshot_search=Release' ), 'Update Readiness state builder should preserve snapshot search in pagination links.' );
@@ -648,6 +649,8 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'Warning', $state['system_health_status']['status_label'], 'Update Readiness state builder should normalize the system-health status payload.' );
 	znts_assert_same( 'Safer snapshot', $state['recommended_snapshot_card']['label'], 'Update Readiness state builder should expose the recommended snapshot card.' );
 	znts_assert_same( 'Last known good', $state['last_known_good_card']['label'], 'Update Readiness state builder should expose the last-known-good snapshot card.' );
+	znts_assert_same( 'How to use this screen', $state['workspace_help_panels'][0]['title'], 'Update Readiness state builder should expose launch-ready workspace guidance panels.' );
+	znts_assert_same( 'What Sentinel is designed to do', $state['workspace_positioning_note']['title'], 'Update Readiness state builder should expose product-positioning guidance.' );
 	znts_assert_same( 'The current workspace is not the recommended snapshot.', $state['snapshot_intelligence_warnings'][0], 'Update Readiness state builder should expose snapshot intelligence warnings.' );
 	znts_assert_same( 'Snapshot taken', $state['operator_timeline_rows'][0]['title'], 'Update Readiness state builder should expose condensed operator timeline rows.' );
 	znts_assert_same( 'Snapshot ready', $state['snapshot_summary_status_badges'][0]['label'], 'Update Readiness state builder should derive snapshot summary badge rows.' );
@@ -1015,6 +1018,12 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( 'No snapshot selected', $state['selected_snapshot_label'], 'Update Readiness state builder should derive the empty selected snapshot label.' );
 	znts_assert_same( 'Awaiting snapshot', $state['workspace_status_label'], 'Update Readiness state builder should derive awaiting-snapshot workspace status.' );
 	znts_assert_same( 'critical', $state['workspace_status_badge'], 'Update Readiness state builder should derive the awaiting-snapshot workspace badge.' );
+	znts_assert_same( 'No snapshots match this view.', $state['snapshot_empty_state']['title'], 'Update Readiness state builder should expose a filtered snapshot empty state when search terms are active.' );
+	znts_assert_same( 'Start with a snapshot, then let Sentinel guide the rest.', $state['first_run_notice']['title'], 'Update Readiness state builder should expose a first-run workspace notice when no history exists.' );
+	znts_assert_same( 'No readiness history yet.', $state['readiness_history_empty_state']['title'], 'Update Readiness state builder should expose a readiness-history empty state when no review data exists.' );
+	znts_assert_same( 'No restore or rollback history yet.', $state['restore_history_empty_state']['title'], 'Update Readiness state builder should expose a restore-history empty state when no recovery data exists.' );
+	znts_assert_same( 'How to use this screen', $state['workspace_help_panels'][0]['title'], 'Update Readiness state builder should expose default workspace guidance panels.' );
+	znts_assert_same( 'What Sentinel is designed to do', $state['workspace_positioning_note']['title'], 'Update Readiness state builder should expose default positioning guidance.' );
 	znts_assert_same( 'critical', $state['health_attention_state'], 'Update Readiness state builder should derive critical health attention state without a baseline.' );
 	znts_assert_same( 'info', $state['snapshot_health_baseline_status']['badge'], 'Update Readiness state builder should default missing health baseline badges to info.' );
 	znts_assert_same( array(), $state['snapshot_health_comparison_rows'], 'Update Readiness state builder should default missing health comparison rows to an empty array.' );

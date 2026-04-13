@@ -104,6 +104,7 @@ class UpdateReadinessStateBuilder {
 		$view_data['snapshot_empty_message'] = '' !== $snapshot_search || '' !== $snapshot_status_filter
 			? __( 'No snapshots matched the current filters.', 'zignites-sentinel' )
 			: __( 'No snapshot metadata has been recorded yet.', 'zignites-sentinel' );
+		$view_data['snapshot_empty_state'] = $this->build_snapshot_list_empty_state( $snapshot_search, $snapshot_status_filter );
 		$view_data['snapshot_pagination_summary'] = $this->build_snapshot_pagination_summary( $snapshot_pagination );
 		$view_data['show_snapshot_filter_clear'] = '' !== $snapshot_search || '' !== $snapshot_status_filter;
 		$view_data['snapshot_filter_clear_url'] = $this->build_snapshot_filter_clear_url( $snapshot_detail );
@@ -216,6 +217,25 @@ class UpdateReadinessStateBuilder {
 		);
 		$view_data['recommended_snapshot_card'] = $this->build_snapshot_recommendation_card( $recommended_snapshot );
 		$view_data['last_known_good_card'] = $this->build_snapshot_recommendation_card( $last_known_good );
+		$view_data['first_run_notice'] = $this->build_first_run_notice(
+			$snapshot_detail,
+			$this->array_value( $view_data, 'last_preflight' ),
+			$this->array_value( $view_data, 'last_update_plan' ),
+			$this->array_value( $view_data, 'last_restore_execution' ),
+			$this->array_value( $view_data, 'last_restore_rollback' )
+		);
+		$view_data['readiness_history_empty_state'] = $this->build_readiness_history_empty_state(
+			$this->array_value( $view_data, 'last_preflight' ),
+			$this->array_value( $view_data, 'last_update_plan' ),
+			$this->array_value( $view_data, 'last_restore_check' )
+		);
+		$view_data['restore_history_empty_state'] = $this->build_restore_history_empty_state(
+			$this->array_value( $view_data, 'last_restore_execution' ),
+			$this->array_value( $view_data, 'last_restore_rollback' ),
+			$operator_timeline
+		);
+		$view_data['workspace_help_panels'] = $this->build_workspace_help_panels( $snapshot_detail, $system_health, $operator_checklist );
+		$view_data['workspace_positioning_note'] = $this->build_workspace_positioning_note();
 		$view_data['snapshot_intelligence_warnings'] = $this->build_snapshot_summary_string_list(
 			isset( $snapshot_intelligence['warnings'] ) && is_array( $snapshot_intelligence['warnings'] ) ? $snapshot_intelligence['warnings'] : array()
 		);
@@ -724,6 +744,143 @@ class UpdateReadinessStateBuilder {
 			'badge'        => isset( $system_health['badge'] ) ? (string) $system_health['badge'] : ( 'risky' === $status ? 'critical' : ( 'warning' === $status ? 'warning' : 'info' ) ),
 			'title'        => isset( $system_health['title'] ) ? (string) $system_health['title'] : __( 'System Health', 'zignites-sentinel' ),
 			'note'         => isset( $system_health['summary'] ) ? (string) $system_health['summary'] : '',
+		);
+	}
+
+	/**
+	 * Build a polished snapshot-list empty state.
+	 *
+	 * @param string $snapshot_search        Search term.
+	 * @param string $snapshot_status_filter Status filter.
+	 * @return array
+	 */
+	protected function build_snapshot_list_empty_state( $snapshot_search, $snapshot_status_filter ) {
+		if ( '' !== (string) $snapshot_search || '' !== (string) $snapshot_status_filter ) {
+			return array(
+				'title'       => __( 'No snapshots match this view.', 'zignites-sentinel' ),
+				'description' => __( 'The current filters are valid, but no snapshot in the recorded library fits them yet.', 'zignites-sentinel' ),
+				'next_step'   => __( 'Reset the filters or broaden the search to return to the full snapshot library.', 'zignites-sentinel' ),
+			);
+		}
+
+		return array(
+			'title'       => __( 'No snapshots have been captured yet.', 'zignites-sentinel' ),
+			'description' => __( 'Update Readiness becomes useful once Sentinel has a snapshot to evaluate, compare, and guide against.', 'zignites-sentinel' ),
+			'next_step'   => __( 'Create the first snapshot to unlock readiness guidance, trust scoring, and rollback context.', 'zignites-sentinel' ),
+		);
+	}
+
+	/**
+	 * Build a first-run notice for the workspace hero.
+	 *
+	 * @param array|null $snapshot_detail        Selected snapshot.
+	 * @param array      $last_preflight         Last preflight.
+	 * @param array      $last_update_plan       Last update plan.
+	 * @param array      $last_restore_execution Last restore execution.
+	 * @param array      $last_restore_rollback  Last restore rollback.
+	 * @return array
+	 */
+	protected function build_first_run_notice( $snapshot_detail, array $last_preflight, array $last_update_plan, array $last_restore_execution, array $last_restore_rollback ) {
+		if ( is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) ) {
+			return array();
+		}
+
+		if ( ! empty( $last_preflight ) || ! empty( $last_update_plan ) || ! empty( $last_restore_execution ) || ! empty( $last_restore_rollback ) ) {
+			return array();
+		}
+
+		return array(
+			'title'       => __( 'Start with a snapshot, then let Sentinel guide the rest.', 'zignites-sentinel' ),
+			'description' => __( 'This workspace is where operators judge restore readiness, compare site state, and review controlled recovery steps before doing anything risky.', 'zignites-sentinel' ),
+			'next_step'   => __( 'Create a snapshot, run a readiness scan, and use the trust panels below to decide what should happen next.', 'zignites-sentinel' ),
+		);
+	}
+
+	/**
+	 * Build a no-history state for readiness evidence.
+	 *
+	 * @param array $last_preflight    Last preflight.
+	 * @param array $last_update_plan  Last update plan.
+	 * @param array $last_restore_check Last restore check.
+	 * @return array
+	 */
+	protected function build_readiness_history_empty_state( array $last_preflight, array $last_update_plan, array $last_restore_check ) {
+		if ( ! empty( $last_preflight ) || ! empty( $last_update_plan ) || ! empty( $last_restore_check ) ) {
+			return array();
+		}
+
+		return array(
+			'title'       => __( 'No readiness history yet.', 'zignites-sentinel' ),
+			'description' => __( 'Readiness checks, validation, and planning results will appear here after the first scan and snapshot review.', 'zignites-sentinel' ),
+			'next_step'   => __( 'Run preflight and capture a snapshot to generate the first readiness record.', 'zignites-sentinel' ),
+		);
+	}
+
+	/**
+	 * Build a no-history state for restore and rollback evidence.
+	 *
+	 * @param array $last_restore_execution Last restore execution.
+	 * @param array $last_restore_rollback  Last restore rollback.
+	 * @param array $operator_timeline      Operator timeline.
+	 * @return array
+	 */
+	protected function build_restore_history_empty_state( array $last_restore_execution, array $last_restore_rollback, array $operator_timeline ) {
+		$timeline_items = isset( $operator_timeline['items'] ) && is_array( $operator_timeline['items'] ) ? $operator_timeline['items'] : array();
+
+		if ( ! empty( $last_restore_execution ) || ! empty( $last_restore_rollback ) || ! empty( $timeline_items ) ) {
+			return array();
+		}
+
+		return array(
+			'title'       => __( 'No restore or rollback history yet.', 'zignites-sentinel' ),
+			'description' => __( 'Sentinel will summarize controlled restore attempts and rollback evidence here once the workflow has been used.', 'zignites-sentinel' ),
+			'next_step'   => __( 'Build confidence with snapshots and readiness checks first. Recovery history appears after real restore activity.', 'zignites-sentinel' ),
+		);
+	}
+
+	/**
+	 * Build inline workspace help panels.
+	 *
+	 * @param array|null $snapshot_detail    Selected snapshot.
+	 * @param array      $system_health      System health payload.
+	 * @param array      $operator_checklist Operator checklist payload.
+	 * @return array
+	 */
+	protected function build_workspace_help_panels( $snapshot_detail, array $system_health, array $operator_checklist ) {
+		$has_snapshot = is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] );
+		$is_safe      = ! empty( $operator_checklist['can_execute'] ) && 'safe' === ( isset( $system_health['status'] ) ? (string) $system_health['status'] : '' );
+
+		return array(
+			array(
+				'title' => __( 'How to use this screen', 'zignites-sentinel' ),
+				'body'  => $has_snapshot
+					? __( 'Use this workspace to review one snapshot at a time. Start with the trust summary, then open only the detail sections you need to confirm the next safe step.', 'zignites-sentinel' )
+					: __( 'Choose or create a snapshot first. Sentinel will then turn this page into a guided restore-readiness workspace for that snapshot.', 'zignites-sentinel' ),
+			),
+			array(
+				'title' => __( 'What this status means', 'zignites-sentinel' ),
+				'body'  => $is_safe
+					? __( 'A safer status means Sentinel currently sees current evidence, a trusted snapshot, and no obvious unresolved recovery blocker.', 'zignites-sentinel' )
+					: __( 'A warning or risky status means some of the restore evidence is missing, stale, or needs review before the snapshot should be trusted.', 'zignites-sentinel' ),
+			),
+			array(
+				'title' => __( 'What to do next', 'zignites-sentinel' ),
+				'body'  => $has_snapshot
+					? __( 'Follow the highlighted next action near the top of the page, then use the trust, checklist, and impact sections to confirm the decision.', 'zignites-sentinel' )
+					: __( 'Create a snapshot, run readiness checks, and return here once Sentinel has enough evidence to guide you.', 'zignites-sentinel' ),
+			),
+		);
+	}
+
+	/**
+	 * Build a concise product-positioning note for Update Readiness.
+	 *
+	 * @return array
+	 */
+	protected function build_workspace_positioning_note() {
+		return array(
+			'title' => __( 'What Sentinel is designed to do', 'zignites-sentinel' ),
+			'body'  => __( 'Sentinel is a controlled restore and rollback-safety workspace. It helps operators prepare, review, and recover carefully, but it is not a transactional or atomic restore engine.', 'zignites-sentinel' ),
 		);
 	}
 

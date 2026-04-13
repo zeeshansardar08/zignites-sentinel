@@ -2,13 +2,13 @@
 	--znts-bg-soft: #f6f7fb;
 	--znts-bg-accent: #f0f6ff;
 	--znts-bg-flat: #fbfcfe;
-	--znts-border: #dcdcde;
-	--znts-border-strong: #c3c4c7;
+	--znts-border: #e4e7eb;
+	--znts-border-strong: #cfd6de;
 	--znts-text-soft: #50575e;
 	--znts-text-strong: #1d2327;
-	--znts-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-	--znts-shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.04);
-	max-width: 1260px;
+	--znts-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+	--znts-shadow-soft: 0 14px 32px rgba(15, 23, 42, 0.06);
+	max-width: 1280px;
 }
 
 .znts-page-header {
@@ -25,9 +25,9 @@
 .znts-page-intro {
 	color: var(--znts-text-soft);
 	font-size: 14px;
-	line-height: 1.55;
+	line-height: 1.65;
 	margin: 0;
-	max-width: 820px;
+	max-width: 840px;
 }
 
 .znts-admin-grid {
@@ -40,9 +40,9 @@
 .znts-card {
 	background: #fff;
 	border: 1px solid var(--znts-border);
-	border-radius: 12px;
+	border-radius: 14px;
 	box-shadow: var(--znts-shadow);
-	padding: 20px;
+	padding: 22px;
 }
 
 .znts-card-full {
@@ -52,8 +52,8 @@
 .znts-card-soft,
 .znts-card-secondary {
 	background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
-	border-color: #ebeef2;
-	box-shadow: 0 1px 1px rgba(15, 23, 42, 0.02);
+	border-color: #edf1f5;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
 }
 
 .znts-card-muted {
@@ -61,8 +61,8 @@
 }
 
 .znts-card-primary {
-	background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
-	border-color: #d9e4f6;
+	background: linear-gradient(180deg, #ffffff 0%, #f6faff 100%);
+	border-color: #d6e1f2;
 	box-shadow: var(--znts-shadow-soft);
 }
 
@@ -73,7 +73,7 @@
 }
 
 .znts-card-hero {
-	background: linear-gradient(145deg, #ffffff 0%, #f5f9ff 100%);
+	background: linear-gradient(145deg, #ffffff 0%, #f4f8ff 52%, #eef5ff 100%);
 	box-shadow: var(--znts-shadow-soft);
 }
 
@@ -89,7 +89,7 @@
 }
 
 .znts-card h2 {
-	font-size: 20px;
+	font-size: 21px;
 	line-height: 1.25;
 	margin-bottom: 8px;
 }
@@ -147,9 +147,12 @@
 
 .znts-summary-item,
 .znts-stat-tile {
-	background: rgba(255, 255, 255, 0.92);
-	border: 1px solid #edf0f4;
+	background: rgba(255, 255, 255, 0.94);
+	border: 1px solid #edf1f5;
 	border-radius: 12px;
+	display: flex;
+	flex-direction: column;
+	min-height: 132px;
 	padding: 18px;
 }
 
@@ -195,11 +198,11 @@
 }
 
 .znts-hero-main {
-	background: linear-gradient(150deg, #ffffff 0%, #f3f8ff 100%);
-	border: 1px solid #d8e4f8;
-	border-radius: 16px;
+	background: linear-gradient(150deg, #ffffff 0%, #f3f8ff 62%, #edf5ff 100%);
+	border: 1px solid #d5e2f5;
+	border-radius: 18px;
 	box-shadow: var(--znts-shadow-soft);
-	padding: 34px;
+	padding: 36px;
 }
 
 .znts-hero-main .znts-readiness-row {
@@ -207,7 +210,7 @@
 }
 
 .znts-hero-title {
-	font-size: 28px;
+	font-size: 30px;
 	line-height: 1.15;
 	margin: 0;
 }
@@ -215,14 +218,14 @@
 .znts-hero-subtitle {
 	color: var(--znts-text-soft);
 	font-size: 15px;
-	line-height: 1.6;
+	line-height: 1.7;
 	margin: 12px 0 0;
 	max-width: 780px;
 }
 
 .znts-hero-recommendation {
 	background: #ffffff;
-	border: 1px solid #cfdcf3;
+	border: 1px solid #d7e1f0;
 	border-radius: 14px;
 	box-shadow: inset 4px 0 0 #1d4f91;
 	margin-top: 20px;
@@ -247,12 +250,12 @@
 .znts-flow-note {
 	align-items: flex-start;
 	background: rgba(255, 255, 255, 0.88);
-	border: 1px solid #e8edf3;
+	border: 1px solid #e7edf5;
 	border-radius: 12px;
 	display: flex;
 	flex-wrap: wrap;
 	gap: 10px;
-	line-height: 1.55;
+	line-height: 1.6;
 	margin-top: 18px;
 	padding: 12px 14px;
 }
@@ -526,11 +529,11 @@
 }
 
 .znts-toolbar {
-	background: var(--znts-bg-soft);
-	border: 1px solid var(--znts-border);
-	border-radius: 14px;
+	background: linear-gradient(180deg, #fbfcfe 0%, #f6f8fb 100%);
+	border: 1px solid #e6ebf0;
+	border-radius: 16px;
 	margin-bottom: 18px;
-	padding: 18px;
+	padding: 20px;
 }
 
 .znts-toolbar-head {
@@ -562,9 +565,9 @@
 }
 
 .znts-status-card {
-	background: #f8fafc;
-	border: 1px solid #edf0f4;
-	border-radius: 10px;
+	background: linear-gradient(180deg, #fbfcfe 0%, #f7f9fc 100%);
+	border: 1px solid #edf1f5;
+	border-radius: 12px;
 	padding: 18px;
 }
 
@@ -629,10 +632,10 @@
 .znts-status-guide,
 .znts-helper-block,
 .znts-empty-state {
-	background: #f6f7f7;
-	border: 1px solid #e6e8eb;
-	border-radius: 10px;
-	padding: 16px 18px;
+	background: linear-gradient(180deg, #fbfcfd 0%, #f6f8fa 100%);
+	border: 1px solid #e6eaee;
+	border-radius: 12px;
+	padding: 18px 20px;
 }
 
 .znts-helper-block {
@@ -701,6 +704,12 @@
 	margin: 0 0 8px;
 }
 
+.znts-empty-state {
+	display: grid;
+	gap: 8px;
+	min-height: 132px;
+}
+
 .znts-empty-state strong {
 	display: block;
 	margin-bottom: 6px;
@@ -759,11 +768,11 @@
 }
 
 .znts-summary-hero {
-	background: linear-gradient(150deg, #ffffff 0%, #f5f8fd 100%);
-	border: 1px solid #d8e4f8;
-	border-radius: 16px;
+	background: linear-gradient(150deg, #ffffff 0%, #f5f8fd 58%, #eef4fc 100%);
+	border: 1px solid #d8e2f0;
+	border-radius: 18px;
 	box-shadow: var(--znts-shadow-soft);
-	padding: 28px;
+	padding: 30px;
 }
 
 .znts-summary-hero .znts-summary-strip {
@@ -793,7 +802,7 @@
 
 .znts-kpi {
 	background: #fff;
-	border: 1px solid #e6e8eb;
+	border: 1px solid #e9edf2;
 	border-radius: 12px;
 	padding: 16px;
 }
@@ -838,10 +847,10 @@
 .znts-activity-item,
 .znts-timeline-item {
 	background: #fff;
-	border: 1px solid #e6e8eb;
-	border-radius: 12px;
+	border: 1px solid #e9edf2;
+	border-radius: 14px;
 	list-style: none;
-	padding: 16px;
+	padding: 18px;
 }
 
 .znts-log-row-critical td:first-child,
@@ -919,8 +928,8 @@
 }
 
 .znts-investigation-tile {
-	background: #f8fafc;
-	border: 1px solid #edf0f4;
+	background: linear-gradient(180deg, #fbfcfe 0%, #f7f9fc 100%);
+	border: 1px solid #edf1f5;
 	border-radius: 12px;
 	padding: 16px;
 }
@@ -958,9 +967,9 @@
 }
 
 .znts-overview-block {
-	background: #f8fafc;
-	border: 1px solid #edf0f4;
-	border-radius: 10px;
+	background: linear-gradient(180deg, #fbfcfe 0%, #f7f9fc 100%);
+	border: 1px solid #edf1f5;
+	border-radius: 12px;
 	padding: 16px;
 }
 
@@ -975,8 +984,8 @@
 }
 
 .znts-form-panel {
-	background: #f8fafc;
-	border: 1px solid #e6e8eb;
+	background: linear-gradient(180deg, #fbfcfe 0%, #f7f9fc 100%);
+	border: 1px solid #e6eaef;
 	border-radius: 12px;
 	padding: 16px;
 }

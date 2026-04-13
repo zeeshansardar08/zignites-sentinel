@@ -67,6 +67,8 @@ function znts_test_dashboard_summary_state_builder_normalizes_dashboard_inputs()
 	znts_assert_same( 'safe', $state['system_health']['status'], 'Dashboard summary state builder should preserve the system-health payload.' );
 	znts_assert_same( 91, $state['snapshot_intelligence']['recommended_snapshot']['id'], 'Dashboard summary state builder should preserve the snapshot intelligence payload.' );
 	znts_assert_same( 'Snapshot taken', $state['operator_timeline']['items'][0]['title'], 'Dashboard summary state builder should preserve the operator timeline payload.' );
+	znts_assert_same( array(), $state['help_panels'], 'Dashboard summary state builder should default optional help panels to an empty array before presentation.' );
+	znts_assert_same( array(), $state['empty_states'], 'Dashboard summary state builder should default optional empty states to an empty array before presentation.' );
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=91', $state['activity_url'], 'Dashboard summary state builder should preserve the supplied activity URL.' );
 }
 
@@ -217,6 +219,8 @@ function znts_test_dashboard_summary_state_builder_normalizes_summary_view_state
 	znts_assert_same( 'safe', $state['system_health']['status'], 'Dashboard summary view-state builder should preserve the system-health payload.' );
 	znts_assert_same( 95, $state['snapshot_intelligence']['recommended_snapshot']['id'], 'Dashboard summary view-state builder should preserve the snapshot intelligence payload.' );
 	znts_assert_same( 'Snapshot taken', $state['operator_timeline']['items'][0]['title'], 'Dashboard summary view-state builder should preserve the operator timeline payload.' );
+	znts_assert_same( array(), $state['help_panels'], 'Dashboard summary view-state builder should preserve optional help panels as arrays.' );
+	znts_assert_same( array(), $state['positioning_note'], 'Dashboard summary view-state builder should preserve optional positioning notes as arrays.' );
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=95', $state['activity_url'], 'Dashboard summary view-state builder should preserve the supplied activity URL.' );
 }
 
@@ -285,4 +289,5 @@ function znts_test_dashboard_summary_state_builder_normalizes_dashboard_screen_s
 	znts_assert_same( 'safe', $state['system_health']['status'], 'Dashboard screen state builder should preserve the system-health payload.' );
 	znts_assert_same( 96, $state['snapshot_intelligence']['recommended_snapshot']['id'], 'Dashboard screen state builder should preserve the snapshot intelligence payload.' );
 	znts_assert_same( 'Snapshot taken', $state['operator_timeline']['items'][0]['title'], 'Dashboard screen state builder should preserve the operator timeline payload.' );
+	znts_assert_same( array(), $state['help_panels'], 'Dashboard screen state builder should preserve optional help panels as arrays.' );
 }

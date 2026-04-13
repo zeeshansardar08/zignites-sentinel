@@ -44,6 +44,8 @@ function znts_test_event_log_presenter_builds_summary_tiles_and_filter_state() {
 	znts_assert_same( '2', $payload['summary_tiles'][3]['value'], 'Event log presenter should expose the operational event count in the summary tiles.' );
 	znts_assert_same( 'Warning', $payload['recent_logs'][0]['severity_label'], 'Event log presenter should decorate recent log rows with readable severity labels.' );
 	znts_assert_same( 'warning', $payload['recent_logs'][0]['severity_pill'], 'Event log presenter should preserve warning severity pill variants for recent logs.' );
+	znts_assert_same( 'How to use this screen', $payload['guidance_panels'][0]['title'], 'Event log presenter should expose inline guidance panels.' );
+	znts_assert_same( 'What this history is for', $payload['positioning_note']['title'], 'Event log presenter should expose product-positioning guidance.' );
 }
 
 function znts_test_event_log_presenter_decorates_run_summary_and_journal_status_pills() {
@@ -115,6 +117,24 @@ function znts_test_event_log_presenter_builds_run_outcome_summary() {
 	znts_assert_same( '1m 30s', $payload['run_outcome_summary']['duration'], 'Event log presenter should calculate run duration from the first and last journal timestamps.' );
 	znts_assert_true( false !== strpos( $payload['run_outcome_summary']['rows'][3]['value'], 'Gate confirmation' ), 'Event log presenter should summarize key actions performed in the run outcome summary.' );
 	znts_assert_true( false !== strpos( $payload['run_outcome_summary']['story'], '1 fail' ), 'Event log presenter should narrate pass/fail counts in the run outcome summary story.' );
+}
+
+function znts_test_event_log_presenter_builds_first_run_empty_states() {
+	$presenter = new EventLogPresenter();
+
+	$payload = $presenter->build_view_payload(
+		array(),
+		array(),
+		array(),
+		array(),
+		array(),
+		array(
+			'total_logs' => 0,
+		)
+	);
+
+	znts_assert_same( 'No event history has been recorded yet.', $payload['empty_state']['title'], 'Event log presenter should expose a first-run empty state when no event history exists.' );
+	znts_assert_same( 'No restore or rollback history yet.', $payload['history_empty_state']['title'], 'Event log presenter should expose a restore-history empty state when no run history exists.' );
 }
 
 function znts_test_event_log_presenter_builds_snapshot_activity_entries() {
