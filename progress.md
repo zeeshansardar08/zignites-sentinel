@@ -561,15 +561,18 @@
   - selected snapshot smoke checks now require the snapshot activity and detail sections while treating restore-control and restore-impact surfaces as optional live-state markers
   - focused regression coverage now keeps the smoke helper aligned with the current Update Readiness UX so future UI drift is caught earlier
 - Current branch prepared for merge:
-  - `feature/admin-smoke-dashboard-event-markers`
-- Current branch adds the next dashboard/event-log admin smoke coverage pass for:
-  - dashboard smoke markers now require the current restore-readiness and event-activity sections instead of relying on older generic recommendation text
-  - Event Logs smoke markers now require the investigation-console and event-explorer surfaces while tracking operational-events and run-summary disclosures as optional
-  - focused regression coverage now keeps the live smoke helper aligned across all three main admin surfaces: Dashboard, Update Readiness, and Event Logs
+  - `feature/operator-flow-safety-hardening`
+- Current branch adds Phase operator-flow clarity and safety hardening for:
+  - Dashboard now exposes one dominant operator action at a time with explicit context instead of generic recommendation text
+  - Update Readiness now exposes a prepared primary action, a dedicated pre-restore checklist block, actionable safety warnings, a visible partial-restore recovery summary, and rollback confirmation context before destructive recovery
+  - live restore execution is now blocked server-side by a dedicated pre-restore safety layer that requires current readiness evidence and no unresolved partial or blocked restore state
+  - Event Logs now exposes a run outcome summary with status, duration, key actions, and execution-story copy so operators do not need to infer outcome from raw rows alone
+  - focused regression coverage now includes dashboard primary-action URLs, pre-restore safety state, restore failure recovery summaries, rollback confirmation context, and event-log operator outcome summaries
 - Next likely restart task after this branch merges:
-  - keep manual/admin smoke coverage current as operator-facing surfaces change
+  - run a live admin smoke pass to validate the new operator guidance copy and section hierarchy against the real WordPress admin output
+  - tune any copy or section emphasis issues discovered in live usage before adding more product scope
   - only widen smoke markers further when a screen’s stable section structure changes materially
-  - avoid reopening the completed Update Readiness fallback-cleanup track unless a real regression appears
+  - keep this phase limited to clarity and safety hardening rather than introducing new restore mechanisms
 
 
 

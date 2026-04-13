@@ -54,6 +54,7 @@ class UpdateReadinessStateBuilder {
 			'snapshot_health_comparison' => $this->array_value( $state, 'snapshot_health_comparison' ),
 			'snapshot_summary'        => $this->array_value( $state, 'snapshot_summary' ),
 			'operator_checklist'      => $this->array_value( $state, 'operator_checklist' ),
+			'pre_restore_safety'      => $this->array_value( $state, 'pre_restore_safety' ),
 			'restore_impact_summary'  => $this->array_value( $state, 'restore_impact_summary' ),
 			'audit_report_verification' => $this->array_value( $state, 'audit_report_verification' ),
 			'snapshot_activity'       => $this->array_value( $state, 'snapshot_activity' ),
@@ -73,6 +74,7 @@ class UpdateReadinessStateBuilder {
 		$view_data = $this->with_restore_result_state( $view_data );
 		$view_data = $this->with_checkpoint_summary_state( $view_data );
 		$view_data = $this->with_form_state( $view_data );
+		$view_data = $this->with_operator_flow_state( $view_data );
 		$view_data = $this->with_view_visibility_state( $view_data );
 
 		return $view_data;
@@ -374,6 +376,7 @@ class UpdateReadinessStateBuilder {
 		$plan_validation                 = $this->array_value( $view_data, 'plan_validation' );
 		$restore_source_validation       = $this->array_value( $view_data, 'restore_source_validation' );
 		$operator_checklist              = $this->array_value( $view_data, 'operator_checklist' );
+		$pre_restore_safety             = $this->array_value( $view_data, 'pre_restore_safety' );
 		$restore_resume_context          = $this->array_value( $view_data, 'restore_resume_context' );
 		$restore_rollback_resume_context = $this->array_value( $view_data, 'restore_rollback_resume_context' );
 		$snapshot_id                     = is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) ? (int) $snapshot_detail['id'] : 0;
@@ -385,7 +388,7 @@ class UpdateReadinessStateBuilder {
 		$view_data['restore_form_state'] = array(
 			'has_selected_snapshot'        => $snapshot_id > 0,
 			'selected_snapshot_id'         => $snapshot_id > 0 ? (string) $snapshot_id : '',
-			'can_execute_restore'          => ! empty( $operator_checklist['can_execute'] ),
+			'can_execute_restore'          => ! empty( $pre_restore_safety['can_execute'] ),
 			'can_resume_restore'           => ! empty( $restore_resume_context['can_resume'] ),
 			'can_resume_rollback'          => ! empty( $restore_rollback_resume_context['can_resume'] ),
 			'plan_validation_message'      => isset( $plan_validation['message'] ) ? (string) $plan_validation['message'] : '',
@@ -399,6 +402,50 @@ class UpdateReadinessStateBuilder {
 			'show_rollback_checkpoint_message' => '' !== $rollback_checkpoint_message,
 			'rollback_resume_run_label'    => $this->build_run_label( $restore_rollback_resume_context ),
 			'has_execution_checkpoint'     => isset( $execution_checkpoint['checkpoint'] ) && is_array( $execution_checkpoint['checkpoint'] ),
+			'pre_restore_block_message'    => isset( $pre_restore_safety['message'] ) ? (string) $pre_restore_safety['message'] : '',
+		);
+
+		return $view_data;
+	}
+
+	/**
+	 * Add derived operator flow, safety checklist, and recovery state.
+	 *
+	 * @param array $view_data Normalized screen state.
+	 * @return array
+	 */
+	protected function with_operator_flow_state( array $view_data ) {
+		$pre_restore_safety    = $this->array_value( $view_data, 'pre_restore_safety' );
+		$restore_form_state    = $this->array_value( $view_data, 'restore_form_state' );
+		$restore_execution     = $this->array_value( $view_data, 'last_restore_execution' );
+		$execution_meta        = $this->array_value( $view_data, 'restore_execution_meta' );
+		$execution_health      = $this->array_value( $view_data, 'restore_execution_health_status' );
+		$rollback_resume       = $this->array_value( $view_data, 'restore_rollback_resume_context' );
+		$restore_resume        = $this->array_value( $view_data, 'restore_resume_context' );
+		$snapshot_detail       = $this->nullable_array_value( $view_data, 'snapshot_detail' );
+
+		$view_data['pre_restore_safety_status'] = $this->build_pre_restore_safety_status( $pre_restore_safety );
+		$view_data['pre_restore_safety_check_rows'] = $this->build_check_rows( $pre_restore_safety );
+		$view_data['pre_restore_safety_warnings'] = $this->build_pre_restore_warning_rows( $pre_restore_safety );
+		$view_data['restore_failure_summary'] = $this->build_restore_failure_summary(
+			$restore_execution,
+			$restore_resume,
+			$execution_meta,
+			$execution_health
+		);
+		$view_data['rollback_confidence_summary'] = $this->build_rollback_confidence_summary(
+			$snapshot_detail,
+			$restore_execution,
+			$execution_meta,
+			$this->array_value( $view_data, 'restore_execution_item_rows' ),
+			$this->array_value( $view_data, 'snapshot_health_baseline_status' ),
+			$rollback_resume
+		);
+		$view_data['workspace_primary_action'] = $this->build_workspace_primary_action(
+			$restore_form_state,
+			$pre_restore_safety,
+			$this->array_value( $view_data, 'restore_failure_summary' ),
+			$execution_meta
 		);
 
 		return $view_data;
@@ -428,6 +475,9 @@ class UpdateReadinessStateBuilder {
 		$artifact_diff_state        = $this->array_value( $view_data, 'artifact_diff_state' );
 		$restore_execution_meta     = $this->array_value( $view_data, 'restore_execution_meta' );
 		$restore_rollback_meta      = $this->array_value( $view_data, 'restore_rollback_meta' );
+		$pre_restore_safety         = $this->array_value( $view_data, 'pre_restore_safety' );
+		$restore_failure_summary    = $this->array_value( $view_data, 'restore_failure_summary' );
+		$rollback_confidence        = $this->array_value( $view_data, 'rollback_confidence_summary' );
 
 		$view_data['view_visibility'] = array(
 			'show_notice'                          => ! empty( $this->array_value( $view_data, 'notice' ) ),
@@ -480,6 +530,9 @@ class UpdateReadinessStateBuilder {
 			'show_restore_plan_items'             => ! empty( $this->array_value( $view_data, 'restore_plan_item_rows' ) ),
 			'show_restore_impact_rows'            => ! empty( $this->array_value( $restore_impact_summary, 'rows' ) ),
 			'show_restore_impact_blockers'        => ! empty( $this->array_value( $restore_impact_summary, 'blockers' ) ),
+			'show_pre_restore_safety'            => $has_selected_snapshot && ! empty( $pre_restore_safety ),
+			'show_pre_restore_safety_checks'     => ! empty( $this->array_value( $view_data, 'pre_restore_safety_check_rows' ) ),
+			'show_pre_restore_safety_warnings'   => ! empty( $this->array_value( $view_data, 'pre_restore_safety_warnings' ) ),
 			'show_execution_backup_root'          => ! empty( $restore_execution_meta['show_backup_root'] ),
 			'show_execution_run_link'             => ! empty( $restore_execution_meta['show_run_link'] ),
 			'show_execution_resumed_run_notice'   => ! empty( $restore_execution_meta['show_resumed_run_notice'] ),
@@ -488,14 +541,274 @@ class UpdateReadinessStateBuilder {
 			'show_execution_items'                => ! empty( $this->array_value( $view_data, 'restore_execution_item_rows' ) ),
 			'show_execution_journal'              => ! empty( $this->array_value( $view_data, 'restore_execution_journal_rows' ) ),
 			'show_execution_rollback_form'        => ! empty( $restore_execution_meta['show_backup_root'] ),
+			'show_restore_failure_summary'       => ! empty( $restore_failure_summary ),
+			'show_restore_failure_actions'       => ! empty( $this->array_value( $restore_failure_summary, 'actions' ) ),
+			'show_rollback_confidence_summary'   => ! empty( $rollback_confidence ),
+			'show_rollback_confidence_rows'      => ! empty( $this->array_value( $rollback_confidence, 'rows' ) ),
 			'show_rollback_run_link'              => ! empty( $restore_rollback_meta['show_run_link'] ),
 			'show_rollback_health_section'        => ! empty( $restore_rollback_meta['show_health_section'] ),
 			'show_rollback_checks'                => ! empty( $this->array_value( $view_data, 'restore_rollback_check_rows' ) ),
 			'show_rollback_items'                 => ! empty( $this->array_value( $view_data, 'restore_rollback_item_rows' ) ),
 			'show_rollback_journal'               => ! empty( $this->array_value( $view_data, 'restore_rollback_journal_rows' ) ),
+			'show_workspace_primary_action'      => ! empty( $this->array_value( $view_data, 'workspace_primary_action' ) ),
 		);
 
 		return $view_data;
+	}
+
+	/**
+	 * Build normalized status metadata for the pre-restore safety layer.
+	 *
+	 * @param array $safety Pre-restore safety payload.
+	 * @return array
+	 */
+	protected function build_pre_restore_safety_status( array $safety ) {
+		$ready = ! empty( $safety['can_execute'] );
+
+		return array(
+			'badge'        => $ready ? 'info' : 'critical',
+			'status_label' => $ready ? __( 'Ready', 'zignites-sentinel' ) : __( 'Blocked', 'zignites-sentinel' ),
+			'title'        => isset( $safety['title'] ) ? (string) $safety['title'] : '',
+			'note'         => isset( $safety['message'] ) ? (string) $safety['message'] : '',
+		);
+	}
+
+	/**
+	 * Build normalized pre-restore warning strings.
+	 *
+	 * @param array $safety Pre-restore safety payload.
+	 * @return array
+	 */
+	protected function build_pre_restore_warning_rows( array $safety ) {
+		$warnings = isset( $safety['warnings'] ) && is_array( $safety['warnings'] ) ? $safety['warnings'] : array();
+		$rows     = array();
+
+		foreach ( $warnings as $warning ) {
+			$warning = is_string( $warning ) ? trim( $warning ) : '';
+
+			if ( '' === $warning ) {
+				continue;
+			}
+
+			$rows[] = $warning;
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * Build a compact failure-state summary for partial or blocked restore runs.
+	 *
+	 * @param array $execution      Last restore execution payload.
+	 * @param array $resume_context Restore resume context.
+	 * @param array $execution_meta Execution meta payload.
+	 * @param array $health_status  Execution health status payload.
+	 * @return array
+	 */
+	protected function build_restore_failure_summary( array $execution, array $resume_context, array $execution_meta, array $health_status ) {
+		$status = isset( $execution['status'] ) ? sanitize_key( (string) $execution['status'] ) : '';
+
+		if ( ! in_array( $status, array( 'partial', 'blocked' ), true ) ) {
+			return array();
+		}
+
+		$summary       = isset( $execution['summary'] ) && is_array( $execution['summary'] ) ? $execution['summary'] : array();
+		$pass_count    = isset( $summary['pass'] ) ? (int) $summary['pass'] : 0;
+		$warning_count = isset( $summary['warning'] ) ? (int) $summary['warning'] : 0;
+		$fail_count    = isset( $summary['fail'] ) ? (int) $summary['fail'] : 0;
+		$actions       = array();
+
+		if ( ! empty( $resume_context['can_resume'] ) ) {
+			$actions[] = array(
+				'label'       => __( 'Resume from checkpoint', 'zignites-sentinel' ),
+				'description' => __( 'Continue the interrupted restore from the preserved journal and checkpoint state.', 'zignites-sentinel' ),
+				'href'        => '#znts-guarded-live-restore',
+			);
+		}
+
+		if ( ! empty( $execution_meta['show_backup_root'] ) ) {
+			$actions[] = array(
+				'label'       => __( 'Rollback from backup', 'zignites-sentinel' ),
+				'description' => __( 'Use the preserved backup root from the last restore attempt to return to the previously live payloads.', 'zignites-sentinel' ),
+				'href'        => '#znts-rollback-confidence',
+			);
+		}
+
+		$actions[] = array(
+			'label'       => __( 'Retry after review', 'zignites-sentinel' ),
+			'description' => __( 'Review readiness findings and failed item rows before attempting another live restore.', 'zignites-sentinel' ),
+			'href'        => '#znts-pre-restore-checklist',
+		);
+
+		return array(
+			'badge'   => 'partial' === $status ? 'warning' : 'critical',
+			'title'   => 'partial' === $status ? __( 'Partial Restore Detected', 'zignites-sentinel' ) : __( 'Restore Blocked Before Completion', 'zignites-sentinel' ),
+			'message' => 'partial' === $status
+				? __( 'Some restore steps completed, but Sentinel also recorded failed work. Use the recovery options below before attempting another live change.', 'zignites-sentinel' )
+				: __( 'The restore stopped before completion. Review the failing checks and choose a recovery action before proceeding.', 'zignites-sentinel' ),
+			'rows'    => array(
+				array(
+					'label' => __( 'Succeeded', 'zignites-sentinel' ),
+					'value' => (string) $pass_count,
+				),
+				array(
+					'label' => __( 'Warnings', 'zignites-sentinel' ),
+					'value' => (string) $warning_count,
+				),
+				array(
+					'label' => __( 'Failed', 'zignites-sentinel' ),
+					'value' => (string) $fail_count,
+				),
+				array(
+					'label' => __( 'Health status', 'zignites-sentinel' ),
+					'value' => ! empty( $health_status['status_label'] )
+						? (string) $health_status['status_label']
+						: __( 'Not captured', 'zignites-sentinel' ),
+				),
+			),
+			'actions' => $actions,
+		);
+	}
+
+	/**
+	 * Build rollback confirmation context before offering rollback execution.
+	 *
+	 * @param array|null $snapshot_detail       Selected snapshot detail.
+	 * @param array      $execution             Last restore execution payload.
+	 * @param array      $execution_meta        Execution meta payload.
+	 * @param array      $execution_item_rows   Prepared execution item rows.
+	 * @param array      $baseline_status       Baseline status payload.
+	 * @param array      $rollback_resume_state Rollback resume context.
+	 * @return array
+	 */
+	protected function build_rollback_confidence_summary( $snapshot_detail, array $execution, array $execution_meta, array $execution_item_rows, array $baseline_status, array $rollback_resume_state ) {
+		if ( ! is_array( $snapshot_detail ) || empty( $snapshot_detail['id'] ) || empty( $execution_meta['show_backup_root'] ) ) {
+			return array();
+		}
+
+		$item_count = count( $execution_item_rows );
+		$rows       = array(
+			array(
+				'label' => __( 'Snapshot reference', 'zignites-sentinel' ),
+				'value' => sprintf(
+					/* translators: 1: snapshot label, 2: snapshot id */
+					__( '%1$s (#%2$d)', 'zignites-sentinel' ),
+					isset( $snapshot_detail['label'] ) ? (string) $snapshot_detail['label'] : __( 'Snapshot', 'zignites-sentinel' ),
+					isset( $snapshot_detail['id'] ) ? (int) $snapshot_detail['id'] : 0
+				),
+			),
+			array(
+				'label' => __( 'Rollback source', 'zignites-sentinel' ),
+				'value' => isset( $execution_meta['backup_root'] ) ? (string) $execution_meta['backup_root'] : '',
+			),
+			array(
+				'label' => __( 'What will be restored', 'zignites-sentinel' ),
+				'value' => 1 === $item_count
+					? sprintf(
+						/* translators: %d: item count */
+						__( '%d recorded restore item from the last execution context.', 'zignites-sentinel' ),
+						$item_count
+					)
+					: sprintf(
+						/* translators: %d: item count */
+						__( '%d recorded restore items from the last execution context.', 'zignites-sentinel' ),
+						$item_count
+					),
+			),
+			array(
+				'label' => __( 'Last known good state', 'zignites-sentinel' ),
+				'value' => ! empty( $baseline_status['generated_at'] )
+					? sprintf(
+						/* translators: 1: baseline label, 2: timestamp */
+						__( '%1$s captured at %2$s.', 'zignites-sentinel' ),
+						isset( $baseline_status['status_label'] ) ? (string) $baseline_status['status_label'] : __( 'Baseline', 'zignites-sentinel' ),
+						(string) $baseline_status['generated_at']
+					)
+					: __( 'No baseline timestamp is available for comparison.', 'zignites-sentinel' ),
+			),
+		);
+
+		if ( ! empty( $rollback_resume_state['can_resume'] ) ) {
+			$rows[] = array(
+				'label' => __( 'Rollback resume state', 'zignites-sentinel' ),
+				'value' => sprintf(
+					/* translators: 1: completed count, 2: total entries */
+					__( '%1$d rollback items are already recorded across %2$d persisted entries.', 'zignites-sentinel' ),
+					isset( $rollback_resume_state['completed_item_count'] ) ? (int) $rollback_resume_state['completed_item_count'] : 0,
+					isset( $rollback_resume_state['entry_count'] ) ? (int) $rollback_resume_state['entry_count'] : 0
+				),
+			);
+		}
+
+		return array(
+			'badge'   => 'partial' === ( isset( $execution['status'] ) ? sanitize_key( (string) $execution['status'] ) : '' ) ? 'warning' : 'info',
+			'title'   => __( 'Rollback Confirmation Context', 'zignites-sentinel' ),
+			'message' => __( 'Rollback uses the backup root captured during the last restore execution. Confirm the exact snapshot and recovery scope before continuing.', 'zignites-sentinel' ),
+			'rows'    => $rows,
+		);
+	}
+
+	/**
+	 * Build the single recommended next action for the Update Readiness hero.
+	 *
+	 * @param array $restore_form_state Prepared restore form state.
+	 * @param array $pre_restore_safety Pre-restore safety payload.
+	 * @param array $failure_summary    Failure summary payload.
+	 * @param array $execution_meta     Execution meta payload.
+	 * @return array
+	 */
+	protected function build_workspace_primary_action( array $restore_form_state, array $pre_restore_safety, array $failure_summary, array $execution_meta ) {
+		if ( empty( $restore_form_state['has_selected_snapshot'] ) ) {
+			return array(
+				'title'        => __( 'Take Snapshot Before Update', 'zignites-sentinel' ),
+				'description'  => __( 'Select or create a snapshot first so readiness, validation, and restore controls are anchored to a real workspace.', 'zignites-sentinel' ),
+				'button_label' => __( 'Review Snapshot Library', 'zignites-sentinel' ),
+				'href'         => '#znts-snapshot-library',
+			);
+		}
+
+		if ( ! empty( $failure_summary ) && ! empty( $restore_form_state['can_resume_restore'] ) ) {
+			return array(
+				'title'        => __( 'Resume from Checkpoint', 'zignites-sentinel' ),
+				'description'  => __( 'An interrupted restore already has resumable state. Finish or recover that run before starting a new live restore.', 'zignites-sentinel' ),
+				'button_label' => __( 'Review Recovery Controls', 'zignites-sentinel' ),
+				'href'         => '#znts-guarded-live-restore',
+			);
+		}
+
+		if ( ! empty( $failure_summary ) && ! empty( $execution_meta['show_backup_root'] ) ) {
+			return array(
+				'title'        => __( 'Rollback the Partial Restore', 'zignites-sentinel' ),
+				'description'  => __( 'A previous restore did not finish cleanly. Review the rollback context before running another live change.', 'zignites-sentinel' ),
+				'button_label' => __( 'Review Rollback Context', 'zignites-sentinel' ),
+				'href'         => '#znts-rollback-confidence',
+			);
+		}
+
+		if ( ! empty( $pre_restore_safety['checks'][1]['status'] ) && 'fail' === $pre_restore_safety['checks'][1]['status'] ) {
+			return array(
+				'title'        => __( 'Run Restore Readiness Check', 'zignites-sentinel' ),
+				'description'  => __( 'Refresh restore-readiness evidence first so later actions rely on current assessment data.', 'zignites-sentinel' ),
+				'button_label' => __( 'Go to Snapshot Actions', 'zignites-sentinel' ),
+				'href'         => '#znts-snapshot-detail-actions',
+			);
+		}
+
+		if ( ! empty( $pre_restore_safety['can_execute'] ) ) {
+			return array(
+				'title'        => __( 'Safe to Proceed with Restore Plan', 'zignites-sentinel' ),
+				'description'  => __( 'The current snapshot is through the safety gates. Review the impact and guarded restore controls before executing.', 'zignites-sentinel' ),
+				'button_label' => __( 'Review Guarded Restore', 'zignites-sentinel' ),
+				'href'         => '#znts-guarded-live-restore',
+			);
+		}
+
+		return array(
+			'title'        => __( 'Review Issues Before Continuing', 'zignites-sentinel' ),
+			'description'  => __( 'One or more checklist or failure-state requirements still block live restore. Work from the checklist before moving deeper into the page.', 'zignites-sentinel' ),
+			'button_label' => __( 'Open Pre-Restore Checklist', 'zignites-sentinel' ),
+			'href'         => '#znts-pre-restore-checklist',
+		);
 	}
 
 	/**

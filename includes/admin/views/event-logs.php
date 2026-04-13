@@ -23,6 +23,7 @@ $base_args           = isset( $event_log_ui['base_args'] ) && is_array( $event_l
 $active_filter_count = isset( $event_log_ui['active_filter_count'] ) ? (int) $event_log_ui['active_filter_count'] : 0;
 $severity_counts     = isset( $event_log_ui['severity_counts'] ) && is_array( $event_log_ui['severity_counts'] ) ? $event_log_ui['severity_counts'] : array();
 $summary_tiles       = isset( $event_log_ui['summary_tiles'] ) && is_array( $event_log_ui['summary_tiles'] ) ? $event_log_ui['summary_tiles'] : array();
+$run_outcome_summary = isset( $event_log_ui['run_outcome_summary'] ) && is_array( $event_log_ui['run_outcome_summary'] ) ? $event_log_ui['run_outcome_summary'] : array();
 $log_summary_tiles   = array_slice( $summary_tiles, 0, 4 );
 $log_flow_note       = $active_filter_count > 0
 	? __( 'Current filters are active. Scan the highlighted rows first, then expand individual messages only when you need more detail.', 'zignites-sentinel' )
@@ -286,6 +287,29 @@ $log_flow_note       = $active_filter_count > 0
 						<p><?php echo esc_html( sprintf( __( 'Viewing persisted journal entries for %1$s, run %2$s.', 'zignites-sentinel' ), isset( $run_journal['source'] ) ? $run_journal['source'] : '', isset( $run_journal['run_id'] ) ? $run_journal['run_id'] : '' ) ); ?></p>
 					</div>
 				</div>
+				<?php if ( ! empty( $run_outcome_summary ) ) : ?>
+					<div class="znts-alert-panel znts-alert-panel-<?php echo esc_attr( isset( $run_outcome_summary['badge'] ) ? $run_outcome_summary['badge'] : 'info' ); ?>">
+						<strong><?php echo esc_html( isset( $run_outcome_summary['title'] ) ? $run_outcome_summary['title'] : __( 'Run Outcome Summary', 'zignites-sentinel' ) ); ?></strong>
+						<p><?php echo esc_html( isset( $run_outcome_summary['message'] ) ? $run_outcome_summary['message'] : '' ); ?></p>
+					</div>
+					<div class="znts-readiness-row">
+						<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $run_outcome_summary['badge'] ) ? $run_outcome_summary['badge'] : 'info' ); ?>">
+							<?php echo esc_html( isset( $run_outcome_summary['status_label'] ) ? $run_outcome_summary['status_label'] : '' ); ?>
+						</span>
+						<span><?php echo esc_html( isset( $run_outcome_summary['duration'] ) ? $run_outcome_summary['duration'] : '' ); ?></span>
+					</div>
+					<table class="widefat striped">
+						<tbody>
+							<?php foreach ( isset( $run_outcome_summary['rows'] ) && is_array( $run_outcome_summary['rows'] ) ? $run_outcome_summary['rows'] : array() as $row ) : ?>
+								<tr>
+									<th scope="row"><?php echo esc_html( $row['label'] ); ?></th>
+									<td><?php echo esc_html( $row['value'] ); ?></td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+					<p class="description"><?php echo esc_html( isset( $run_outcome_summary['story'] ) ? $run_outcome_summary['story'] : '' ); ?></p>
+				<?php endif; ?>
 				<table class="widefat striped znts-log-table">
 					<thead>
 						<tr>

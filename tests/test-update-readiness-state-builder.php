@@ -462,6 +462,31 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 					),
 				),
 			),
+			'pre_restore_safety' => array(
+				'can_execute' => false,
+				'title'       => 'Pre-Restore Checklist Incomplete',
+				'message'     => 'Live restore stays blocked until the current missing requirement is resolved.',
+				'checks'      => array(
+					array(
+						'label'   => 'Working snapshot selected',
+						'status'  => 'pass',
+						'message' => 'Snapshot #101 is selected as the active restore workspace.',
+					),
+					array(
+						'label'   => 'Restore readiness check current',
+						'status'  => 'pass',
+						'message' => 'A matching restore-readiness assessment was completed within the last 12 hours.',
+					),
+					array(
+						'label'   => 'No unresolved restore failure',
+						'status'  => 'fail',
+						'message' => 'Resume from checkpoint or roll back before starting another live restore.',
+					),
+				),
+				'warnings'    => array(
+					'No unresolved restore failure: Resume from checkpoint or roll back before starting another live restore.',
+				),
+			),
 			'restore_impact_summary' => array(
 				'planned_total' => 2,
 			),
@@ -640,11 +665,19 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'ROLLBACK RELEASE 101', $state['restore_form_state']['rollback_confirmation_phrase'], 'Update Readiness state builder should expose the rollback confirmation phrase for forms.' );
 	znts_assert_same( true, $state['restore_form_state']['has_selected_snapshot'], 'Update Readiness state builder should expose whether forms have a selected snapshot.' );
 	znts_assert_same( '101', $state['restore_form_state']['selected_snapshot_id'], 'Update Readiness state builder should normalize selected snapshot IDs for form payloads.' );
-	znts_assert_same( true, $state['restore_form_state']['can_execute_restore'], 'Update Readiness state builder should derive guarded restore execution visibility.' );
+	znts_assert_same( false, $state['restore_form_state']['can_execute_restore'], 'Update Readiness state builder should block guarded restore execution when pre-restore safety fails.' );
 	znts_assert_same( true, $state['restore_form_state']['can_resume_restore'], 'Update Readiness state builder should derive restore resume visibility.' );
 	znts_assert_same( true, $state['restore_form_state']['can_resume_rollback'], 'Update Readiness state builder should derive rollback resume visibility.' );
 	znts_assert_same( 'Plan validated', $state['restore_form_state']['plan_validation_message'], 'Update Readiness state builder should normalize plan validation messaging for the view.' );
 	znts_assert_same( 'Sources available', $state['restore_form_state']['restore_source_validation_message'], 'Update Readiness state builder should normalize restore source validation messaging for the view.' );
+	znts_assert_same( 'Live restore stays blocked until the current missing requirement is resolved.', $state['restore_form_state']['pre_restore_block_message'], 'Update Readiness state builder should expose the pre-restore safety message for guarded restore copy.' );
+	znts_assert_same( 'Blocked', $state['pre_restore_safety_status']['status_label'], 'Update Readiness state builder should derive the pre-restore safety status label.' );
+	znts_assert_same( 'Restore readiness check current', $state['pre_restore_safety_check_rows'][1]['label'], 'Update Readiness state builder should derive pre-restore safety check rows.' );
+	znts_assert_same( 'No unresolved restore failure: Resume from checkpoint or roll back before starting another live restore.', $state['pre_restore_safety_warnings'][0], 'Update Readiness state builder should surface actionable pre-restore warnings.' );
+	znts_assert_same( 'Resume from Checkpoint', $state['workspace_primary_action']['title'], 'Update Readiness state builder should prioritize resumable failure recovery as the primary action.' );
+	znts_assert_same( 'Partial Restore Detected', $state['restore_failure_summary']['title'], 'Update Readiness state builder should build a visible partial-restore summary.' );
+	znts_assert_same( 'Resume from checkpoint', $state['restore_failure_summary']['actions'][0]['label'], 'Update Readiness state builder should surface recovery actions for failed restore state.' );
+	znts_assert_same( 'Rollback Confirmation Context', $state['rollback_confidence_summary']['title'], 'Update Readiness state builder should build rollback confidence context before rollback execution.' );
 	znts_assert_same( true, $state['view_visibility']['has_preflight_result'], 'Update Readiness state builder should expose preflight result visibility.' );
 	znts_assert_same( true, $state['view_visibility']['has_last_update_plan'], 'Update Readiness state builder should expose update-plan result visibility.' );
 	znts_assert_same( true, $state['view_visibility']['show_last_update_plan_snapshot_link'], 'Update Readiness state builder should expose update-plan snapshot link visibility.' );
@@ -693,6 +726,9 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( true, $state['view_visibility']['show_restore_plan_checks'], 'Update Readiness state builder should expose restore plan check visibility.' );
 	znts_assert_same( true, $state['view_visibility']['show_restore_plan_items'], 'Update Readiness state builder should expose restore plan item visibility.' );
 	znts_assert_same( false, $state['view_visibility']['show_restore_impact_rows'], 'Update Readiness state builder should expose restore impact row visibility even when the summary has no detail rows.' );
+	znts_assert_same( true, $state['view_visibility']['show_pre_restore_safety'], 'Update Readiness state builder should expose pre-restore safety visibility.' );
+	znts_assert_same( true, $state['view_visibility']['show_pre_restore_safety_checks'], 'Update Readiness state builder should expose pre-restore safety check visibility.' );
+	znts_assert_same( true, $state['view_visibility']['show_pre_restore_safety_warnings'], 'Update Readiness state builder should expose pre-restore safety warning visibility.' );
 	znts_assert_same( true, $state['view_visibility']['show_execution_backup_root'], 'Update Readiness state builder should expose execution backup-root visibility.' );
 	znts_assert_same( true, $state['view_visibility']['show_execution_run_link'], 'Update Readiness state builder should expose execution run-link visibility.' );
 	znts_assert_same( true, $state['view_visibility']['show_execution_resumed_run_notice'], 'Update Readiness state builder should expose execution resumed-run notice visibility.' );
@@ -701,6 +737,10 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( true, $state['view_visibility']['show_execution_items'], 'Update Readiness state builder should expose execution item visibility.' );
 	znts_assert_same( true, $state['view_visibility']['show_execution_journal'], 'Update Readiness state builder should expose execution journal visibility.' );
 	znts_assert_same( true, $state['view_visibility']['show_execution_rollback_form'], 'Update Readiness state builder should expose rollback-from-backup visibility.' );
+	znts_assert_same( true, $state['view_visibility']['show_restore_failure_summary'], 'Update Readiness state builder should expose restore failure summary visibility.' );
+	znts_assert_same( true, $state['view_visibility']['show_restore_failure_actions'], 'Update Readiness state builder should expose restore failure actions visibility.' );
+	znts_assert_same( true, $state['view_visibility']['show_rollback_confidence_summary'], 'Update Readiness state builder should expose rollback confidence summary visibility.' );
+	znts_assert_same( true, $state['view_visibility']['show_workspace_primary_action'], 'Update Readiness state builder should expose workspace primary action visibility.' );
 	znts_assert_same( true, $state['view_visibility']['show_rollback_run_link'], 'Update Readiness state builder should expose rollback run-link visibility.' );
 	znts_assert_same( true, $state['view_visibility']['show_rollback_health_section'], 'Update Readiness state builder should expose rollback health-section visibility.' );
 	znts_assert_same( true, $state['view_visibility']['show_rollback_checks'], 'Update Readiness state builder should expose rollback check visibility.' );
@@ -826,6 +866,10 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( false, $state['restore_form_state']['can_resume_rollback'], 'Update Readiness state builder should default rollback resume visibility to false.' );
 	znts_assert_same( '', $state['restore_form_state']['plan_validation_message'], 'Update Readiness state builder should default missing plan validation messages to an empty string.' );
 	znts_assert_same( '', $state['restore_form_state']['restore_source_validation_message'], 'Update Readiness state builder should default missing restore source validation messages to an empty string.' );
+	znts_assert_same( '', $state['restore_form_state']['pre_restore_block_message'], 'Update Readiness state builder should default missing pre-restore safety messages to an empty string.' );
+	znts_assert_same( 'Blocked', $state['pre_restore_safety_status']['status_label'], 'Update Readiness state builder should default missing pre-restore safety state to blocked.' );
+	znts_assert_same( array(), $state['pre_restore_safety_check_rows'], 'Update Readiness state builder should default missing pre-restore safety rows to an empty array.' );
+	znts_assert_same( array(), $state['pre_restore_safety_warnings'], 'Update Readiness state builder should default missing pre-restore warnings to an empty array.' );
 	znts_assert_same( false, $state['view_visibility']['has_preflight_result'], 'Update Readiness state builder should default preflight result visibility to false.' );
 	znts_assert_same( false, $state['view_visibility']['has_last_update_plan'], 'Update Readiness state builder should default update-plan result visibility to false.' );
 	znts_assert_same( false, $state['view_visibility']['show_last_update_plan_snapshot_link'], 'Update Readiness state builder should default update-plan snapshot link visibility to false.' );
@@ -875,6 +919,9 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( false, $state['view_visibility']['show_restore_plan_items'], 'Update Readiness state builder should default restore plan item visibility to false.' );
 	znts_assert_same( false, $state['view_visibility']['show_restore_impact_rows'], 'Update Readiness state builder should default restore impact row visibility to false.' );
 	znts_assert_same( false, $state['view_visibility']['show_restore_impact_blockers'], 'Update Readiness state builder should default restore impact blocker visibility to false.' );
+	znts_assert_same( false, $state['view_visibility']['show_pre_restore_safety'], 'Update Readiness state builder should default pre-restore safety visibility to false.' );
+	znts_assert_same( false, $state['view_visibility']['show_pre_restore_safety_checks'], 'Update Readiness state builder should default pre-restore safety check visibility to false.' );
+	znts_assert_same( false, $state['view_visibility']['show_pre_restore_safety_warnings'], 'Update Readiness state builder should default pre-restore safety warning visibility to false.' );
 	znts_assert_same( false, $state['view_visibility']['show_execution_backup_root'], 'Update Readiness state builder should default execution backup-root visibility to false.' );
 	znts_assert_same( false, $state['view_visibility']['show_execution_run_link'], 'Update Readiness state builder should default execution run-link visibility to false.' );
 	znts_assert_same( false, $state['view_visibility']['show_execution_resumed_run_notice'], 'Update Readiness state builder should default execution resumed-run notice visibility to false.' );
@@ -883,6 +930,10 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( false, $state['view_visibility']['show_execution_items'], 'Update Readiness state builder should default execution item visibility to false.' );
 	znts_assert_same( false, $state['view_visibility']['show_execution_journal'], 'Update Readiness state builder should default execution journal visibility to false.' );
 	znts_assert_same( false, $state['view_visibility']['show_execution_rollback_form'], 'Update Readiness state builder should default rollback-from-backup visibility to false.' );
+	znts_assert_same( false, $state['view_visibility']['show_restore_failure_summary'], 'Update Readiness state builder should default restore failure summary visibility to false.' );
+	znts_assert_same( false, $state['view_visibility']['show_restore_failure_actions'], 'Update Readiness state builder should default restore failure action visibility to false.' );
+	znts_assert_same( false, $state['view_visibility']['show_rollback_confidence_summary'], 'Update Readiness state builder should default rollback confidence visibility to false.' );
+	znts_assert_same( true, $state['view_visibility']['show_workspace_primary_action'], 'Update Readiness state builder should still offer a top-level primary action when no snapshot is selected.' );
 	znts_assert_same( false, $state['view_visibility']['show_rollback_run_link'], 'Update Readiness state builder should default rollback run-link visibility to false.' );
 	znts_assert_same( false, $state['view_visibility']['show_rollback_health_section'], 'Update Readiness state builder should default rollback health-section visibility to false.' );
 	znts_assert_same( false, $state['view_visibility']['show_rollback_checks'], 'Update Readiness state builder should default rollback check visibility to false.' );

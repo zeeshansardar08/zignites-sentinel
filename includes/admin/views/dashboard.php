@@ -19,6 +19,11 @@ $latest_snapshot_state = ( ! empty( $latest_snapshot['id'] ) && isset( $snapshot
 $hero_signals          = isset( $site_status_card['signals'] ) && is_array( $site_status_card['signals'] ) ? $site_status_card['signals'] : array();
 $hero_signals_primary  = array_slice( $hero_signals, 0, 3 );
 $hero_signals_extra    = array_slice( $hero_signals, 3 );
+$primary_action        = isset( $site_status_card['primary_action'] ) && is_array( $site_status_card['primary_action'] ) ? $site_status_card['primary_action'] : array();
+$primary_action_title  = isset( $primary_action['title'] ) ? (string) $primary_action['title'] : ( isset( $site_status_card['recommended_action'] ) ? (string) $site_status_card['recommended_action'] : '' );
+$primary_action_note   = isset( $primary_action['description'] ) ? (string) $primary_action['description'] : '';
+$primary_action_label  = isset( $primary_action['button_label'] ) ? (string) $primary_action['button_label'] : __( 'Open Update Readiness', 'zignites-sentinel' );
+$primary_action_url    = isset( $primary_action['url'] ) ? (string) $primary_action['url'] : '';
 $dashboard_flow_note   = ! empty( $latest_snapshot_state['restore_ready'] )
 	? __( 'Next: confirm the latest snapshot, review impact on Update Readiness, and proceed only if the guarded plan still matches your intent.', 'zignites-sentinel' )
 	: __( 'Next: open Update Readiness, complete the missing preparation steps, and return here once the latest snapshot is ready.', 'zignites-sentinel' );
@@ -48,11 +53,14 @@ $dashboard_confidence  = ! empty( $latest_snapshot_state['restore_ready'] )
 							<span class="znts-inline-note"><?php echo esc_html( $site_status_card['latest_snapshot']['label'] ); ?></span>
 						<?php endif; ?>
 					</div>
-					<h2 class="znts-hero-title"><?php echo esc_html( isset( $site_status_card['recommended_action'] ) ? $site_status_card['recommended_action'] : '' ); ?></h2>
+					<h2 class="znts-hero-title"><?php echo esc_html( $primary_action_title ); ?></h2>
 					<p class="znts-hero-subtitle"><?php echo esc_html__( 'This summary reflects current conflict signals, the latest snapshot posture, and whether restore preparation is in a usable state.', 'zignites-sentinel' ); ?></p>
 					<div class="znts-hero-recommendation">
 						<strong><?php echo esc_html__( 'Recommended Action', 'zignites-sentinel' ); ?></strong>
-						<?php echo esc_html( isset( $site_status_card['recommended_action'] ) ? $site_status_card['recommended_action'] : '' ); ?>
+						<?php echo esc_html( $primary_action_title ); ?>
+						<?php if ( '' !== $primary_action_note ) : ?>
+							<p class="description"><?php echo esc_html( $primary_action_note ); ?></p>
+						<?php endif; ?>
 					</div>
 					<div class="znts-flow-note">
 						<strong><?php echo esc_html__( 'Workflow', 'zignites-sentinel' ); ?></strong>
@@ -93,13 +101,16 @@ $dashboard_confidence  = ! empty( $latest_snapshot_state['restore_ready'] )
 					<p class="znts-inline-note"><?php echo esc_html( $dashboard_confidence ); ?></p>
 				</section>
 				<section class="znts-card znts-card-secondary znts-action-panel">
-					<span class="znts-stat-label"><?php echo esc_html__( 'Quick Actions', 'zignites-sentinel' ); ?></span>
-					<p class="znts-inline-note"><?php echo esc_html__( 'Start with Update Readiness when you need the next safe operator action.', 'zignites-sentinel' ); ?></p>
+					<span class="znts-stat-label"><?php echo esc_html__( 'Operator Action', 'zignites-sentinel' ); ?></span>
+					<p class="znts-inline-note"><?php echo esc_html__( 'One dominant next step is highlighted here. Everything else stays secondary until that action is reviewed.', 'zignites-sentinel' ); ?></p>
 					<div class="znts-quick-actions znts-dashboard-actions">
-						<?php if ( ! empty( $site_status_card['detail_url'] ) ) : ?>
-							<p><a class="button button-primary" href="<?php echo esc_url( $site_status_card['detail_url'] ); ?>"><?php echo esc_html__( 'Open Update Readiness', 'zignites-sentinel' ); ?></a></p>
+						<?php if ( '' !== $primary_action_url ) : ?>
+							<p><a class="button button-primary" href="<?php echo esc_url( $primary_action_url ); ?>"><?php echo esc_html( $primary_action_label ); ?></a></p>
 						<?php endif; ?>
-						<?php if ( ! empty( $site_status_card['activity_url'] ) ) : ?>
+						<?php if ( ! empty( $site_status_card['detail_url'] ) && $site_status_card['detail_url'] !== $primary_action_url ) : ?>
+							<p><a class="button button-secondary" href="<?php echo esc_url( $site_status_card['detail_url'] ); ?>"><?php echo esc_html__( 'Open Update Readiness', 'zignites-sentinel' ); ?></a></p>
+						<?php endif; ?>
+						<?php if ( ! empty( $site_status_card['activity_url'] ) && $site_status_card['activity_url'] !== $primary_action_url ) : ?>
 							<p><a class="button button-secondary" href="<?php echo esc_url( $site_status_card['activity_url'] ); ?>"><?php echo esc_html__( 'Open Snapshot Activity', 'zignites-sentinel' ); ?></a></p>
 						<?php endif; ?>
 						<?php if ( ! empty( $site_status_card['latest_snapshot']['id'] ) ) : ?>

@@ -81,6 +81,42 @@ function znts_test_event_log_presenter_decorates_run_summary_and_journal_status_
 	znts_assert_same( 'Pass', $run_journal['entries'][1]['status_label'], 'Event log presenter should format readable journal status labels.' );
 }
 
+function znts_test_event_log_presenter_builds_run_outcome_summary() {
+	$presenter = new EventLogPresenter();
+
+	$payload = $presenter->build_view_payload(
+		array(),
+		array(),
+		array(),
+		array(),
+		array(
+			'source'  => 'restore-execution-journal',
+			'run_id'  => 'run-42',
+			'entries' => array(
+				array(
+					'timestamp' => '2026-04-09 10:00:00',
+					'scope'     => 'gate',
+					'phase'     => 'confirmation',
+					'status'    => 'pass',
+				),
+				array(
+					'timestamp' => '2026-04-09 10:01:30',
+					'scope'     => 'plugin',
+					'phase'     => 'write_file',
+					'status'    => 'fail',
+				),
+			),
+		),
+		array()
+	);
+
+	znts_assert_same( 'critical', $payload['run_outcome_summary']['badge'], 'Event log presenter should mark failed run journals as critical in the run outcome summary.' );
+	znts_assert_same( 'Failed', $payload['run_outcome_summary']['status_label'], 'Event log presenter should expose a readable failed status label in the run outcome summary.' );
+	znts_assert_same( '1m 30s', $payload['run_outcome_summary']['duration'], 'Event log presenter should calculate run duration from the first and last journal timestamps.' );
+	znts_assert_true( false !== strpos( $payload['run_outcome_summary']['rows'][3]['value'], 'Gate confirmation' ), 'Event log presenter should summarize key actions performed in the run outcome summary.' );
+	znts_assert_true( false !== strpos( $payload['run_outcome_summary']['story'], '1 fail' ), 'Event log presenter should narrate pass/fail counts in the run outcome summary story.' );
+}
+
 function znts_test_event_log_presenter_builds_snapshot_activity_entries() {
 	$presenter = new EventLogPresenter();
 

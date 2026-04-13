@@ -295,6 +295,7 @@ class SnapshotStatusResolver {
 			'label'              => $this->map_site_status_label( $status ),
 			'badge'              => $this->map_site_status_badge( $status ),
 			'recommended_action' => $this->build_recommended_action( $status, $latest_snapshot, $latest_status, $critical_count, $error_count, $warning_count ),
+			'primary_action'     => $this->build_primary_action( $status, $latest_snapshot, $latest_status, $critical_count, $error_count, $warning_count ),
 			'signals'            => $signals,
 			'latest_snapshot'    => $latest_snapshot,
 			'latest_status'      => $latest_status,
@@ -603,39 +604,105 @@ class SnapshotStatusResolver {
 	 * @return string
 	 */
 	protected function build_recommended_action( $status, array $latest_snapshot, array $latest_status, $critical_count, $error_count, $warning_count ) {
+		$primary_action = $this->build_primary_action( $status, $latest_snapshot, $latest_status, $critical_count, $error_count, $warning_count );
+
+		if ( ! empty( $primary_action['title'] ) ) {
+			return (string) $primary_action['title'];
+		}
+
+		return __( 'Review current operator guidance.', 'zignites-sentinel' );
+	}
+
+	/**
+	 * Build the primary operator action for the dashboard hero.
+	 *
+	 * @param string $status          Site status.
+	 * @param array  $latest_snapshot Latest snapshot row.
+	 * @param array  $latest_status   Latest snapshot status.
+	 * @param int    $critical_count  Critical conflict count.
+	 * @param int    $error_count     Error conflict count.
+	 * @param int    $warning_count   Warning conflict count.
+	 * @return array
+	 */
+	protected function build_primary_action( $status, array $latest_snapshot, array $latest_status, $critical_count, $error_count, $warning_count ) {
 		if ( empty( $latest_snapshot ) ) {
-			return __( 'Create a new snapshot before making changes to the site.', 'zignites-sentinel' );
+			return array(
+				'title'        => __( 'Take Snapshot Before Update', 'zignites-sentinel' ),
+				'description'  => __( 'No recent snapshot is available, so update and restore planning should not continue yet.', 'zignites-sentinel' ),
+				'button_label' => __( 'Open Update Readiness', 'zignites-sentinel' ),
+				'target'       => 'detail',
+			);
 		}
 
 		if ( $critical_count > 0 ) {
-			return __( 'Review open critical conflicts before any restore or update work.', 'zignites-sentinel' );
+			return array(
+				'title'        => __( 'Review Issues Before Continuing', 'zignites-sentinel' ),
+				'description'  => __( 'Critical conflicts are open. Review evidence and recent activity before any restore or update action.', 'zignites-sentinel' ),
+				'button_label' => __( 'Open Snapshot Activity', 'zignites-sentinel' ),
+				'target'       => 'activity',
+			);
 		}
 
 		if ( ! empty( $latest_status['activity']['has_failure'] ) ) {
-			return __( 'Review recent restore activity and event logs before continuing.', 'zignites-sentinel' );
+			return array(
+				'title'        => __( 'Review Issues Before Continuing', 'zignites-sentinel' ),
+				'description'  => __( 'A recent restore or rollback run ended in a warning or failure state. Review recovery context before starting another action.', 'zignites-sentinel' ),
+				'button_label' => __( 'Open Snapshot Activity', 'zignites-sentinel' ),
+				'target'       => 'activity',
+			);
 		}
 
 		if ( empty( $latest_status['baseline']['present'] ) ) {
-			return __( 'Capture a baseline for the latest snapshot.', 'zignites-sentinel' );
+			return array(
+				'title'        => __( 'Run Restore Readiness Check', 'zignites-sentinel' ),
+				'description'  => __( 'The latest snapshot still needs baseline and restore-readiness evidence before guarded restore review.', 'zignites-sentinel' ),
+				'button_label' => __( 'Open Update Readiness', 'zignites-sentinel' ),
+				'target'       => 'detail',
+			);
 		}
 
 		if ( empty( $latest_status['artifacts']['package_present'] ) ) {
-			return __( 'Create a fresh snapshot so a rollback package is available.', 'zignites-sentinel' );
+			return array(
+				'title'        => __( 'Take Snapshot Before Update', 'zignites-sentinel' ),
+				'description'  => __( 'The latest snapshot does not include a rollback package, so a fresh protected snapshot should be taken first.', 'zignites-sentinel' ),
+				'button_label' => __( 'Open Update Readiness', 'zignites-sentinel' ),
+				'target'       => 'detail',
+			);
 		}
 
 		if ( empty( $latest_status['stage']['key'] ) || 'current' !== $latest_status['stage']['key'] ) {
-			return __( 'Refresh staged validation for the latest snapshot.', 'zignites-sentinel' );
+			return array(
+				'title'        => __( 'Run Restore Readiness Check', 'zignites-sentinel' ),
+				'description'  => __( 'Staged validation is not current for the latest snapshot. Refresh restore evidence before considering live actions.', 'zignites-sentinel' ),
+				'button_label' => __( 'Open Update Readiness', 'zignites-sentinel' ),
+				'target'       => 'detail',
+			);
 		}
 
 		if ( empty( $latest_status['plan']['key'] ) || 'current' !== $latest_status['plan']['key'] ) {
-			return __( 'Refresh the restore plan for the latest snapshot.', 'zignites-sentinel' );
+			return array(
+				'title'        => __( 'Run Restore Readiness Check', 'zignites-sentinel' ),
+				'description'  => __( 'The stored restore plan is stale or missing. Refresh the guarded restore evidence chain first.', 'zignites-sentinel' ),
+				'button_label' => __( 'Open Update Readiness', 'zignites-sentinel' ),
+				'target'       => 'detail',
+			);
 		}
 
 		if ( $error_count > 0 || $warning_count > 0 || 'needs_attention' === $status ) {
-			return __( 'Review active conflict signals and recent logs.', 'zignites-sentinel' );
+			return array(
+				'title'        => __( 'Review Issues Before Continuing', 'zignites-sentinel' ),
+				'description'  => __( 'Warnings or errors are still open. Review them before treating the snapshot as confidently ready.', 'zignites-sentinel' ),
+				'button_label' => __( 'Open Snapshot Activity', 'zignites-sentinel' ),
+				'target'       => 'activity',
+			);
 		}
 
-		return __( 'No immediate action needed.', 'zignites-sentinel' );
+		return array(
+			'title'        => __( 'Safe to Proceed with Restore Plan', 'zignites-sentinel' ),
+			'description'  => __( 'The latest snapshot has current restore evidence. Review impact on Update Readiness before any guarded restore decision.', 'zignites-sentinel' ),
+			'button_label' => __( 'Open Update Readiness', 'zignites-sentinel' ),
+			'target'       => 'detail',
+		);
 	}
 
 	/**

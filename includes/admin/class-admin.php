@@ -664,6 +664,7 @@ class Admin {
 				'snapshot_health_comparison' => $this->get_snapshot_health_comparison( $snapshot_detail ),
 				'snapshot_summary'        => $this->get_snapshot_summary( $snapshot_detail ),
 				'operator_checklist'      => $this->get_restore_operator_checklist( $snapshot_detail ),
+				'pre_restore_safety'      => $this->get_pre_restore_safety_assessment( $snapshot_detail ),
 				'restore_impact_summary'  => $this->get_restore_impact_summary( $snapshot_detail ),
 				'audit_report_verification' => $this->get_audit_report_verification( $snapshot_detail ),
 				'snapshot_activity'       => $this->get_snapshot_activity( $snapshot_detail ),
@@ -1139,22 +1140,25 @@ class Admin {
 		$snapshot['metadata_decoded']       = $this->decode_json_field( $snapshot['metadata'] );
 		$artifacts                          = $this->artifacts->get_by_snapshot_id( $snapshot_id );
 		$operator_checklist                 = $this->get_restore_operator_checklist( $snapshot, $artifacts );
+		$pre_restore_safety                 = $this->get_pre_restore_safety_assessment( $snapshot, $artifacts, $operator_checklist );
 		$last_stage                         = $this->get_restore_stage_gate_result( $snapshot, $artifacts, true );
 		$last_plan                          = $this->get_restore_plan_gate_result( $snapshot, $artifacts, true );
 		$confirmation_phrase                = isset( $_POST['restore_confirmation_phrase'] ) ? sanitize_text_field( wp_unslash( $_POST['restore_confirmation_phrase'] ) ) : '';
 
-		if ( empty( $operator_checklist['can_execute'] ) ) {
+		if ( empty( $pre_restore_safety['can_execute'] ) ) {
 			$this->logger->log(
-				'restore_operator_gate_blocked',
+				'restore_precheck_blocked',
 				'warning',
 				'restore-execution',
-				__( 'Restore execution was blocked because the operator checklist is incomplete.', 'zignites-sentinel' ),
+				__( 'Restore execution was blocked because the pre-restore checklist is incomplete.', 'zignites-sentinel' ),
 				array(
-					'snapshot_id' => $snapshot_id,
-					'checklist'   => isset( $operator_checklist['checks'] ) ? $operator_checklist['checks'] : array(),
+					'snapshot_id'        => $snapshot_id,
+					'checklist'          => isset( $operator_checklist['checks'] ) ? $operator_checklist['checks'] : array(),
+					'pre_restore_checks' => isset( $pre_restore_safety['checks'] ) ? $pre_restore_safety['checks'] : array(),
+					'warnings'           => isset( $pre_restore_safety['warnings'] ) ? $pre_restore_safety['warnings'] : array(),
 				)
 			);
-			$this->redirect_with_notice( 'restore-operator-gate-blocked' );
+			$this->redirect_with_notice( 'restore-precheck-blocked' );
 		}
 
 		$result                             = $this->restore_executor->execute( $snapshot, $artifacts, is_array( $last_stage ) ? $last_stage : array(), is_array( $last_plan ) ? $last_plan : array(), $confirmation_phrase );
@@ -1776,6 +1780,10 @@ class Admin {
 			'restore-operator-gate-blocked' => array(
 				'type'    => 'error',
 				'message' => __( 'Live restore is blocked until the operator checklist is complete and current for this snapshot.', 'zignites-sentinel' ),
+			),
+			'restore-precheck-blocked' => array(
+				'type'    => 'error',
+				'message' => __( 'Live restore remains blocked. Review the Pre-Restore Checklist for the current missing requirement or unresolved failure state.', 'zignites-sentinel' ),
 			),
 			'restore-rollback-complete' => array(
 				'type'    => 'success',
@@ -2416,6 +2424,96 @@ class Admin {
 	}
 
 	/**
+	 * Build the final pre-restore safety layer used before live restore execution.
+	 *
+	 * @param array|null $snapshot           Snapshot detail.
+	 * @param array|null $artifacts          Optional artifact rows.
+	 * @param array|null $operator_checklist Optional precomputed operator checklist.
+	 * @return array
+	 */
+	protected function get_pre_restore_safety_assessment( $snapshot, $artifacts = null, $operator_checklist = null ) {
+		if ( ! is_array( $snapshot ) || empty( $snapshot['id'] ) ) {
+			return array();
+		}
+
+		$settings           = $this->get_settings();
+		$max_age_hours      = isset( $settings['restore_checkpoint_max_age_hours'] ) ? max( 1, (int) $settings['restore_checkpoint_max_age_hours'] ) : 24;
+		$operator_checklist = is_array( $operator_checklist ) ? $operator_checklist : $this->get_restore_operator_checklist( $snapshot, $artifacts );
+		$restore_check      = $this->get_last_restore_check( $snapshot );
+		$execution          = $this->get_last_restore_execution( $snapshot );
+		$rollback           = $this->get_last_restore_rollback( $snapshot );
+		$readiness_current  = $this->is_restore_assessment_current( $restore_check, $max_age_hours );
+		$outstanding_error  = $this->has_outstanding_restore_failure( $execution, $rollback );
+
+		$checks = array(
+			array(
+				'label'   => __( 'Working snapshot selected', 'zignites-sentinel' ),
+				'status'  => 'pass',
+				'message' => sprintf(
+					/* translators: %d: snapshot id */
+					__( 'Snapshot #%d is selected as the active restore workspace.', 'zignites-sentinel' ),
+					isset( $snapshot['id'] ) ? (int) $snapshot['id'] : 0
+				),
+			),
+			array(
+				'label'   => __( 'Restore readiness check current', 'zignites-sentinel' ),
+				'status'  => $readiness_current ? 'pass' : 'fail',
+				'message' => $readiness_current
+					? sprintf(
+						/* translators: %d: max age in hours */
+						__( 'A matching restore-readiness assessment was completed within the last %d hours.', 'zignites-sentinel' ),
+						$max_age_hours
+					)
+					: ( ! empty( $restore_check )
+						? __( 'The latest restore-readiness assessment is stale for this snapshot. Run it again before live restore.', 'zignites-sentinel' )
+						: __( 'Run Restore Readiness Check before live restore.', 'zignites-sentinel' ) ),
+			),
+			array(
+				'label'   => __( 'Operator checklist complete', 'zignites-sentinel' ),
+				'status'  => ! empty( $operator_checklist['can_execute'] ) ? 'pass' : 'fail',
+				'message' => ! empty( $operator_checklist['can_execute'] )
+					? __( 'Baseline, staged validation, and restore plan gates are current for this snapshot.', 'zignites-sentinel' )
+					: __( 'Resolve the failing operator checklist items before offering live restore.', 'zignites-sentinel' ),
+			),
+			array(
+				'label'   => __( 'No unresolved restore failure', 'zignites-sentinel' ),
+				'status'  => $outstanding_error ? 'fail' : 'pass',
+				'message' => $outstanding_error
+					? __( 'A partial or blocked restore is still unresolved. Resume from checkpoint or roll back before starting another live restore.', 'zignites-sentinel' )
+					: __( 'No unresolved partial or blocked restore state is currently recorded for this snapshot.', 'zignites-sentinel' ),
+			),
+		);
+
+		$warnings = array();
+
+		foreach ( $checks as $check ) {
+			if ( 'pass' === $check['status'] ) {
+				continue;
+			}
+
+			$warnings[] = sprintf(
+				/* translators: 1: checklist item, 2: warning text */
+				__( '%1$s: %2$s', 'zignites-sentinel' ),
+				isset( $check['label'] ) ? (string) $check['label'] : __( 'Requirement', 'zignites-sentinel' ),
+				isset( $check['message'] ) ? (string) $check['message'] : ''
+			);
+		}
+
+		$can_execute = empty( $warnings );
+
+		return array(
+			'status'      => $can_execute ? 'ready' : 'blocked',
+			'can_execute' => $can_execute,
+			'title'       => $can_execute ? __( 'Pre-Restore Checklist Ready', 'zignites-sentinel' ) : __( 'Pre-Restore Checklist Incomplete', 'zignites-sentinel' ),
+			'message'     => $can_execute
+				? __( 'Live restore can stay available because the selected snapshot, readiness evidence, and failure state are all in a safe state.', 'zignites-sentinel' )
+				: __( 'Live restore stays blocked until the current missing requirement is resolved. Use the warnings below instead of relying on journal logs alone.', 'zignites-sentinel' ),
+			'checks'      => $checks,
+			'warnings'    => $warnings,
+		);
+	}
+
+	/**
 	 * Build a final pre-execution impact summary for live restore.
 	 *
 	 * @param array|null $snapshot Snapshot detail.
@@ -2462,6 +2560,65 @@ class Admin {
 			$summary_state['stage_summary'],
 			$summary_state['plan_summary']
 		);
+	}
+
+	/**
+	 * Determine whether a restore-readiness assessment is still current.
+	 *
+	 * @param array|null $assessment     Assessment payload.
+	 * @param int        $max_age_hours  Maximum allowed age in hours.
+	 * @return bool
+	 */
+	protected function is_restore_assessment_current( $assessment, $max_age_hours ) {
+		if ( ! is_array( $assessment ) || empty( $assessment['generated_at'] ) ) {
+			return false;
+		}
+
+		$generated_ts = strtotime( (string) $assessment['generated_at'] );
+
+		if ( false === $generated_ts ) {
+			return false;
+		}
+
+		return $generated_ts >= ( time() - ( max( 1, (int) $max_age_hours ) * HOUR_IN_SECONDS ) );
+	}
+
+	/**
+	 * Determine whether a previous restore failure is still unresolved.
+	 *
+	 * @param array|null $execution Last restore execution payload.
+	 * @param array|null $rollback  Last rollback payload.
+	 * @return bool
+	 */
+	protected function has_outstanding_restore_failure( $execution, $rollback ) {
+		if ( ! is_array( $execution ) ) {
+			return false;
+		}
+
+		$execution_status = isset( $execution['status'] ) ? sanitize_key( (string) $execution['status'] ) : '';
+
+		if ( ! in_array( $execution_status, array( 'partial', 'blocked' ), true ) ) {
+			return false;
+		}
+
+		if ( ! is_array( $rollback ) || empty( $rollback['generated_at'] ) ) {
+			return true;
+		}
+
+		$rollback_status = isset( $rollback['status'] ) ? sanitize_key( (string) $rollback['status'] ) : '';
+
+		if ( ! in_array( $rollback_status, array( 'completed', 'pass' ), true ) ) {
+			return true;
+		}
+
+		$execution_ts = ! empty( $execution['generated_at'] ) ? strtotime( (string) $execution['generated_at'] ) : false;
+		$rollback_ts  = strtotime( (string) $rollback['generated_at'] );
+
+		if ( false === $execution_ts || false === $rollback_ts ) {
+			return true;
+		}
+
+		return $rollback_ts < $execution_ts;
 	}
 
 	/**

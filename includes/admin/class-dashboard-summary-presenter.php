@@ -35,6 +35,16 @@ class DashboardSummaryPresenter {
 			$site_status_card['activity_url'] = (string) $activity_url;
 		}
 
+		$primary_action = isset( $site_status_card['primary_action'] ) && is_array( $site_status_card['primary_action'] ) ? $site_status_card['primary_action'] : array();
+
+		if ( ! empty( $primary_action ) ) {
+			$target                = isset( $primary_action['target'] ) ? (string) $primary_action['target'] : 'detail';
+			$primary_action['url'] = 'activity' === $target
+				? ( isset( $site_status_card['activity_url'] ) ? (string) $site_status_card['activity_url'] : '' )
+				: ( isset( $site_status_card['detail_url'] ) ? (string) $site_status_card['detail_url'] : '' );
+			$site_status_card['primary_action'] = $primary_action;
+		}
+
 		return array(
 			'recent_snapshots'      => $recent_snapshots,
 			'health_score'          => $health_score,

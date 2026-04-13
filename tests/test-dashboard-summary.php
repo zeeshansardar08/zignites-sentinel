@@ -175,10 +175,15 @@ function znts_test_dashboard_summary_payload_adds_latest_snapshot_links() {
 	);
 	$admin->set_site_status_card(
 		array(
-			'status'          => 'stable',
-			'label'           => 'Stable',
+			'status'             => 'stable',
+			'label'              => 'Stable',
 			'recommended_action' => 'No immediate action needed.',
-			'latest_snapshot' => array(
+			'primary_action'     => array(
+				'title'        => 'Safe to Proceed with Restore Plan',
+				'button_label' => 'Open Update Readiness',
+				'target'       => 'detail',
+			),
+			'latest_snapshot'    => array(
 				'id'    => 91,
 				'label' => 'Latest snapshot',
 			),
@@ -197,6 +202,7 @@ function znts_test_dashboard_summary_payload_adds_latest_snapshot_links() {
 	znts_assert_true( false !== strpos( $payload['site_status_card']['detail_url'], 'page=zignites-sentinel-update-readiness' ), 'Dashboard payload should add an update-readiness detail URL for the latest snapshot.' );
 	znts_assert_true( false !== strpos( $payload['site_status_card']['detail_url'], 'snapshot_id=91' ), 'Dashboard payload should add the latest snapshot ID to the detail URL.' );
 	znts_assert_true( false !== strpos( $payload['site_status_card']['activity_url'], 'snapshot_id=91' ), 'Dashboard payload should add the snapshot activity URL for the latest snapshot.' );
+	znts_assert_same( $payload['site_status_card']['detail_url'], $payload['site_status_card']['primary_action']['url'], 'Dashboard payload should resolve the primary action URL from the target metadata.' );
 	znts_assert_same( $admin->fixture['health_strip'], $payload['restore_health_strip'], 'Dashboard payload should include the health strip payload.' );
 }
 

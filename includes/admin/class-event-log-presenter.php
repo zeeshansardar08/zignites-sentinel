@@ -47,6 +47,7 @@ class EventLogPresenter {
 			'operational_events'  => $this->decorate_log_rows( $operational_events ),
 			'run_summaries'       => $this->decorate_run_summaries( $run_summaries ),
 			'run_journal'         => $this->decorate_run_journal( $run_journal ),
+			'run_outcome_summary' => $this->build_run_outcome_summary( $run_journal ),
 			'summary_tiles'       => array(
 				array(
 					'label' => __( 'Matching Events', 'zignites-sentinel' ),
@@ -172,6 +173,142 @@ class EventLogPresenter {
 		$run_journal['entries'] = $entries;
 
 		return $run_journal;
+	}
+
+	/**
+	 * Build a compact operator-facing summary for the selected run journal.
+	 *
+	 * @param array $run_journal Run journal payload.
+	 * @return array
+	 */
+	protected function build_run_outcome_summary( array $run_journal ) {
+		$entries = isset( $run_journal['entries'] ) && is_array( $run_journal['entries'] ) ? $run_journal['entries'] : array();
+
+		if ( empty( $entries ) ) {
+			return array();
+		}
+
+		$pass_count    = 0;
+		$warning_count = 0;
+		$fail_count    = 0;
+		$action_labels = array();
+		$first_ts      = false;
+		$last_ts       = false;
+
+		foreach ( $entries as $entry ) {
+			$status = isset( $entry['status'] ) ? sanitize_key( (string) $entry['status'] ) : '';
+
+			if ( in_array( $status, array( 'fail', 'blocked' ), true ) ) {
+				++$fail_count;
+			} elseif ( in_array( $status, array( 'warning', 'partial' ), true ) ) {
+				++$warning_count;
+			} else {
+				++$pass_count;
+			}
+
+			$timestamp = isset( $entry['timestamp'] ) ? strtotime( (string) $entry['timestamp'] ) : false;
+
+			if ( false !== $timestamp ) {
+				$first_ts = false === $first_ts ? $timestamp : min( $first_ts, $timestamp );
+				$last_ts  = false === $last_ts ? $timestamp : max( $last_ts, $timestamp );
+			}
+
+			$scope = isset( $entry['scope'] ) ? trim( (string) $entry['scope'] ) : '';
+			$phase = isset( $entry['phase'] ) ? trim( (string) $entry['phase'] ) : '';
+			$label = trim( ucfirst( $scope ) . ' ' . str_replace( '_', ' ', $phase ) );
+
+			if ( '' !== $label && ! in_array( $label, $action_labels, true ) ) {
+				$action_labels[] = $label;
+			}
+		}
+
+		$outcome = 'completed';
+
+		if ( $fail_count > 0 ) {
+			$outcome = 'failed';
+		} elseif ( $warning_count > 0 ) {
+			$outcome = 'warning';
+		}
+
+		return array(
+			'badge'        => 'failed' === $outcome ? 'critical' : ( 'warning' === $outcome ? 'warning' : 'info' ),
+			'status_label' => 'failed' === $outcome ? __( 'Failed', 'zignites-sentinel' ) : ( 'warning' === $outcome ? __( 'Warning', 'zignites-sentinel' ) : __( 'Success', 'zignites-sentinel' ) ),
+			'title'        => __( 'Run Outcome Summary', 'zignites-sentinel' ),
+			'message'      => 'failed' === $outcome
+				? __( 'This run ended with failed work. Review the timeline and recovery context below before repeating the action.', 'zignites-sentinel' )
+				: ( 'warning' === $outcome
+					? __( 'This run completed with warnings or partial work. Review the affected phases before continuing.', 'zignites-sentinel' )
+					: __( 'This run completed without recorded failures in the persisted journal.', 'zignites-sentinel' ) ),
+			'duration'     => $this->format_duration( $first_ts, $last_ts ),
+			'rows'         => array(
+				array(
+					'label' => __( 'Started', 'zignites-sentinel' ),
+					'value' => false !== $first_ts ? gmdate( 'Y-m-d H:i:s', $first_ts ) : __( 'Unknown', 'zignites-sentinel' ),
+				),
+				array(
+					'label' => __( 'Finished', 'zignites-sentinel' ),
+					'value' => false !== $last_ts ? gmdate( 'Y-m-d H:i:s', $last_ts ) : __( 'Unknown', 'zignites-sentinel' ),
+				),
+				array(
+					'label' => __( 'Duration', 'zignites-sentinel' ),
+					'value' => $this->format_duration( $first_ts, $last_ts ),
+				),
+				array(
+					'label' => __( 'Key actions performed', 'zignites-sentinel' ),
+					'value' => ! empty( $action_labels ) ? implode( ', ', array_slice( $action_labels, 0, 4 ) ) : __( 'No labeled phases were captured.', 'zignites-sentinel' ),
+				),
+			),
+			'story'        => sprintf(
+				/* translators: 1: pass count, 2: warning count, 3: fail count, 4: entry count */
+				__( 'Execution story: %1$d pass, %2$d warning, %3$d fail across %4$d journal entries.', 'zignites-sentinel' ),
+				$pass_count,
+				$warning_count,
+				$fail_count,
+				count( $entries )
+			),
+		);
+	}
+
+	/**
+	 * Format a duration between two timestamps.
+	 *
+	 * @param int|false $first_ts First timestamp.
+	 * @param int|false $last_ts  Last timestamp.
+	 * @return string
+	 */
+	protected function format_duration( $first_ts, $last_ts ) {
+		if ( false === $first_ts || false === $last_ts || $last_ts < $first_ts ) {
+			return __( 'Unknown', 'zignites-sentinel' );
+		}
+
+		$seconds = max( 0, (int) $last_ts - (int) $first_ts );
+		$hours   = (int) floor( $seconds / HOUR_IN_SECONDS );
+		$minutes = (int) floor( ( $seconds % HOUR_IN_SECONDS ) / MINUTE_IN_SECONDS );
+		$remain  = $seconds % MINUTE_IN_SECONDS;
+
+		if ( $hours > 0 ) {
+			return sprintf(
+				/* translators: 1: hour count, 2: minute count */
+				__( '%1$dh %2$dm', 'zignites-sentinel' ),
+				$hours,
+				$minutes
+			);
+		}
+
+		if ( $minutes > 0 ) {
+			return sprintf(
+				/* translators: 1: minute count, 2: second count */
+				__( '%1$dm %2$ds', 'zignites-sentinel' ),
+				$minutes,
+				$remain
+			);
+		}
+
+		return sprintf(
+			/* translators: %d: second count */
+			__( '%ds', 'zignites-sentinel' ),
+			$remain
+		);
 	}
 
 	/**
