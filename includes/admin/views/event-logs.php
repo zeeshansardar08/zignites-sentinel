@@ -32,6 +32,8 @@ $log_summary_tiles   = array_slice( $summary_tiles, 0, 4 );
 $log_flow_note       = $active_filter_count > 0
 	? __( 'Current filters are active. Review the matching evidence first, then open full messages only when you need deeper context.', 'zignites-sentinel' )
 	: __( 'Start with filters, scan the highlighted evidence, and open run journals only when you need the full recovery story.', 'zignites-sentinel' );
+$admin_page_url      = \Zignites\Sentinel\Admin\znts_admin_url( 'admin.php' );
+$admin_post_url      = \Zignites\Sentinel\Admin\znts_admin_url( 'admin-post.php' );
 ?>
 <div class="wrap znts-admin-page">
 	<div class="znts-page-header">
@@ -142,12 +144,12 @@ $log_flow_note       = $active_filter_count > 0
 					</p>
 					<p class="znts-filter-actions">
 						<?php submit_button( __( 'Update View', 'zignites-sentinel' ), 'secondary', '', false ); ?>
-						<a class="button button-link" href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs' ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html__( 'Reset', 'zignites-sentinel' ); ?></a>
+						<a class="button button-link" href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs' ), $admin_page_url ) ); ?>"><?php echo esc_html__( 'Reset', 'zignites-sentinel' ); ?></a>
 					</p>
 				</form>
 				<div class="znts-log-toolbar-actions">
 					<p class="znts-inline-note"><?php echo esc_html__( 'CSV export follows the current filters and includes up to 5,000 matching rows with run and snapshot context when available.', 'zignites-sentinel' ); ?></p>
-					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
 						<input type="hidden" name="action" value="znts_export_event_logs" />
 						<input type="hidden" name="severity" value="<?php echo esc_attr( isset( $log_filters['severity'] ) ? $log_filters['severity'] : '' ); ?>" />
 						<input type="hidden" name="source" value="<?php echo esc_attr( isset( $log_filters['source'] ) ? $log_filters['source'] : '' ); ?>" />
@@ -180,7 +182,7 @@ $log_flow_note       = $active_filter_count > 0
 					<tbody>
 						<?php foreach ( $recent_logs as $log ) : ?>
 							<tr class="znts-log-row znts-log-row-<?php echo esc_attr( isset( $log['severity_pill'] ) ? $log['severity_pill'] : 'info' ); ?>">
-								<td><a href="<?php echo esc_url( add_query_arg( array_merge( $base_args, array( 'paged' => $current_page, 'log_id' => (int) $log['id'] ) ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( $log['created_at'] ); ?></a></td>
+								<td><a href="<?php echo esc_url( add_query_arg( array_merge( $base_args, array( 'paged' => $current_page, 'log_id' => (int) $log['id'] ) ), $admin_page_url ) ); ?>"><?php echo esc_html( $log['created_at'] ); ?></a></td>
 								<td><span class="znts-pill znts-pill-<?php echo esc_attr( isset( $log['severity_pill'] ) ? $log['severity_pill'] : 'info' ); ?>"><?php echo esc_html( isset( $log['severity_label'] ) ? $log['severity_label'] : '' ); ?></span></td>
 								<td><?php echo esc_html( $log['event_type'] ); ?></td>
 								<td><?php echo esc_html( $log['source'] ); ?></td>
@@ -203,7 +205,7 @@ $log_flow_note       = $active_filter_count > 0
 							echo wp_kses_post(
 								paginate_links(
 									array(
-										'base'      => add_query_arg( array_merge( $base_args, array( 'paged' => '%#%' ) ), admin_url( 'admin.php' ) ),
+										'base'      => add_query_arg( array_merge( $base_args, array( 'paged' => '%#%' ) ), $admin_page_url ),
 										'format'    => '',
 										'current'   => $current_page,
 										'total'     => $total_pages,
@@ -238,7 +240,7 @@ $log_flow_note       = $active_filter_count > 0
 					<tbody>
 						<?php foreach ( $operational_events as $event ) : ?>
 							<tr class="znts-log-row znts-log-row-<?php echo esc_attr( isset( $event['severity_pill'] ) ? $event['severity_pill'] : 'info' ); ?>">
-								<td><a href="<?php echo esc_url( add_query_arg( array_merge( $base_args, array( 'log_id' => (int) $event['id'] ) ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( $event['created_at'] ); ?></a></td>
+								<td><a href="<?php echo esc_url( add_query_arg( array_merge( $base_args, array( 'log_id' => (int) $event['id'] ) ), $admin_page_url ) ); ?>"><?php echo esc_html( $event['created_at'] ); ?></a></td>
 								<td><span class="znts-pill znts-pill-<?php echo esc_attr( isset( $event['severity_pill'] ) ? $event['severity_pill'] : 'info' ); ?>"><?php echo esc_html( isset( $event['severity_label'] ) ? $event['severity_label'] : '' ); ?></span></td>
 								<td><?php echo esc_html( $event['source'] ); ?></td>
 								<td><?php echo esc_html( $event['event_type'] ); ?></td>
@@ -288,11 +290,11 @@ $log_flow_note       = $active_filter_count > 0
 					<tbody>
 						<?php foreach ( $run_summaries as $summary ) : ?>
 							<tr>
-								<td><a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs', 'source' => isset( $summary['source'] ) ? $summary['source'] : '', 'run_id' => isset( $summary['run_id'] ) ? $summary['run_id'] : '', 'snapshot_id' => isset( $summary['snapshot_id'] ) ? (int) $summary['snapshot_id'] : 0 ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( isset( $summary['run_id'] ) ? $summary['run_id'] : '' ); ?></a></td>
+								<td><a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs', 'source' => isset( $summary['source'] ) ? $summary['source'] : '', 'run_id' => isset( $summary['run_id'] ) ? $summary['run_id'] : '', 'snapshot_id' => isset( $summary['snapshot_id'] ) ? (int) $summary['snapshot_id'] : 0 ), $admin_page_url ) ); ?>"><?php echo esc_html( isset( $summary['run_id'] ) ? $summary['run_id'] : '' ); ?></a></td>
 								<td><?php echo esc_html( isset( $summary['source'] ) ? $summary['source'] : '' ); ?></td>
 								<td>
 									<?php if ( ! empty( $summary['snapshot_id'] ) ) : ?>
-										<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-update-readiness', 'snapshot_id' => (int) $summary['snapshot_id'] ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( (string) $summary['snapshot_id'] ); ?></a>
+										<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-update-readiness', 'snapshot_id' => (int) $summary['snapshot_id'] ), $admin_page_url ) ); ?>"><?php echo esc_html( (string) $summary['snapshot_id'] ); ?></a>
 									<?php endif; ?>
 								</td>
 								<td><span class="znts-pill znts-pill-<?php echo esc_attr( isset( $summary['status_pill'] ) ? $summary['status_pill'] : 'info' ); ?>"><?php echo esc_html( isset( $summary['status_label'] ) ? $summary['status_label'] : '' ); ?></span></td>

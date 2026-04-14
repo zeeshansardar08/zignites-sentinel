@@ -42,6 +42,14 @@ $dashboard_confidence  = '' !== $confidence_message
 	: ( ! empty( $latest_snapshot_state['restore_ready'] )
 		? __( 'Restore preparation is currently in a reusable state for the latest snapshot.', 'zignites-sentinel' )
 		: __( 'The system is guiding you toward the next safe preparation step.', 'zignites-sentinel' ) );
+$admin_page_url        = \Zignites\Sentinel\Admin\znts_admin_url( 'admin.php' );
+$admin_post_url        = \Zignites\Sentinel\Admin\znts_admin_url( 'admin-post.php' );
+$first_run_cta_url     = add_query_arg(
+	array(
+		'page' => 'zignites-sentinel-update-readiness',
+	),
+	$admin_page_url
+);
 ?>
 <div class="wrap znts-admin-page">
 	<div class="znts-page-header">
@@ -152,6 +160,8 @@ $dashboard_confidence  = '' !== $confidence_message
 					<div class="znts-quick-actions znts-dashboard-actions">
 						<?php if ( '' !== $primary_action_url ) : ?>
 							<p><a class="button button-primary" href="<?php echo esc_url( $primary_action_url ); ?>"><?php echo esc_html( $primary_action_label ); ?></a></p>
+						<?php elseif ( empty( $site_status_card ) ) : ?>
+							<p><a class="button button-primary" href="<?php echo esc_url( $first_run_cta_url ); ?>"><?php echo esc_html__( 'Create First Snapshot', 'zignites-sentinel' ); ?></a></p>
 						<?php endif; ?>
 						<?php if ( ! empty( $site_status_card['detail_url'] ) && $site_status_card['detail_url'] !== $primary_action_url ) : ?>
 							<p><a class="button button-secondary" href="<?php echo esc_url( $site_status_card['detail_url'] ); ?>"><?php echo esc_html__( 'Review Workspace', 'zignites-sentinel' ); ?></a></p>
@@ -160,13 +170,13 @@ $dashboard_confidence  = '' !== $confidence_message
 							<p><a class="button button-secondary" href="<?php echo esc_url( $site_status_card['activity_url'] ); ?>"><?php echo esc_html__( 'View Activity', 'zignites-sentinel' ); ?></a></p>
 						<?php endif; ?>
 						<?php if ( ! empty( $site_status_card['latest_snapshot']['id'] ) ) : ?>
-							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+							<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
 								<input type="hidden" name="action" value="znts_capture_snapshot_health_baseline" />
 								<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $site_status_card['latest_snapshot']['id'] ); ?>" />
 								<?php wp_nonce_field( 'znts_capture_snapshot_health_baseline_action' ); ?>
 								<?php submit_button( __( 'Capture Health Baseline', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
 							</form>
-							<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+							<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
 								<input type="hidden" name="action" value="znts_download_snapshot_audit_report" />
 								<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( (string) $site_status_card['latest_snapshot']['id'] ); ?>" />
 								<?php wp_nonce_field( 'znts_download_snapshot_audit_report_action' ); ?>
@@ -308,7 +318,7 @@ $dashboard_confidence  = '' !== $confidence_message
 						<h2><?php echo esc_html__( 'Operator Timeline', 'zignites-sentinel' ); ?></h2>
 						<p><?php echo esc_html__( 'A condensed site history showing when trusted checkpoints were created and when recovery work was attempted.', 'zignites-sentinel' ); ?></p>
 					</div>
-					<p><a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs' ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html__( 'Open Event Logs', 'zignites-sentinel' ); ?></a></p>
+					<p><a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs' ), $admin_page_url ) ); ?>"><?php echo esc_html__( 'Open Event Logs', 'zignites-sentinel' ); ?></a></p>
 				</div>
 				<?php if ( empty( $operator_timeline['items'] ) ) : ?>
 					<div class="znts-empty-state">
@@ -430,7 +440,7 @@ $dashboard_confidence  = '' !== $confidence_message
 								<tr>
 									<td><?php echo esc_html( $snapshot['created_at'] ); ?></td>
 									<td>
-										<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-update-readiness', 'snapshot_id' => $snapshot_id ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html( $snapshot['label'] ); ?></a>
+										<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-update-readiness', 'snapshot_id' => $snapshot_id ), $admin_page_url ) ); ?>"><?php echo esc_html( $snapshot['label'] ); ?></a>
 										<?php if ( ! empty( $recommended_snapshot['id'] ) && $snapshot_id === (int) $recommended_snapshot['id'] ) : ?>
 											<p class="description"><?php echo esc_html__( 'Recommended snapshot', 'zignites-sentinel' ); ?></p>
 										<?php elseif ( ! empty( $last_known_good['id'] ) && $snapshot_id === (int) $last_known_good['id'] ) : ?>
@@ -450,7 +460,7 @@ $dashboard_confidence  = '' !== $confidence_message
 										</div>
 									</td>
 									<td><?php echo esc_html( ucfirst( $snapshot['snapshot_type'] ) ); ?></td>
-									<td><a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs', 'snapshot_id' => (int) $snapshot['id'] ), admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html__( 'Event Logs', 'zignites-sentinel' ); ?></a></td>
+									<td><a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs', 'snapshot_id' => (int) $snapshot['id'] ), $admin_page_url ) ); ?>"><?php echo esc_html__( 'Event Logs', 'zignites-sentinel' ); ?></a></td>
 								</tr>
 							<?php endforeach; ?>
 						</tbody>

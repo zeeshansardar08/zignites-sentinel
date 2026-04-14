@@ -31,6 +31,119 @@ use Zignites\Sentinel\Updates\UpdatePlanner;
 
 defined( 'ABSPATH' ) || exit;
 
+if ( ! function_exists( __NAMESPACE__ . '\\znts_get_request_origin' ) ) {
+	/**
+	 * Return the current request origin when it can be inferred safely.
+	 *
+	 * @return string
+	 */
+	function znts_get_request_origin() {
+		if ( empty( $_SERVER['HTTP_HOST'] ) ) {
+			return '';
+		}
+
+		$scheme = 'http';
+
+		if ( ! empty( $_SERVER['REQUEST_SCHEME'] ) ) {
+			$scheme = (string) $_SERVER['REQUEST_SCHEME'];
+		} elseif ( ! empty( $_SERVER['HTTPS'] ) && 'off' !== strtolower( (string) $_SERVER['HTTPS'] ) ) {
+			$scheme = 'https';
+		}
+
+		return strtolower( $scheme ) . '://' . (string) $_SERVER['HTTP_HOST'];
+	}
+}
+
+if ( ! function_exists( __NAMESPACE__ . '\\znts_get_current_admin_root_path' ) ) {
+	/**
+	 * Return the current request wp-admin root path when it can be inferred safely.
+	 *
+	 * @return string
+	 */
+	function znts_get_current_admin_root_path() {
+		if ( empty( $_SERVER['REQUEST_URI'] ) ) {
+			return '';
+		}
+
+		$request_path = parse_url( (string) $_SERVER['REQUEST_URI'], PHP_URL_PATH );
+
+		if ( ! is_string( $request_path ) || '' === $request_path ) {
+			return '';
+		}
+
+		$marker = '/wp-admin/';
+		$offset = strpos( $request_path, $marker );
+
+		if ( false === $offset ) {
+			return '';
+		}
+
+		return substr( $request_path, 0, $offset + strlen( $marker ) );
+	}
+}
+
+if ( ! function_exists( __NAMESPACE__ . '\\znts_normalize_admin_url' ) ) {
+	/**
+	 * Normalize an admin URL against the current request path when WordPress is
+	 * running from a subdirectory install that resolves admin_url() too broadly.
+	 *
+	 * @param string $url Admin URL candidate.
+	 * @return string
+	 */
+	function znts_normalize_admin_url( $url ) {
+		$url             = (string) $url;
+		$request_origin  = znts_get_request_origin();
+		$request_admin_root = znts_get_current_admin_root_path();
+
+		if ( '' === $url || '' === $request_origin || '' === $request_admin_root ) {
+			return $url;
+		}
+
+		$parts = parse_url( $url );
+
+		if ( ! is_array( $parts ) || empty( $parts['path'] ) ) {
+			return $url;
+		}
+
+		$path = (string) $parts['path'];
+
+		if ( 0 !== strpos( $path, '/wp-admin/' ) ) {
+			return $url;
+		}
+
+		$normalized_path = preg_replace( '#^/wp-admin/#', $request_admin_root, $path, 1 );
+		$query           = ! empty( $parts['query'] ) ? '?' . $parts['query'] : '';
+		$fragment        = ! empty( $parts['fragment'] ) ? '#' . $parts['fragment'] : '';
+
+		return $request_origin . $normalized_path . $query . $fragment;
+	}
+}
+
+if ( ! function_exists( __NAMESPACE__ . '\\znts_admin_url' ) ) {
+	/**
+	 * Return an admin URL normalized for the current request path.
+	 *
+	 * @param string $path Optional admin path.
+	 * @return string
+	 */
+	function znts_admin_url( $path = '' ) {
+		return znts_normalize_admin_url( \admin_url( $path ) );
+	}
+}
+
+if ( ! function_exists( __NAMESPACE__ . '\\admin_url' ) ) {
+	/**
+	 * Namespace-local admin_url wrapper so Sentinel surfaces remain consistent in
+	 * subdirectory installs without touching WordPress core configuration.
+	 *
+	 * @param string $path Optional admin path.
+	 * @return string
+	 */
+	function admin_url( $path = '' ) {
+		return znts_admin_url( $path );
+	}
+}
+
 class Admin {
 
 	/**
@@ -537,6 +650,7 @@ class Admin {
 				'recent_conflicts' => $this->conflicts->get_recent_open( 6 ),
 			)
 		);
+		$view_data = $this->apply_dashboard_capture_state( $this->normalize_admin_links_in_value( $view_data ) );
 
 		require ZNTS_PLUGIN_DIR . 'includes/admin/views/dashboard.php';
 	}
@@ -569,7 +683,7 @@ class Admin {
 	 */
 	public function render_dashboard_widget() {
 		$summary   = $this->get_dashboard_summary_payload( 1 );
-		$view_data = $this->dashboard_summary_state_builder->build_widget_state( $summary );
+		$view_data = $this->normalize_admin_links_in_value( $this->dashboard_summary_state_builder->build_widget_state( $summary ) );
 
 		require ZNTS_PLUGIN_DIR . 'includes/admin/views/dashboard-widget.php';
 	}
@@ -615,7 +729,9 @@ class Admin {
 			wp_die( esc_html__( 'You do not have permission to access this page.', 'zignites-sentinel' ) );
 		}
 
-		$view_data = $this->get_update_readiness_view_data();
+		$view_data = $this->apply_update_readiness_capture_state(
+			$this->normalize_admin_links_in_value( $this->get_update_readiness_view_data() )
+		);
 
 		require ZNTS_PLUGIN_DIR . 'includes/admin/views/update-readiness.php';
 	}
@@ -739,8 +855,179 @@ class Admin {
 				'total_pages'  => $total_pages,
 			),
 		);
+		$view_data = $this->normalize_admin_links_in_value( $view_data );
 
 		require ZNTS_PLUGIN_DIR . 'includes/admin/views/event-logs.php';
+	}
+
+	/**
+	 * Return the current screenshot/capture state hint.
+	 *
+	 * @return string
+	 */
+	protected function get_capture_state() {
+		return isset( $_GET['znts_capture'] ) ? sanitize_key( (string) $_GET['znts_capture'] ) : '';
+	}
+
+	/**
+	 * Normalize any admin URLs embedded inside nested view data.
+	 *
+	 * @param mixed $value View data value.
+	 * @return mixed
+	 */
+	protected function normalize_admin_links_in_value( $value ) {
+		if ( is_array( $value ) ) {
+			foreach ( $value as $key => $item ) {
+				$value[ $key ] = $this->normalize_admin_links_in_value( $item );
+			}
+
+			return $value;
+		}
+
+		if ( is_string( $value ) && false !== strpos( $value, '/wp-admin/' ) ) {
+			return znts_normalize_admin_url( $value );
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Apply deterministic dashboard capture states for screenshots and demos.
+	 *
+	 * @param array $view_data Dashboard view data.
+	 * @return array
+	 */
+	protected function apply_dashboard_capture_state( array $view_data ) {
+		if ( 'first-run' !== $this->get_capture_state() ) {
+			return $view_data;
+		}
+
+		$view_data['site_status_card']      = array();
+		$view_data['restore_health_strip']  = array();
+		$view_data['snapshot_status_index'] = array();
+		$view_data['recent_snapshots']      = array();
+		$view_data['recent_logs']           = array();
+		$view_data['recent_conflicts']      = array();
+		$view_data['snapshot_intelligence'] = array();
+		$view_data['operator_timeline']     = array(
+			'items'         => array(),
+			'empty_message' => __( 'Snapshot and execution milestones will appear here once Sentinel records them.', 'zignites-sentinel' ),
+		);
+		$view_data['system_health'] = array(
+			'label'   => __( 'Waiting', 'zignites-sentinel' ),
+			'summary' => __( 'Create the first snapshot to let Sentinel score system health, recommend a trusted restore point, and build operator history.', 'zignites-sentinel' ),
+		);
+
+		return $view_data;
+	}
+
+	/**
+	 * Apply deterministic Update Readiness capture states for screenshots and demos.
+	 *
+	 * @param array $view_data Update Readiness view data.
+	 * @return array
+	 */
+	protected function apply_update_readiness_capture_state( array $view_data ) {
+		if ( 'rollback-confirmation' !== $this->get_capture_state() ) {
+			return $view_data;
+		}
+
+		$selected_snapshot_id    = isset( $view_data['restore_form_state']['selected_snapshot_id'] ) ? absint( $view_data['restore_form_state']['selected_snapshot_id'] ) : 0;
+		$selected_snapshot_label = isset( $view_data['selected_snapshot_label'] ) ? (string) $view_data['selected_snapshot_label'] : __( 'Snapshot', 'zignites-sentinel' );
+		$item_count              = isset( $view_data['restore_execution_item_rows'] ) && is_array( $view_data['restore_execution_item_rows'] ) ? count( $view_data['restore_execution_item_rows'] ) : 0;
+		$baseline_status         = isset( $view_data['snapshot_health_baseline_status'] ) && is_array( $view_data['snapshot_health_baseline_status'] ) ? $view_data['snapshot_health_baseline_status'] : array();
+
+		if ( $selected_snapshot_id < 1 && ! empty( $view_data['recent_snapshot_rows'][0]['id'] ) ) {
+			$selected_snapshot_id    = (int) $view_data['recent_snapshot_rows'][0]['id'];
+			$selected_snapshot_label = isset( $view_data['recent_snapshot_rows'][0]['label'] ) ? (string) $view_data['recent_snapshot_rows'][0]['label'] : $selected_snapshot_label;
+		}
+
+		if ( $item_count < 1 ) {
+			$item_count = 3;
+		}
+
+		$rollback_phrase = $selected_snapshot_id > 0
+			? sprintf(
+				/* translators: %d: snapshot id */
+				__( 'ROLLBACK SNAPSHOT %d', 'zignites-sentinel' ),
+				$selected_snapshot_id
+			)
+			: __( 'ROLLBACK SNAPSHOT', 'zignites-sentinel' );
+
+		$baseline_note = ! empty( $baseline_status['generated_at'] )
+			? sprintf(
+				/* translators: 1: baseline label, 2: timestamp */
+				__( '%1$s captured at %2$s.', 'zignites-sentinel' ),
+				isset( $baseline_status['status_label'] ) ? (string) $baseline_status['status_label'] : __( 'Baseline', 'zignites-sentinel' ),
+				(string) $baseline_status['generated_at']
+			)
+			: __( 'No baseline timestamp is available for comparison.', 'zignites-sentinel' );
+
+		$view_data['restore_form_state']['has_selected_snapshot']        = true;
+		$view_data['restore_form_state']['selected_snapshot_id']         = $selected_snapshot_id;
+		$view_data['restore_form_state']['rollback_confirmation_phrase'] = $rollback_phrase;
+		$view_data['restore_form_state']['can_resume_rollback']          = false;
+		$view_data['restore_execution_meta']['show_backup_root']         = true;
+		$view_data['restore_execution_meta']['backup_root']              = ! empty( $view_data['restore_execution_meta']['backup_root'] )
+			? (string) $view_data['restore_execution_meta']['backup_root']
+			: sprintf(
+				/* translators: %d: snapshot id */
+				__( 'wp-content/uploads/znts-sentinel/backups/snapshot-%d', 'zignites-sentinel' ),
+				max( 1, $selected_snapshot_id )
+			);
+		$view_data['rollback_confidence_summary'] = array(
+			'badge'   => 'warning',
+			'title'   => __( 'Rollback Confirmation Context', 'zignites-sentinel' ),
+			'message' => __( 'Rollback uses the backup root captured during the last restore execution. Confirm the exact snapshot and recovery scope before continuing.', 'zignites-sentinel' ),
+			'rows'    => array(
+				array(
+					'label' => __( 'Snapshot reference', 'zignites-sentinel' ),
+					'value' => $selected_snapshot_id > 0
+						? sprintf(
+							/* translators: 1: snapshot label, 2: snapshot id */
+							__( '%1$s (#%2$d)', 'zignites-sentinel' ),
+							$selected_snapshot_label,
+							$selected_snapshot_id
+						)
+						: $selected_snapshot_label,
+				),
+				array(
+					'label' => __( 'Rollback source', 'zignites-sentinel' ),
+					'value' => (string) $view_data['restore_execution_meta']['backup_root'],
+				),
+				array(
+					'label' => __( 'What will be restored', 'zignites-sentinel' ),
+					'value' => 1 === $item_count
+						? sprintf(
+							/* translators: %d: item count */
+							__( '%d recorded restore item from the last execution context.', 'zignites-sentinel' ),
+							$item_count
+						)
+						: sprintf(
+							/* translators: %d: item count */
+							__( '%d recorded restore items from the last execution context.', 'zignites-sentinel' ),
+							$item_count
+						),
+				),
+				array(
+					'label' => __( 'Last known good state', 'zignites-sentinel' ),
+					'value' => $baseline_note,
+				),
+			),
+		);
+		$view_data['workspace_primary_action'] = array(
+			'title'        => __( 'Review Rollback Context', 'zignites-sentinel' ),
+			'description'  => __( 'Use the rollback summary below to confirm snapshot scope, backup source, and recovery intent before running a reversal.', 'zignites-sentinel' ),
+			'button_label' => __( 'Review Rollback Context', 'zignites-sentinel' ),
+			'href'         => '#znts-rollback-confidence',
+		);
+		$view_data['view_visibility']['show_workspace_primary_action']   = true;
+		$view_data['view_visibility']['show_restore_execution']          = true;
+		$view_data['view_visibility']['show_execution_rollback_form']    = true;
+		$view_data['view_visibility']['show_rollback_confidence_summary'] = true;
+		$view_data['view_visibility']['show_rollback_confidence_rows']   = true;
+
+		return $view_data;
 	}
 
 	/**
