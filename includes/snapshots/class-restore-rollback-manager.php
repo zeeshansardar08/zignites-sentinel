@@ -42,15 +42,23 @@ class RestoreRollbackManager {
 	protected $checkpoint_store;
 
 	/**
+	 * Artifact storage guard.
+	 *
+	 * @var ArtifactStorageGuard
+	 */
+	protected $storage_guard;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Logger|null                 $logger           Logger.
 	 * @param RestoreJournalRecorder|null $journal_recorder Journal recorder.
 	 */
-	public function __construct( Logger $logger = null, RestoreJournalRecorder $journal_recorder = null, RestoreCheckpointStore $checkpoint_store = null ) {
+	public function __construct( Logger $logger = null, RestoreJournalRecorder $journal_recorder = null, RestoreCheckpointStore $checkpoint_store = null, ArtifactStorageGuard $storage_guard = null ) {
 		$this->logger           = $logger;
 		$this->journal_recorder = $journal_recorder;
 		$this->checkpoint_store = $checkpoint_store;
+		$this->storage_guard    = $storage_guard ? $storage_guard : new ArtifactStorageGuard();
 	}
 
 	/**
@@ -189,6 +197,7 @@ class RestoreRollbackManager {
 			empty( $restore_execution['snapshot_id'] ) ||
 			(int) $restore_execution['snapshot_id'] !== (int) $snapshot['id'] ||
 			empty( $restore_execution['backup_root'] ) ||
+			! $this->is_valid_backup_root( $restore_execution['backup_root'] ) ||
 			empty( $restore_execution['items'] ) ||
 			! is_array( $restore_execution['items'] )
 		) {
@@ -221,6 +230,19 @@ class RestoreRollbackManager {
 		$journal     = array();
 		$item        = $this->normalize_item( $item );
 		$item_key    = isset( $item['item_key'] ) ? $item['item_key'] : '';
+		$path_error  = $this->validate_rollback_item_paths( $item );
+
+		if ( '' !== $path_error ) {
+			return array(
+				'label'   => $label,
+				'status'  => 'fail',
+				'action'  => $action,
+				'message' => $path_error,
+				'journal' => array(
+					$this->build_journal_entry( 'item', $label, 'completed', 'fail', $path_error, $item )
+				),
+			);
+		}
 
 		if ( ! empty( $resume_state['completed_items'][ $item_key ] ) ) {
 			$this->store_rollback_item_checkpoint(
@@ -792,6 +814,82 @@ class RestoreRollbackManager {
 		}
 
 		return @rmdir( $path );
+	}
+
+	/**
+	 * Validate rollback item target and backup paths.
+	 *
+	 * @param array $item Rollback item.
+	 * @return string
+	 */
+	protected function validate_rollback_item_paths( array $item ) {
+		$target_path = isset( $item['target_path'] ) ? wp_normalize_path( (string) $item['target_path'] ) : '';
+		$backup_path = isset( $item['backup_path'] ) ? wp_normalize_path( (string) $item['backup_path'] ) : '';
+
+		if ( '' !== $target_path && ! $this->is_allowed_live_target_path( $target_path ) ) {
+			return __( 'The rollback target is outside the active plugin or theme directories.', 'zignites-sentinel' );
+		}
+
+		if ( '' !== $backup_path && ! $this->is_valid_backup_path( $backup_path ) ) {
+			return __( 'The rollback backup path is outside Sentinel storage and cannot be used.', 'zignites-sentinel' );
+		}
+
+		return '';
+	}
+
+	/**
+	 * Determine whether a backup root stays inside Sentinel restore-backup storage.
+	 *
+	 * @param string $backup_root Backup root path.
+	 * @return bool
+	 */
+	protected function is_valid_backup_root( $backup_root ) {
+		$root = $this->get_backup_root_directory();
+
+		return '' !== (string) $backup_root && '' !== $root && $this->storage_guard->is_path_within( $backup_root, $root );
+	}
+
+	/**
+	 * Determine whether a backup path stays inside Sentinel restore-backup storage.
+	 *
+	 * @param string $backup_path Backup path.
+	 * @return bool
+	 */
+	protected function is_valid_backup_path( $backup_path ) {
+		return $this->is_valid_backup_root( $backup_path );
+	}
+
+	/**
+	 * Determine whether a live target path stays inside the allowed plugin or theme roots.
+	 *
+	 * @param string $target_path Live target path.
+	 * @return bool
+	 */
+	protected function is_allowed_live_target_path( $target_path ) {
+		$target_path = wp_normalize_path( (string) $target_path );
+		$plugin_root = trailingslashit( wp_normalize_path( WP_PLUGIN_DIR ) );
+		$theme_root  = trailingslashit( wp_normalize_path( get_theme_root() ) );
+
+		if ( '' === $target_path ) {
+			return false;
+		}
+
+		return 0 === strpos( $target_path, $plugin_root ) || 0 === strpos( $target_path, $theme_root );
+	}
+
+	/**
+	 * Get the restore backup root directory.
+	 *
+	 * @return string
+	 */
+	protected function get_backup_root_directory() {
+		$uploads = wp_upload_dir();
+
+		if ( ! empty( $uploads['error'] ) || empty( $uploads['basedir'] ) ) {
+			return '';
+		}
+
+		return trailingslashit( wp_normalize_path( $uploads['basedir'] ) ) . RestoreExecutor::BACKUP_DIRECTORY;
 	}
 
 	/**

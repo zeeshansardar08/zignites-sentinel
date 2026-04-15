@@ -47,6 +47,20 @@ Use a full backup solution for full-site recovery.
 * Not an off-site backup service
 * Not an atomic restore engine
 
+= Artifact Storage Protection =
+
+Sentinel stores checkpoint packages, exports, temporary stage files, and restore backups under a protected `uploads/zignites-sentinel/` directory.
+
+It adds:
+
+* `index.php` guards
+* `.htaccess` deny rules for Apache hosts
+* `web.config` deny rules for IIS hosts
+
+This reduces direct web access and directory listing on common hosting setups, but it is not a perfect guarantee on every stack.
+
+If your host serves uploads directly without honoring `.htaccess` or `web.config`, sensitive artifact files may still be reachable by URL. For stronger protection, use server-level deny rules or a hosting setup that does not expose these uploads paths publicly.
+
 == Installation ==
 
 1. Upload the plugin to `/wp-content/plugins/` or install it through the WordPress admin.

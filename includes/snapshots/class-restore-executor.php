@@ -416,6 +416,20 @@ class RestoreExecutor {
 		$item     = $this->normalize_item( $item );
 		$item_key = isset( $item['item_key'] ) ? $item['item_key'] : '';
 
+		$path_error = $this->validate_execution_item_paths( $item, $stage_path, $backup_root );
+
+		if ( '' !== $path_error ) {
+			return array(
+				'label'   => isset( $item['label'] ) ? $item['label'] : '',
+				'status'  => 'fail',
+				'action'  => isset( $item['action'] ) ? $item['action'] : 'blocked',
+				'message' => $path_error,
+				'journal' => array(
+					$this->build_journal_entry( 'item', isset( $item['label'] ) ? $item['label'] : 'unknown', 'completed', 'fail', $path_error, $item )
+				),
+			);
+		}
+
 		if ( empty( $item['package_path'] ) || empty( $item['target_path'] ) || 'blocked' === $item['action'] ) {
 			return array(
 				'label'   => isset( $item['label'] ) ? $item['label'] : '',
@@ -906,7 +920,11 @@ class RestoreExecutor {
 	 */
 	protected function resolve_backup_root( $snapshot_id, array $resume_state ) {
 		if ( ! empty( $resume_state['backup_root'] ) && is_dir( $resume_state['backup_root'] ) ) {
-			return wp_normalize_path( $resume_state['backup_root'] );
+			$backup_root = wp_normalize_path( $resume_state['backup_root'] );
+
+			if ( $this->storage_guard->is_path_within( $backup_root, $this->get_backup_root_directory() ) ) {
+				return $backup_root;
+			}
 		}
 
 		return $this->create_backup_root( $snapshot_id );
@@ -987,7 +1005,12 @@ class RestoreExecutor {
 	 * @return array
 	 */
 	protected function resolve_execution_stage( array $snapshot, array $artifacts, array $execution_checkpoint ) {
-		if ( ! empty( $execution_checkpoint['stage_ready'] ) && ! empty( $execution_checkpoint['stage_path'] ) && is_dir( $execution_checkpoint['stage_path'] ) ) {
+		if (
+			! empty( $execution_checkpoint['stage_ready'] ) &&
+			! empty( $execution_checkpoint['stage_path'] ) &&
+			is_dir( $execution_checkpoint['stage_path'] ) &&
+			$this->is_valid_stage_path( $execution_checkpoint['stage_path'] )
+		) {
 			return array(
 				'success'          => true,
 				'reused'           => true,
@@ -1232,6 +1255,37 @@ class RestoreExecutor {
 	}
 
 	/**
+	 * Validate stage, backup, and live target paths before any filesystem writes.
+	 *
+	 * @param array  $item        Restore plan item.
+	 * @param string $stage_path  Stage root path.
+	 * @param string $backup_root Backup root path.
+	 * @return string
+	 */
+	protected function validate_execution_item_paths( array $item, $stage_path, $backup_root ) {
+		$package_path = isset( $item['package_path'] ) ? ltrim( wp_normalize_path( (string) $item['package_path'] ), '/' ) : '';
+		$target_path  = isset( $item['target_path'] ) ? wp_normalize_path( (string) $item['target_path'] ) : '';
+
+		if ( ! $this->is_valid_stage_path( $stage_path ) ) {
+			return __( 'The staged restore directory is outside Sentinel storage and cannot be used.', 'zignites-sentinel' );
+		}
+
+		if ( ! $this->is_safe_package_path( $package_path ) ) {
+			return __( 'The restore package path is invalid and cannot be used safely.', 'zignites-sentinel' );
+		}
+
+		if ( ! $this->is_allowed_live_target_path( $target_path, isset( $item['type'] ) ? (string) $item['type'] : '' ) ) {
+			return __( 'The restore target is outside the active plugin or theme directories.', 'zignites-sentinel' );
+		}
+
+		if ( '' !== (string) $backup_root && ! $this->storage_guard->is_path_within( $backup_root, $this->get_backup_root_directory() ) ) {
+			return __( 'The restore backup directory is outside Sentinel storage and cannot be used.', 'zignites-sentinel' );
+		}
+
+		return '';
+	}
+
+	/**
 	 * Build a normalized per-item execution checkpoint.
 	 *
 	 * @param array  $item             Plan item.
@@ -1439,6 +1493,68 @@ class RestoreExecutor {
 		}
 
 		return @rmdir( $path );
+	}
+
+	/**
+	 * Determine whether a stage path stays inside Sentinel's staging root.
+	 *
+	 * @param string $path Stage path.
+	 * @return bool
+	 */
+	protected function is_valid_stage_path( $path ) {
+		$path    = rtrim( wp_normalize_path( (string) $path ), '/' );
+		$uploads = wp_upload_dir();
+
+		if ( ! empty( $uploads['error'] ) || empty( $uploads['basedir'] ) ) {
+			return false;
+		}
+
+		$root = trailingslashit( wp_normalize_path( $uploads['basedir'] ) ) . RestoreStagingManager::STAGING_DIRECTORY;
+
+		return '' !== $path && $this->storage_guard->is_path_within( $path, $root ) && rtrim( $root, '/' ) !== $path;
+	}
+
+	/**
+	 * Validate a package-relative restore path.
+	 *
+	 * @param string $package_path Package-relative path.
+	 * @return bool
+	 */
+	protected function is_safe_package_path( $package_path ) {
+		$package_path = ltrim( wp_normalize_path( (string) $package_path ), '/' );
+
+		if ( '' === $package_path || false !== strpos( $package_path, ':' ) ) {
+			return false;
+		}
+
+		if ( preg_match( '#(^|/)\.\.(/|$)#', $package_path ) ) {
+			return false;
+		}
+
+		return 0 === strpos( $package_path, 'themes/' ) || 0 === strpos( $package_path, 'plugins/' );
+	}
+
+	/**
+	 * Determine whether a target path stays inside the allowed live directories.
+	 *
+	 * @param string $target_path Target path.
+	 * @param string $type        Restore item type.
+	 * @return bool
+	 */
+	protected function is_allowed_live_target_path( $target_path, $type = '' ) {
+		$target_path = wp_normalize_path( (string) $target_path );
+		$plugin_root = trailingslashit( wp_normalize_path( WP_PLUGIN_DIR ) );
+		$theme_root  = trailingslashit( wp_normalize_path( get_theme_root() ) );
+
+		if ( '' === $target_path ) {
+			return false;
+		}
+
+		if ( 'theme' === $type ) {
+			return 0 === strpos( $target_path, $theme_root );
+		}
+
+		return 0 === strpos( $target_path, $plugin_root );
 	}
 
 	/**

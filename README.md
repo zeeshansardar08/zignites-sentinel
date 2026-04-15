@@ -26,6 +26,18 @@ It does not restore:
 
 Use a full backup solution for full-site recovery.
 
+## Artifact Storage Protection
+
+Sentinel stores checkpoint packages, exports, temporary stage files, and restore backups under `uploads/zignites-sentinel/`.
+
+It writes:
+
+- `index.php` guards
+- `.htaccess` deny rules for Apache
+- `web.config` deny rules for IIS
+
+That reduces direct access on common hosts, but it is not absolute on every stack. If a host serves uploads directly and ignores those rules, artifact files may still be reachable by URL. Stronger protection requires server-level deny rules or keeping those artifacts outside public uploads.
+
 ## Product Scope
 
 The narrowed v1 focuses on three user jobs:

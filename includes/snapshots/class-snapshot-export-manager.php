@@ -103,14 +103,7 @@ class SnapshotExportManager {
 	 * @return string
 	 */
 	public function resolve_export_path( $relative_path ) {
-		$relative_path = ltrim( wp_normalize_path( (string) $relative_path ), '/' );
-		$uploads       = wp_upload_dir();
-
-		if ( ! empty( $uploads['error'] ) || empty( $uploads['basedir'] ) ) {
-			return '';
-		}
-
-		return trailingslashit( wp_normalize_path( $uploads['basedir'] ) ) . $relative_path;
+		return $this->storage_guard->resolve_storage_path( $relative_path, self::EXPORT_DIRECTORY );
 	}
 
 	/**

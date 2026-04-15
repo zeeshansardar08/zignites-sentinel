@@ -47,3 +47,28 @@ function znts_test_artifact_storage_guard_writes_protection_files() {
 
 	rmdir( $root );
 }
+
+function znts_test_artifact_storage_guard_rejects_unsafe_storage_paths() {
+	$guard = new ArtifactStorageGuard();
+
+	znts_assert_same(
+		'D:/uploads/zignites-sentinel/packages/snapshot-5.zip',
+		$guard->resolve_storage_path( 'zignites-sentinel/packages/snapshot-5.zip', 'zignites-sentinel/packages' ),
+		'Artifact storage guard should resolve valid package paths inside the expected storage prefix.'
+	);
+	znts_assert_same(
+		'',
+		$guard->resolve_storage_path( '../wp-config.php', 'zignites-sentinel/packages' ),
+		'Artifact storage guard should reject traversal paths.'
+	);
+	znts_assert_same(
+		'',
+		$guard->resolve_storage_path( 'zignites-sentinel/packages/../../secrets.txt', 'zignites-sentinel/packages' ),
+		'Artifact storage guard should reject nested traversal paths.'
+	);
+	znts_assert_same(
+		'',
+		$guard->resolve_storage_path( 'zignites-sentinel/snapshots/snapshot-5.json', 'zignites-sentinel/packages' ),
+		'Artifact storage guard should reject paths outside the expected storage prefix.'
+	);
+}

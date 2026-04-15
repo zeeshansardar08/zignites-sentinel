@@ -13,6 +13,10 @@ define( 'ZNTS_OPTION_LAST_SNAPSHOT_HEALTH_BASELINE', 'znts_last_snapshot_health_
 define( 'ZNTS_OPTION_RESTORE_EXECUTION_CHECKPOINT', 'znts_restore_execution_checkpoint' );
 define( 'ZNTS_OPTION_RESTORE_ROLLBACK_CHECKPOINT', 'znts_restore_rollback_checkpoint' );
 
+if ( ! defined( 'WP_PLUGIN_DIR' ) ) {
+	define( 'WP_PLUGIN_DIR', 'D:/plugins' );
+}
+
 $GLOBALS['znts_test_options'] = array();
 
 if ( ! function_exists( '__' ) ) {
@@ -138,6 +142,22 @@ if ( ! function_exists( 'admin_url' ) ) {
 	}
 }
 
+if ( ! function_exists( 'get_theme_root' ) ) {
+	function get_theme_root() {
+		return 'D:/themes';
+	}
+}
+
+if ( ! function_exists( 'wp_delete_file' ) ) {
+	function wp_delete_file( $path ) {
+		if ( ! file_exists( $path ) ) {
+			return true;
+		}
+
+		return unlink( $path );
+	}
+}
+
 if ( ! function_exists( 'add_query_arg' ) ) {
 	function add_query_arg( $args, $url = '' ) {
 		$url   = (string) $url;
@@ -172,7 +192,7 @@ if ( ! class_exists( 'Zignites\\Sentinel\\Logging\\Logger' ) ) {
 
 if ( ! class_exists( 'Zignites\\Sentinel\\Snapshots\\RestoreStagingManager' ) ) {
 	eval(
-		'namespace Zignites\\Sentinel\\Snapshots; class RestoreStagingManager {}'
+		'namespace Zignites\\Sentinel\\Snapshots; class RestoreStagingManager { const STAGING_DIRECTORY = "zignites-sentinel/staging"; }'
 	);
 }
 
@@ -182,6 +202,7 @@ if ( ! class_exists( 'Zignites\\Sentinel\\Snapshots\\RestoreExecutionPlanner' ) 
 	);
 }
 
+require_once __DIR__ . '/../includes/snapshots/class-artifact-storage-guard.php';
 require_once __DIR__ . '/../includes/snapshots/class-restore-health-verifier.php';
 require_once __DIR__ . '/../includes/logging/class-log-repository.php';
 require_once __DIR__ . '/../includes/snapshots/class-restore-checkpoint-store.php';
