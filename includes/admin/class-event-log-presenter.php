@@ -88,18 +88,18 @@ class EventLogPresenter {
 			array(
 				'title' => __( 'How to use this screen', 'zignites-sentinel' ),
 				'body'  => $total_logs > 0
-					? __( 'Start with the filter bar, review the top matching events, then open a run journal only when you need the full execution trail.', 'zignites-sentinel' )
-					: __( 'This screen becomes your investigation trail once Sentinel starts recording restore, rollback, and readiness activity.', 'zignites-sentinel' ),
+					? __( 'Start with the latest checkpoint, restore, and rollback events, then narrow the filters only if you need a specific run.', 'zignites-sentinel' )
+					: __( 'This screen fills in after Sentinel records checkpoint, restore, or rollback activity.', 'zignites-sentinel' ),
 			),
 			array(
 				'title' => __( 'What this status means', 'zignites-sentinel' ),
-				'body'  => __( 'Event Logs stores structured evidence around readiness checks, restores, rollbacks, and supporting maintenance actions so operators can review what happened with context.', 'zignites-sentinel' ),
+				'body'  => __( 'History stores the checkpoint, restore, and rollback trail so you can confirm what happened later.', 'zignites-sentinel' ),
 			),
 			array(
 				'title' => __( 'What to do next', 'zignites-sentinel' ),
 				'body'  => $active_filter_count > 0
 					? __( 'Keep the current filters if they isolate the issue, or reset them to return to the full event stream.', 'zignites-sentinel' )
-					: __( 'Use Update Readiness to create a snapshot and run the first checks. Event history will become more useful as Sentinel records activity.', 'zignites-sentinel' ),
+					: __( 'Use Before Update to create a checkpoint and run the first validation checks.', 'zignites-sentinel' ),
 			),
 		);
 	}
@@ -123,8 +123,8 @@ class EventLogPresenter {
 		if ( $total_logs < 1 ) {
 			return array(
 				'title'       => __( 'No event history has been recorded yet.', 'zignites-sentinel' ),
-				'description' => __( 'This screen will show the operator trail for readiness checks, restores, rollbacks, and supporting maintenance events once Sentinel has activity to record.', 'zignites-sentinel' ),
-				'next_step'   => __( 'Create a snapshot and run the first readiness checks to start building an investigation history.', 'zignites-sentinel' ),
+				'description' => __( 'This screen will show checkpoint, restore, and rollback history once Sentinel has activity to record.', 'zignites-sentinel' ),
+				'next_step'   => __( 'Create a checkpoint and run validation to start building history.', 'zignites-sentinel' ),
 			);
 		}
 
@@ -152,8 +152,8 @@ class EventLogPresenter {
 
 		return array(
 			'title'       => __( 'No restore or rollback history yet.', 'zignites-sentinel' ),
-			'description' => __( 'Run summaries and journals appear here after Sentinel records a restore or rollback attempt, so you can review the story without digging through raw entries first.', 'zignites-sentinel' ),
-			'next_step'   => __( 'Use snapshots and readiness checks first. This history layer will fill in as the controlled restore workflow is used.', 'zignites-sentinel' ),
+			'description' => __( 'Additional run summaries appear here after Sentinel records a restore or rollback attempt.', 'zignites-sentinel' ),
+			'next_step'   => __( 'Create and validate a checkpoint first. Restore history appears after real restore work.', 'zignites-sentinel' ),
 		);
 	}
 
@@ -165,7 +165,7 @@ class EventLogPresenter {
 	protected function build_positioning_note() {
 		return array(
 			'title' => __( 'What this history is for', 'zignites-sentinel' ),
-			'body'  => __( 'Sentinel records controlled restore evidence so operators can review readiness and recovery decisions with confidence. The journal is for traceability, not a claim of atomic restore execution.', 'zignites-sentinel' ),
+			'body'  => __( 'Sentinel records checkpoint, restore, and rollback events for traceability. It does not claim a full-site or atomic restore workflow.', 'zignites-sentinel' ),
 		);
 	}
 

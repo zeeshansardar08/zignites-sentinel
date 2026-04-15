@@ -81,6 +81,21 @@ class RestoreExecutionPlanner {
 	 */
 	protected function build_theme_item( $stage_path, array $snapshot ) {
 		$stylesheet = isset( $snapshot['theme_stylesheet'] ) ? sanitize_text_field( (string) $snapshot['theme_stylesheet'] ) : '';
+
+		if ( ! $this->is_safe_theme_stylesheet( $stylesheet ) ) {
+			return array(
+				'type'           => 'theme',
+				'label'          => __( 'Theme', 'zignites-sentinel' ),
+				'package_path'   => '',
+				'target_path'    => '',
+				'status'         => 'fail',
+				'action'         => 'blocked',
+				'message'        => __( 'The snapshot theme path is invalid and cannot be restored safely.', 'zignites-sentinel' ),
+				'conflict_count' => 0,
+				'file_count'     => 0,
+			);
+		}
+
 		$package_path = 'themes/' . $stylesheet;
 		$target_path  = trailingslashit( wp_normalize_path( get_theme_root() ) ) . $stylesheet;
 
@@ -104,6 +119,20 @@ class RestoreExecutionPlanner {
 		$plugin_file = sanitize_text_field( (string) $plugin_state['plugin'] );
 		$directory   = dirname( $plugin_file );
 		$label       = isset( $plugin_state['name'] ) ? sanitize_text_field( (string) $plugin_state['name'] ) : $plugin_file;
+
+		if ( ! $this->is_safe_plugin_reference( $plugin_file ) ) {
+			return array(
+				'type'           => 'plugin',
+				'label'          => $label,
+				'package_path'   => '',
+				'target_path'    => '',
+				'status'         => 'fail',
+				'action'         => 'blocked',
+				'message'        => __( 'The snapshot plugin path is invalid and cannot be restored safely.', 'zignites-sentinel' ),
+				'conflict_count' => 0,
+				'file_count'     => 0,
+			);
+		}
 
 		if ( '.' !== $directory ) {
 			return $this->build_component_item(
@@ -135,6 +164,20 @@ class RestoreExecutionPlanner {
 	 * @return array
 	 */
 	protected function build_component_item( $type, $label, $package_path, $target_path, $stage_path ) {
+		if ( ! $this->is_safe_package_path( $package_path ) || ! $this->is_allowed_target_path( $type, $target_path ) ) {
+			return array(
+				'type'           => $type,
+				'label'          => $label,
+				'package_path'   => $package_path,
+				'target_path'    => $target_path,
+				'status'         => 'fail',
+				'action'         => 'blocked',
+				'message'        => __( 'The restore target is outside the allowed plugin or theme scope.', 'zignites-sentinel' ),
+				'conflict_count' => 0,
+				'file_count'     => 0,
+			);
+		}
+
 		$staged_path = trailingslashit( wp_normalize_path( $stage_path ) ) . ltrim( wp_normalize_path( $package_path ), '/' );
 
 		if ( ! file_exists( $staged_path ) ) {
@@ -295,6 +338,81 @@ class RestoreExecutionPlanner {
 		}
 
 		return __( 'The restore plan is ready. The live site already matches or can safely receive the snapshot payloads.', 'zignites-sentinel' );
+	}
+
+	/**
+	 * Validate a stored theme stylesheet value.
+	 *
+	 * @param string $stylesheet Theme stylesheet.
+	 * @return bool
+	 */
+	protected function is_safe_theme_stylesheet( $stylesheet ) {
+		$stylesheet = trim( wp_normalize_path( (string) $stylesheet ), '/' );
+
+		if ( '' === $stylesheet || false !== strpos( $stylesheet, '/' ) || false !== strpos( $stylesheet, ':' ) ) {
+			return false;
+		}
+
+		return ! preg_match( '#(^|/)\.\.(/|$)#', $stylesheet );
+	}
+
+	/**
+	 * Validate a stored plugin basename.
+	 *
+	 * @param string $plugin_file Plugin basename.
+	 * @return bool
+	 */
+	protected function is_safe_plugin_reference( $plugin_file ) {
+		$plugin_file = ltrim( wp_normalize_path( (string) $plugin_file ), '/' );
+
+		if ( '' === $plugin_file || false !== strpos( $plugin_file, ':' ) ) {
+			return false;
+		}
+
+		return ! preg_match( '#(^|/)\.\.(/|$)#', $plugin_file );
+	}
+
+	/**
+	 * Validate a package-relative path inside the staged payload.
+	 *
+	 * @param string $package_path Package-relative path.
+	 * @return bool
+	 */
+	protected function is_safe_package_path( $package_path ) {
+		$package_path = ltrim( wp_normalize_path( (string) $package_path ), '/' );
+
+		if ( '' === $package_path || false !== strpos( $package_path, ':' ) ) {
+			return false;
+		}
+
+		if ( preg_match( '#(^|/)\.\.(/|$)#', $package_path ) ) {
+			return false;
+		}
+
+		return 0 === strpos( $package_path, 'themes/' ) || 0 === strpos( $package_path, 'plugins/' );
+	}
+
+	/**
+	 * Ensure a live target path remains inside the theme or plugin roots.
+	 *
+	 * @param string $type        Component type.
+	 * @param string $target_path Live target path.
+	 * @return bool
+	 */
+	protected function is_allowed_target_path( $type, $target_path ) {
+		$target_path = wp_normalize_path( (string) $target_path );
+		$plugin_root = trailingslashit( wp_normalize_path( WP_PLUGIN_DIR ) );
+		$theme_root  = trailingslashit( wp_normalize_path( get_theme_root() ) );
+
+		if ( '' === $target_path ) {
+			return false;
+		}
+
+		if ( 'theme' === $type ) {
+			return 0 === strpos( $target_path, $theme_root );
+		}
+
+		return 0 === strpos( $target_path, $plugin_root );
 	}
 
 	/**

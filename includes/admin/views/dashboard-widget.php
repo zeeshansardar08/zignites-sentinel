@@ -34,7 +34,7 @@ $health_rows          = ! empty( $restore_health_strip['rows'] ) && is_array( $r
 		</div>
 
 		<p class="znts-widget-summary">
-			<strong><?php echo esc_html__( 'Recommended action:', 'zignites-sentinel' ); ?></strong>
+			<strong><?php echo esc_html__( 'Next step:', 'zignites-sentinel' ); ?></strong>
 			<?php echo esc_html( isset( $site_status_card['recommended_action'] ) ? $site_status_card['recommended_action'] : '' ); ?>
 		</p>
 
@@ -48,43 +48,14 @@ $health_rows          = ! empty( $restore_health_strip['rows'] ) && is_array( $r
 			</div>
 		<?php endif; ?>
 
-		<?php if ( ! empty( $widget_signals ) ) : ?>
-			<ul class="znts-list znts-signal-list">
-				<?php foreach ( $widget_signals as $signal ) : ?>
-					<li><?php echo esc_html( $signal ); ?></li>
-				<?php endforeach; ?>
-			</ul>
-		<?php endif; ?>
-
-		<?php if ( ! empty( $health_rows ) ) : ?>
-			<div class="znts-widget-health">
-				<p><strong><?php echo esc_html__( 'Latest health checks', 'zignites-sentinel' ); ?></strong></p>
-				<div class="znts-badge-row">
-					<?php foreach ( $health_rows as $row ) : ?>
-						<?php $status = isset( $row['status'] ) ? (string) $row['status'] : ''; ?>
-						<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $row['status_pill'] ) ? $row['status_pill'] : ( 'unhealthy' === $status ? 'critical' : ( 'degraded' === $status ? 'warning' : 'info' ) ) ); ?>">
-							<?php
-							echo esc_html(
-								sprintf(
-									/* translators: 1: row label, 2: health status */
-									__( '%1$s: %2$s', 'zignites-sentinel' ),
-									isset( $row['label'] ) ? (string) $row['label'] : __( 'Health', 'zignites-sentinel' ),
-									isset( $row['status_label'] ) ? (string) $row['status_label'] : ucfirst( $status )
-								)
-							);
-							?>
-						</span>
-					<?php endforeach; ?>
-				</div>
-			</div>
-		<?php endif; ?>
+		<p class="description"><?php echo esc_html__( 'Theme and active plugins only. This is not a full-site restore tool.', 'zignites-sentinel' ); ?></p>
 
 		<div class="znts-widget-links">
 			<?php if ( ! empty( $site_status_card['detail_url'] ) ) : ?>
-				<a href="<?php echo esc_url( $site_status_card['detail_url'] ); ?>"><?php echo esc_html__( 'Open Update Readiness', 'zignites-sentinel' ); ?></a>
+				<a href="<?php echo esc_url( $site_status_card['detail_url'] ); ?>"><?php echo esc_html__( 'Open Before Update', 'zignites-sentinel' ); ?></a>
 			<?php endif; ?>
 			<?php if ( ! empty( $site_status_card['activity_url'] ) ) : ?>
-				<a href="<?php echo esc_url( $site_status_card['activity_url'] ); ?>"><?php echo esc_html__( 'Open Snapshot Activity', 'zignites-sentinel' ); ?></a>
+				<a href="<?php echo esc_url( $site_status_card['activity_url'] ); ?>"><?php echo esc_html__( 'Open History', 'zignites-sentinel' ); ?></a>
 			<?php endif; ?>
 		</div>
 	<?php endif; ?>

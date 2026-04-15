@@ -12,6 +12,22 @@ defined( 'ABSPATH' ) || exit;
 class SnapshotExportManager {
 
 	/**
+	 * Artifact storage guard.
+	 *
+	 * @var ArtifactStorageGuard
+	 */
+	protected $storage_guard;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param ArtifactStorageGuard|null $storage_guard Artifact storage guard.
+	 */
+	public function __construct( ArtifactStorageGuard $storage_guard = null ) {
+		$this->storage_guard = $storage_guard ? $storage_guard : new ArtifactStorageGuard();
+	}
+
+	/**
 	 * Relative export directory under uploads.
 	 *
 	 * @var string
@@ -87,14 +103,7 @@ class SnapshotExportManager {
 	 * @return string
 	 */
 	public function resolve_export_path( $relative_path ) {
-		$relative_path = ltrim( wp_normalize_path( (string) $relative_path ), '/' );
-		$uploads       = wp_upload_dir();
-
-		if ( ! empty( $uploads['error'] ) || empty( $uploads['basedir'] ) ) {
-			return '';
-		}
-
-		return trailingslashit( wp_normalize_path( $uploads['basedir'] ) ) . $relative_path;
+		return $this->storage_guard->resolve_storage_path( $relative_path, self::EXPORT_DIRECTORY );
 	}
 
 	/**
@@ -220,11 +229,11 @@ class SnapshotExportManager {
 			return '';
 		}
 
-		if ( is_dir( $base_dir ) ) {
+		if ( is_dir( $base_dir ) && $this->storage_guard->protect_directory( $base_dir ) ) {
 			return $base_dir;
 		}
 
-		if ( wp_mkdir_p( $base_dir ) ) {
+		if ( $this->storage_guard->protect_directory( $base_dir ) ) {
 			return $base_dir;
 		}
 

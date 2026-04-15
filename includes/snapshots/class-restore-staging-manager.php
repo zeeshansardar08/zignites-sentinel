@@ -26,12 +26,20 @@ class RestoreStagingManager {
 	protected $package_manager;
 
 	/**
+	 * Artifact storage guard.
+	 *
+	 * @var ArtifactStorageGuard
+	 */
+	protected $storage_guard;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param SnapshotPackageManager $package_manager Package manager.
 	 */
-	public function __construct( SnapshotPackageManager $package_manager ) {
+	public function __construct( SnapshotPackageManager $package_manager, ArtifactStorageGuard $storage_guard = null ) {
 		$this->package_manager = $package_manager;
+		$this->storage_guard   = $storage_guard ? $storage_guard : new ArtifactStorageGuard();
 	}
 
 	/**
@@ -211,6 +219,25 @@ class RestoreStagingManager {
 			);
 		}
 
+		$entry_validation = $this->validate_archive_entries( $zip );
+
+		if ( 'pass' !== $entry_validation['status'] ) {
+			$zip->close();
+
+			return array(
+				'success'           => false,
+				'stage_created'     => true,
+				'stage_path'        => $stage_path,
+				'manifest'          => array(),
+				'stage_check'       => array(
+					'label'   => __( 'Stage directory', 'zignites-sentinel' ),
+					'status'  => 'pass',
+					'message' => __( 'A temporary stage directory was created.', 'zignites-sentinel' ),
+				),
+				'extraction_check'  => $entry_validation,
+			);
+		}
+
 		$extracted = $zip->extractTo( $stage_path );
 		$manifest  = $this->package_manager->get_checksum_manifest( $zip );
 		$zip->close();
@@ -242,6 +269,10 @@ class RestoreStagingManager {
 	 * @return bool
 	 */
 	public function cleanup_stage_directory( $stage_path ) {
+		if ( ! $this->is_valid_stage_path( $stage_path ) ) {
+			return false;
+		}
+
 		return $this->delete_directory_recursive( $stage_path );
 	}
 
@@ -360,7 +391,15 @@ class RestoreStagingManager {
 	 * @return array
 	 */
 	protected function build_extracted_file_check( $stage_path, $relative, $label ) {
-		$full_path = trailingslashit( wp_normalize_path( $stage_path ) ) . ltrim( wp_normalize_path( $relative ), '/' );
+		$full_path = $this->resolve_stage_entry_path( $stage_path, $relative );
+
+		if ( '' === $full_path ) {
+			return array(
+				'label'   => $label,
+				'status'  => 'fail',
+				'message' => __( 'The staged file path is invalid.', 'zignites-sentinel' ),
+			);
+		}
 
 		if ( ! file_exists( $full_path ) ) {
 			return array(
@@ -394,7 +433,15 @@ class RestoreStagingManager {
 	 * @return array
 	 */
 	protected function build_extracted_directory_check( $stage_path, $relative, $label ) {
-		$full_path = trailingslashit( wp_normalize_path( $stage_path ) ) . ltrim( wp_normalize_path( $relative ), '/' );
+		$full_path = $this->resolve_stage_entry_path( $stage_path, $relative );
+
+		if ( '' === $full_path ) {
+			return array(
+				'label'   => $label,
+				'status'  => 'fail',
+				'message' => __( 'The staged directory path is invalid.', 'zignites-sentinel' ),
+			);
+		}
 
 		if ( ! is_dir( $full_path ) ) {
 			return array(
@@ -503,9 +550,9 @@ class RestoreStagingManager {
 		}
 
 		foreach ( $manifest['entries'] as $relative => $expected_hash ) {
-			$full_path = trailingslashit( wp_normalize_path( $stage_path ) ) . ltrim( wp_normalize_path( $relative ), '/' );
+			$full_path = $this->resolve_stage_entry_path( $stage_path, $relative );
 
-			if ( ! file_exists( $full_path ) || ! is_string( $expected_hash ) || hash_file( 'sha256', $full_path ) !== $expected_hash ) {
+			if ( '' === $full_path || ! file_exists( $full_path ) || ! is_string( $expected_hash ) || hash_file( 'sha256', $full_path ) !== $expected_hash ) {
 				return array(
 					'label'   => __( 'Staged checksum validation', 'zignites-sentinel' ),
 					'status'  => 'fail',
@@ -591,7 +638,7 @@ class RestoreStagingManager {
 			return '';
 		}
 
-		if ( ! is_dir( $base_dir ) && ! wp_mkdir_p( $base_dir ) ) {
+		if ( ! $this->storage_guard->protect_directory( $base_dir ) ) {
 			return '';
 		}
 
@@ -649,6 +696,83 @@ class RestoreStagingManager {
 		}
 
 		return @rmdir( $path );
+	}
+
+	/**
+	 * Validate ZIP entry names before extraction.
+	 *
+	 * @param \ZipArchive $zip ZIP instance.
+	 * @return array
+	 */
+	protected function validate_archive_entries( \ZipArchive $zip ) {
+		for ( $index = 0; $index < $zip->numFiles; $index++ ) {
+			$name = $zip->getNameIndex( $index );
+
+			if ( ! is_string( $name ) || ! $this->is_safe_archive_entry_name( $name ) ) {
+				return array(
+					'label'   => __( 'Package extraction', 'zignites-sentinel' ),
+					'status'  => 'fail',
+					'message' => __( 'The snapshot package includes an unsafe archive path and cannot be extracted.', 'zignites-sentinel' ),
+				);
+			}
+		}
+
+		return array(
+			'label'   => __( 'Package extraction', 'zignites-sentinel' ),
+			'status'  => 'pass',
+			'message' => __( 'The snapshot package archive paths passed extraction safety checks.', 'zignites-sentinel' ),
+		);
+	}
+
+	/**
+	 * Determine whether an archive entry name is safe to extract.
+	 *
+	 * @param string $name Archive entry name.
+	 * @return bool
+	 */
+	protected function is_safe_archive_entry_name( $name ) {
+		$name = ltrim( wp_normalize_path( (string) $name ), '/' );
+
+		if ( '' === $name || false !== strpos( $name, ':' ) || preg_match( '#(^|/)\.\.(/|$)#', $name ) ) {
+			return false;
+		}
+
+		if ( in_array( $name, array( 'snapshot.json', 'artifacts.json', 'checksums.json' ), true ) ) {
+			return true;
+		}
+
+		return 0 === strpos( $name, 'themes/' ) || 0 === strpos( $name, 'plugins/' );
+	}
+
+	/**
+	 * Resolve a stage-relative entry path safely.
+	 *
+	 * @param string $stage_path Stage path.
+	 * @param string $relative   Relative package path.
+	 * @return string
+	 */
+	protected function resolve_stage_entry_path( $stage_path, $relative ) {
+		$stage_path = rtrim( wp_normalize_path( (string) $stage_path ), '/' );
+		$relative   = ltrim( wp_normalize_path( (string) $relative ), '/' );
+
+		if ( '' === $stage_path || '' === $relative || ! $this->is_safe_archive_entry_name( $relative ) ) {
+			return '';
+		}
+
+		return $stage_path . '/' . $relative;
+	}
+
+	/**
+	 * Determine whether a stage path is inside Sentinel's staging root.
+	 *
+	 * @param string $path Stage path.
+	 * @return bool
+	 */
+	protected function is_valid_stage_path( $path ) {
+		$root = $this->get_stage_root();
+		$path = rtrim( wp_normalize_path( (string) $path ), '/' );
+
+		return '' !== $path && '' !== $root && $this->storage_guard->is_path_within( $path, $root ) && rtrim( $root, '/' ) !== $path;
 	}
 
 	/**

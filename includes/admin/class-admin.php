@@ -589,8 +589,8 @@ class Admin {
 
 		$this->hook_suffixes[] = add_submenu_page(
 			self::MENU_SLUG,
-			__( 'Update Readiness', 'zignites-sentinel' ),
-			__( 'Update Readiness', 'zignites-sentinel' ),
+			__( 'Before Update', 'zignites-sentinel' ),
+			__( 'Before Update', 'zignites-sentinel' ),
 			'manage_options',
 			self::UPDATE_PAGE_SLUG,
 			array( $this, 'render_update_readiness' )
@@ -598,8 +598,8 @@ class Admin {
 
 		$this->hook_suffixes[] = add_submenu_page(
 			self::MENU_SLUG,
-			__( 'Event Logs', 'zignites-sentinel' ),
-			__( 'Event Logs', 'zignites-sentinel' ),
+			__( 'History', 'zignites-sentinel' ),
+			__( 'History', 'zignites-sentinel' ),
 			'manage_options',
 			self::LOGS_PAGE_SLUG,
 			array( $this, 'render_event_logs' )
@@ -652,7 +652,7 @@ class Admin {
 		);
 		$view_data = $this->apply_dashboard_capture_state( $this->normalize_admin_links_in_value( $view_data ) );
 
-		require ZNTS_PLUGIN_DIR . 'includes/admin/views/dashboard.php';
+		require ZNTS_PLUGIN_DIR . 'includes/admin/views/dashboard-v1.php';
 	}
 
 	/**
@@ -733,7 +733,7 @@ class Admin {
 			$this->normalize_admin_links_in_value( $this->get_update_readiness_view_data() )
 		);
 
-		require ZNTS_PLUGIN_DIR . 'includes/admin/views/update-readiness.php';
+		require ZNTS_PLUGIN_DIR . 'includes/admin/views/before-update.php';
 	}
 
 	/**
@@ -857,7 +857,7 @@ class Admin {
 		);
 		$view_data = $this->normalize_admin_links_in_value( $view_data );
 
-		require ZNTS_PLUGIN_DIR . 'includes/admin/views/event-logs.php';
+		require ZNTS_PLUGIN_DIR . 'includes/admin/views/history.php';
 	}
 
 	/**
