@@ -26,12 +26,20 @@ class RestoreStagingManager {
 	protected $package_manager;
 
 	/**
+	 * Artifact storage guard.
+	 *
+	 * @var ArtifactStorageGuard
+	 */
+	protected $storage_guard;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param SnapshotPackageManager $package_manager Package manager.
 	 */
-	public function __construct( SnapshotPackageManager $package_manager ) {
+	public function __construct( SnapshotPackageManager $package_manager, ArtifactStorageGuard $storage_guard = null ) {
 		$this->package_manager = $package_manager;
+		$this->storage_guard   = $storage_guard ? $storage_guard : new ArtifactStorageGuard();
 	}
 
 	/**
@@ -591,7 +599,7 @@ class RestoreStagingManager {
 			return '';
 		}
 
-		if ( ! is_dir( $base_dir ) && ! wp_mkdir_p( $base_dir ) ) {
+		if ( ! $this->storage_guard->protect_directory( $base_dir ) ) {
 			return '';
 		}
 

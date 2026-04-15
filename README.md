@@ -1,47 +1,47 @@
-﻿# Zignites Sentinel
+# Zignites Sentinel
 
-Zignites Sentinel is a controlled restore-readiness and rollback-safety plugin for WordPress operators. It helps teams prepare safer update checkpoints, judge snapshot trust, review system health, and recover with clearer confidence signals instead of pushing straight into destructive actions.
+Zignites Sentinel is a rollback checkpoint plugin for technical WordPress users.
 
-## Product Positioning
+It helps you:
 
-Sentinel is built for controlled recovery work:
+- create a checkpoint of the active theme and active plugins before updates
+- validate that checkpoint before you rely on it
+- restore that checkpoint if an update breaks the code layer
+- roll back the last restore if needed
 
-- snapshot trust and recommendation guidance
-- restore-readiness review and safety gating
-- rollback context and historical operator confidence
-- condensed operational history and investigation support
+## What It Is
 
-Sentinel is not positioned as a fully transactional or atomic restore engine. It is a safety-first operator workspace designed to reduce uncertainty before and after restore activity.
+Sentinel is not a full backup plugin and not a full-site restore system.
 
-## Key Features
+It restores:
 
-- System Health scoring that surfaces whether the current state looks safe, needs review, or is risky.
-- Recommended Snapshot and Last Known Good guidance based on freshness, validation evidence, and prior recovery outcomes.
-- Update Readiness workspace with pre-restore checklist context, confidence messaging, and rollback-safety framing.
-- Event Stream summary with run outcome narratives, filtered evidence, and condensed operator history.
-- First-run and empty-state guidance that explains what each screen is for and what to do next.
-- WordPress.org-ready product copy aligned to launch positioning.
+- the active theme
+- active plugins
 
-## Screenshots
+It does not restore:
 
-Capture these launch screenshots:
+- the database
+- uploads or media
+- WordPress core
 
-1. Dashboard hero with System Health, confidence messaging, and the dominant next action.
-2. Dashboard first-run state showing snapshot guidance and a clear starting path.
-3. Update Readiness workspace with System Trust, the recommended snapshot, and the best next step.
-4. Snapshot Library showing recommended and last known good context with trust indicators.
-5. Partial restore recovery guidance showing the safest recovery path before proceeding.
-6. Rollback confirmation context showing recovery confidence and operator safeguards.
-7. Event Logs showing the run outcome summary and filtered event stream.
+Use a full backup solution for full-site recovery.
 
-## Included Launch Assets
+## Product Scope
 
-- `readme.txt` for WordPress.org-style listing content
-- in-product launch copy across Dashboard, Update Readiness, and Event Logs
-- screenshot-ready headings, empty states, and CTA labels
+The narrowed v1 focuses on three user jobs:
 
-## Development Notes
+1. Save a rollback checkpoint before risky updates.
+2. Validate that checkpoint.
+3. Restore or roll back that code-layer checkpoint when needed.
 
-- The plugin keeps trust and presentation logic server-side through state builders and presenters.
-- This phase intentionally avoids adding new restore engines, storage integrations, or SaaS behavior.
-- Local PHP CLI may still emit the unrelated `pdo_snowflake` startup warning on some machines.
+## Core Screens
+
+- `Dashboard`: what Sentinel does, the latest checkpoint, and the next step
+- `Before Update`: create checkpoints, validate them, restore them, or roll back the last restore
+- `History`: recent checkpoint, restore, and rollback events
+
+## Notes
+
+- Sentinel is designed for technical WordPress users, developers, and agencies.
+- It does not claim atomic restore behavior.
+- This phase intentionally narrows the product instead of adding new features.

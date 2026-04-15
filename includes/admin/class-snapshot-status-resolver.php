@@ -1415,10 +1415,20 @@ class SnapshotStatusResolver {
 		$primary_action = $this->build_primary_action( $status, $latest_snapshot, $latest_status, $critical_count, $error_count, $warning_count );
 
 		if ( ! empty( $primary_action['title'] ) ) {
+			if ( 'Latest Checkpoint Ready for Review' === $primary_action['title'] ) {
+				return __( 'Open Before Update and review the latest checkpoint.', 'zignites-sentinel' );
+			}
+
+			if ( 'Review Issues Before Continuing' === $primary_action['title'] ) {
+				return __( 'Open History and review recent checkpoint or restore issues before continuing.', 'zignites-sentinel' );
+			}
+		}
+
+		if ( ! empty( $primary_action['title'] ) ) {
 			return (string) $primary_action['title'];
 		}
 
-		return __( 'Review current operator guidance.', 'zignites-sentinel' );
+		return __( 'Open Before Update and review the latest checkpoint.', 'zignites-sentinel' );
 	}
 
 	/**
@@ -1435,9 +1445,9 @@ class SnapshotStatusResolver {
 	protected function build_primary_action( $status, array $latest_snapshot, array $latest_status, $critical_count, $error_count, $warning_count ) {
 		if ( empty( $latest_snapshot ) ) {
 			return array(
-				'title'        => __( 'Take Snapshot Before Update', 'zignites-sentinel' ),
-				'description'  => __( 'No recent snapshot is available, so update and restore planning should not continue yet.', 'zignites-sentinel' ),
-				'button_label' => __( 'Open Update Readiness', 'zignites-sentinel' ),
+				'title'        => __( 'Create a Checkpoint Before Updates', 'zignites-sentinel' ),
+				'description'  => __( 'No recent checkpoint is available for the active theme and plugins.', 'zignites-sentinel' ),
+				'button_label' => __( 'Open Before Update', 'zignites-sentinel' ),
 				'target'       => 'detail',
 			);
 		}
@@ -1445,8 +1455,8 @@ class SnapshotStatusResolver {
 		if ( $critical_count > 0 ) {
 			return array(
 				'title'        => __( 'Review Issues Before Continuing', 'zignites-sentinel' ),
-				'description'  => __( 'Critical conflicts are open. Review evidence and recent activity before any restore or update action.', 'zignites-sentinel' ),
-				'button_label' => __( 'Open Snapshot Activity', 'zignites-sentinel' ),
+				'description'  => __( 'Critical issues are open. Review recent checkpoint and restore history before changing the site again.', 'zignites-sentinel' ),
+				'button_label' => __( 'Open History', 'zignites-sentinel' ),
 				'target'       => 'activity',
 			);
 		}
@@ -1454,44 +1464,44 @@ class SnapshotStatusResolver {
 		if ( ! empty( $latest_status['activity']['has_failure'] ) ) {
 			return array(
 				'title'        => __( 'Review Issues Before Continuing', 'zignites-sentinel' ),
-				'description'  => __( 'A recent restore or rollback run ended in a warning or failure state. Review recovery context before starting another action.', 'zignites-sentinel' ),
-				'button_label' => __( 'Open Snapshot Activity', 'zignites-sentinel' ),
+				'description'  => __( 'A recent restore or rollback ended with warnings or failures. Review what happened before starting another action.', 'zignites-sentinel' ),
+				'button_label' => __( 'Open History', 'zignites-sentinel' ),
 				'target'       => 'activity',
 			);
 		}
 
 		if ( empty( $latest_status['baseline']['present'] ) ) {
 			return array(
-				'title'        => __( 'Run Restore Readiness Check', 'zignites-sentinel' ),
-				'description'  => __( 'The latest snapshot still needs baseline and restore-readiness evidence before guarded restore review.', 'zignites-sentinel' ),
-				'button_label' => __( 'Open Update Readiness', 'zignites-sentinel' ),
+				'title'        => __( 'Validate the Latest Checkpoint', 'zignites-sentinel' ),
+				'description'  => __( 'The latest checkpoint still needs validation before it should be used for restore review.', 'zignites-sentinel' ),
+				'button_label' => __( 'Open Before Update', 'zignites-sentinel' ),
 				'target'       => 'detail',
 			);
 		}
 
 		if ( empty( $latest_status['artifacts']['package_present'] ) ) {
 			return array(
-				'title'        => __( 'Take Snapshot Before Update', 'zignites-sentinel' ),
-				'description'  => __( 'The latest snapshot does not include a rollback package, so a fresh protected snapshot should be taken first.', 'zignites-sentinel' ),
-				'button_label' => __( 'Open Update Readiness', 'zignites-sentinel' ),
+				'title'        => __( 'Create a Fresh Checkpoint', 'zignites-sentinel' ),
+				'description'  => __( 'The latest checkpoint is missing its rollback package, so it should not be trusted for restore.', 'zignites-sentinel' ),
+				'button_label' => __( 'Open Before Update', 'zignites-sentinel' ),
 				'target'       => 'detail',
 			);
 		}
 
 		if ( empty( $latest_status['stage']['key'] ) || 'current' !== $latest_status['stage']['key'] ) {
 			return array(
-				'title'        => __( 'Run Restore Readiness Check', 'zignites-sentinel' ),
-				'description'  => __( 'Staged validation is not current for the latest snapshot. Refresh restore evidence before considering live actions.', 'zignites-sentinel' ),
-				'button_label' => __( 'Open Update Readiness', 'zignites-sentinel' ),
+				'title'        => __( 'Refresh Checkpoint Validation', 'zignites-sentinel' ),
+				'description'  => __( 'Staged validation is not current for the latest checkpoint.', 'zignites-sentinel' ),
+				'button_label' => __( 'Open Before Update', 'zignites-sentinel' ),
 				'target'       => 'detail',
 			);
 		}
 
 		if ( empty( $latest_status['plan']['key'] ) || 'current' !== $latest_status['plan']['key'] ) {
 			return array(
-				'title'        => __( 'Run Restore Readiness Check', 'zignites-sentinel' ),
-				'description'  => __( 'The stored restore plan is stale or missing. Refresh the guarded restore evidence chain first.', 'zignites-sentinel' ),
-				'button_label' => __( 'Open Update Readiness', 'zignites-sentinel' ),
+				'title'        => __( 'Refresh the Restore Plan', 'zignites-sentinel' ),
+				'description'  => __( 'The stored restore plan is stale or missing for the latest checkpoint.', 'zignites-sentinel' ),
+				'button_label' => __( 'Open Before Update', 'zignites-sentinel' ),
 				'target'       => 'detail',
 			);
 		}
@@ -1499,16 +1509,16 @@ class SnapshotStatusResolver {
 		if ( $error_count > 0 || $warning_count > 0 || 'needs_attention' === $status ) {
 			return array(
 				'title'        => __( 'Review Issues Before Continuing', 'zignites-sentinel' ),
-				'description'  => __( 'Warnings or errors are still open. Review them before treating the snapshot as confidently ready.', 'zignites-sentinel' ),
-				'button_label' => __( 'Open Snapshot Activity', 'zignites-sentinel' ),
+				'description'  => __( 'Warnings or errors are still open. Review recent checkpoint and restore history before changing the site again.', 'zignites-sentinel' ),
+				'button_label' => __( 'Open History', 'zignites-sentinel' ),
 				'target'       => 'activity',
 			);
 		}
 
 		return array(
-			'title'        => __( 'Safe to Proceed with Restore Plan', 'zignites-sentinel' ),
-			'description'  => __( 'The latest snapshot has current restore evidence. Review impact on Update Readiness before any guarded restore decision.', 'zignites-sentinel' ),
-			'button_label' => __( 'Open Update Readiness', 'zignites-sentinel' ),
+			'title'        => __( 'Latest Checkpoint Ready for Review', 'zignites-sentinel' ),
+			'description'  => __( 'The latest checkpoint has current validation and restore evidence. Review it in Before Update before any guarded restore decision.', 'zignites-sentinel' ),
+			'button_label' => __( 'Open Before Update', 'zignites-sentinel' ),
 			'target'       => 'detail',
 		);
 	}

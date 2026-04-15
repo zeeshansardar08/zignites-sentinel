@@ -124,6 +124,12 @@ if ( ! function_exists( 'trailingslashit' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_mkdir_p' ) ) {
+	function wp_mkdir_p( $target ) {
+		return is_dir( $target ) || mkdir( $target, 0777, true );
+	}
+}
+
 if ( ! function_exists( 'admin_url' ) ) {
 	function admin_url( $path = '' ) {
 		$path = ltrim( (string) $path, '/' );

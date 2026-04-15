@@ -224,10 +224,10 @@ function znts_test_snapshot_filters_and_site_status_detect_missing_package() {
 
 	znts_assert_same( 'needs_attention', $site_card['status'], 'Latest snapshot without package should move site status to needs attention.' );
 	znts_assert_true(
-		false !== strpos( $site_card['recommended_action'], 'Take Snapshot Before Update' ),
+		false !== strpos( $site_card['recommended_action'], 'Create a Fresh Checkpoint' ),
 		'Recommended action should tell operators to capture a fresh snapshot when package protection is missing.'
 	);
-	znts_assert_same( 'detail', $site_card['primary_action']['target'], 'Primary action should direct the operator back into Update Readiness when a fresh snapshot is required.' );
+	znts_assert_same( 'detail', $site_card['primary_action']['target'], 'Primary action should direct the operator back into Before Update when a fresh checkpoint is required.' );
 }
 
 function znts_test_site_status_becomes_at_risk_on_recent_failure() {
@@ -427,10 +427,10 @@ function znts_test_site_status_is_stable_when_latest_snapshot_is_ready() {
 	znts_assert_same( 'stable', $site_card['status'], 'A fully ready latest snapshot with no conflicts should be stable.' );
 	znts_assert_same( 'Stable', $site_card['label'], 'Stable site status should expose the Stable label.' );
 	znts_assert_true(
-		false !== strpos( $site_card['recommended_action'], 'Safe to Proceed with Restore Plan' ),
+		false !== strpos( $site_card['recommended_action'], 'Open Before Update' ),
 		'Stable site status should surface the guarded restore review as the next operator action.'
 	);
-	znts_assert_same( 'Open Update Readiness', $site_card['primary_action']['button_label'], 'Stable status should keep Update Readiness as the next destination.' );
+	znts_assert_same( 'Open Before Update', $site_card['primary_action']['button_label'], 'Stable status should keep Before Update as the next destination.' );
 }
 
 function znts_test_snapshot_intelligence_prefers_latest_safe_snapshot() {

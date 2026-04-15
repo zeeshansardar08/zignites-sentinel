@@ -103,7 +103,7 @@ class UpdateReadinessStateBuilder {
 		);
 		$view_data['snapshot_empty_message'] = '' !== $snapshot_search || '' !== $snapshot_status_filter
 			? __( 'No snapshots matched the current filters.', 'zignites-sentinel' )
-			: __( 'No snapshot metadata has been recorded yet.', 'zignites-sentinel' );
+			: __( 'No checkpoints have been recorded yet.', 'zignites-sentinel' );
 		$view_data['snapshot_empty_state'] = $this->build_snapshot_list_empty_state( $snapshot_search, $snapshot_status_filter );
 		$view_data['snapshot_pagination_summary'] = $this->build_snapshot_pagination_summary( $snapshot_pagination );
 		$view_data['show_snapshot_filter_clear'] = '' !== $snapshot_search || '' !== $snapshot_status_filter;
@@ -170,15 +170,15 @@ class UpdateReadinessStateBuilder {
 		$view_data['restore_source_missing_plugins'] = $this->build_missing_plugin_labels( $view_data['restore_source_validation'] );
 		$view_data['restore_source_missing_artifacts'] = $this->build_missing_artifact_labels( $view_data['restore_source_validation'] );
 		$view_data['component_manifest'] = is_array( $snapshot_detail ) && ! empty( $snapshot_detail['metadata_decoded']['component_manifest'] ) && is_array( $snapshot_detail['metadata_decoded']['component_manifest'] ) ? $snapshot_detail['metadata_decoded']['component_manifest'] : array();
-		$view_data['selected_snapshot_label'] = is_array( $snapshot_detail ) && ! empty( $snapshot_detail['label'] ) ? (string) $snapshot_detail['label'] : __( 'No snapshot selected', 'zignites-sentinel' );
+		$view_data['selected_snapshot_label'] = is_array( $snapshot_detail ) && ! empty( $snapshot_detail['label'] ) ? (string) $snapshot_detail['label'] : __( 'No checkpoint selected', 'zignites-sentinel' );
 		$view_data['selected_snapshot_note'] = is_array( $snapshot_detail )
 			? sprintf(
 				/* translators: 1: snapshot id, 2: created at */
-				__( 'Snapshot #%1$d captured on %2$s is the active restore workspace.', 'zignites-sentinel' ),
+				__( 'Checkpoint #%1$d captured on %2$s is selected for validation or restore review.', 'zignites-sentinel' ),
 				$snapshot_id,
 				isset( $snapshot_detail['created_at'] ) ? (string) $snapshot_detail['created_at'] : ''
 			)
-			: __( 'Choose a snapshot from the list below to inspect readiness, planning, and restore controls.', 'zignites-sentinel' );
+			: __( 'Choose a checkpoint from the list below to validate it, restore it, or roll back the last restore.', 'zignites-sentinel' );
 		if ( ! empty( $selected_intelligence['message'] ) ) {
 			$view_data['selected_snapshot_note'] .= ' ' . (string) $selected_intelligence['message'];
 		}
@@ -551,28 +551,28 @@ class UpdateReadinessStateBuilder {
 			'show_restore_plan'                   => $has_selected_snapshot && ! empty( $last_restore_plan ),
 			'show_restore_impact_summary'         => ! empty( $restore_impact_summary ),
 			'show_restore_execution'              => $has_selected_snapshot && ! empty( $last_restore_execution ),
-			'show_audit_report_verification'      => ! empty( $audit_report_verification ),
+			'show_audit_report_verification'      => false,
 			'show_restore_rollback'               => $has_selected_snapshot && ! empty( $last_restore_rollback ),
-			'show_selected_snapshot_badges'       => $has_selected_snapshot && ! empty( $selected_snapshot_badges ),
-			'show_snapshot_summary_status_badges' => ! empty( $this->array_value( $view_data, 'snapshot_summary_status_badges' ) ),
-			'has_snapshot_summary_risks'          => ! empty( $snapshot_summary_risks ),
-			'show_snapshot_activity_history_link' => '' !== ( isset( $view_data['snapshot_activity_url'] ) ? (string) $view_data['snapshot_activity_url'] : '' ),
+			'show_selected_snapshot_badges'       => false,
+			'show_snapshot_summary_status_badges' => false,
+			'has_snapshot_summary_risks'          => false,
+			'show_snapshot_activity_history_link' => false,
 			'has_snapshot_activity_rows'          => ! empty( $this->array_value( $view_data, 'snapshot_activity_rows' ) ),
-			'show_restore_action_jump_links'      => ! empty( $this->array_value( $view_data, 'restore_action_jump_links' ) ),
-			'show_snapshot_metadata'              => ! empty( $this->array_value( $view_data, 'snapshot_metadata_rows' ) ),
-			'show_component_manifest'             => ! empty( $this->array_value( $view_data, 'component_manifest_rows' ) ),
-			'show_snapshot_artifacts'             => ! empty( $this->array_value( $view_data, 'snapshot_artifact_rows' ) ),
-			'show_artifact_diff'                  => ! empty( $this->array_value( $artifact_diff_state, 'rows' ) ) || '' !== ( isset( $artifact_diff_state['message'] ) ? (string) $artifact_diff_state['message'] : '' ),
-			'show_active_plugin_rows'             => ! empty( $this->array_value( $view_data, 'active_plugin_rows' ) ),
-			'has_missing_snapshot_plugins'        => ! empty( $this->array_value( $view_data, 'missing_snapshot_plugin_labels' ) ),
-			'has_new_current_plugins'             => ! empty( $this->array_value( $view_data, 'new_current_plugin_labels' ) ),
-			'has_plugin_version_changes'          => ! empty( $this->array_value( $view_data, 'plugin_version_change_rows' ) ),
-			'show_execution_checkpoint_summary'   => ! empty( $this->array_value( $view_data, 'execution_checkpoint_summary_rows' ) ),
-			'show_rollback_checkpoint_summary'    => ! empty( $this->array_value( $view_data, 'rollback_checkpoint_summary_rows' ) ),
-			'show_snapshot_health_comparison'     => ! empty( $this->array_value( $view_data, 'snapshot_health_comparison_rows' ) ),
-			'show_operator_checklist_checks'      => ! empty( $this->array_value( $view_data, 'operator_checklist_check_rows' ) ),
-			'show_audit_report_verification_checks' => ! empty( $this->array_value( $view_data, 'audit_report_verification_check_rows' ) ),
-			'show_update_candidate_rows'          => ! empty( $this->array_value( $view_data, 'update_candidate_rows' ) ),
+			'show_restore_action_jump_links'      => false,
+			'show_snapshot_metadata'              => false,
+			'show_component_manifest'             => false,
+			'show_snapshot_artifacts'             => false,
+			'show_artifact_diff'                  => false,
+			'show_active_plugin_rows'             => false,
+			'has_missing_snapshot_plugins'        => false,
+			'has_new_current_plugins'             => false,
+			'has_plugin_version_changes'          => false,
+			'show_execution_checkpoint_summary'   => false,
+			'show_rollback_checkpoint_summary'    => false,
+			'show_snapshot_health_comparison'     => false,
+			'show_operator_checklist_checks'      => false,
+			'show_audit_report_verification_checks' => false,
+			'show_update_candidate_rows'          => false,
 			'has_recent_snapshot_rows'            => ! empty( $this->array_value( $view_data, 'recent_snapshot_rows' ) ),
 			'show_snapshot_pagination'            => ! empty( $this->array_value( $view_data, 'snapshot_pagination_links_args' ) ),
 			'show_restore_source_validation_checks' => ! empty( $this->array_value( $view_data, 'restore_source_validation_check_rows' ) ),
@@ -586,27 +586,27 @@ class UpdateReadinessStateBuilder {
 			'show_pre_restore_safety_checks'     => ! empty( $this->array_value( $view_data, 'pre_restore_safety_check_rows' ) ),
 			'show_pre_restore_safety_warnings'   => ! empty( $this->array_value( $view_data, 'pre_restore_safety_warnings' ) ),
 			'show_execution_backup_root'          => ! empty( $restore_execution_meta['show_backup_root'] ),
-			'show_execution_run_link'             => ! empty( $restore_execution_meta['show_run_link'] ),
-			'show_execution_resumed_run_notice'   => ! empty( $restore_execution_meta['show_resumed_run_notice'] ),
+			'show_execution_run_link'             => false,
+			'show_execution_resumed_run_notice'   => false,
 			'show_execution_health_section'       => ! empty( $restore_execution_meta['show_health_section'] ),
-			'show_execution_checks'               => ! empty( $this->array_value( $view_data, 'restore_execution_check_rows' ) ),
-			'show_execution_items'                => ! empty( $this->array_value( $view_data, 'restore_execution_item_rows' ) ),
-			'show_execution_journal'              => ! empty( $this->array_value( $view_data, 'restore_execution_journal_rows' ) ),
+			'show_execution_checks'               => false,
+			'show_execution_items'                => false,
+			'show_execution_journal'              => false,
 			'show_execution_rollback_form'        => ! empty( $restore_execution_meta['show_backup_root'] ),
 			'show_restore_failure_summary'       => ! empty( $restore_failure_summary ),
 			'show_restore_failure_actions'       => ! empty( $this->array_value( $restore_failure_summary, 'actions' ) ),
 			'show_rollback_confidence_summary'   => ! empty( $rollback_confidence ),
-			'show_rollback_confidence_rows'      => ! empty( $this->array_value( $rollback_confidence, 'rows' ) ),
-			'show_rollback_run_link'              => ! empty( $restore_rollback_meta['show_run_link'] ),
+			'show_rollback_confidence_rows'      => false,
+			'show_rollback_run_link'              => false,
 			'show_rollback_health_section'        => ! empty( $restore_rollback_meta['show_health_section'] ),
-			'show_rollback_checks'                => ! empty( $this->array_value( $view_data, 'restore_rollback_check_rows' ) ),
-			'show_rollback_items'                 => ! empty( $this->array_value( $view_data, 'restore_rollback_item_rows' ) ),
-			'show_rollback_journal'               => ! empty( $this->array_value( $view_data, 'restore_rollback_journal_rows' ) ),
-			'show_system_health_rows'            => ! empty( $this->array_value( $view_data, 'system_health_rows' ) ),
-			'show_snapshot_intelligence_warnings' => ! empty( $this->array_value( $view_data, 'snapshot_intelligence_warnings' ) ),
-			'show_recommended_snapshot_card'     => ! empty( $this->array_value( $view_data, 'recommended_snapshot_card' ) ),
-			'show_last_known_good_card'          => ! empty( $this->array_value( $view_data, 'last_known_good_card' ) ),
-			'show_operator_timeline_rows'        => ! empty( $this->array_value( $view_data, 'operator_timeline_rows' ) ),
+			'show_rollback_checks'                => false,
+			'show_rollback_items'                 => false,
+			'show_rollback_journal'               => false,
+			'show_system_health_rows'            => false,
+			'show_snapshot_intelligence_warnings' => false,
+			'show_recommended_snapshot_card'     => false,
+			'show_last_known_good_card'          => false,
+			'show_operator_timeline_rows'        => false,
 			'show_workspace_primary_action'      => ! empty( $this->array_value( $view_data, 'workspace_primary_action' ) ),
 		);
 
@@ -682,7 +682,7 @@ class UpdateReadinessStateBuilder {
 	 */
 	protected function build_workspace_next_action( $snapshot_detail, array $selected_intelligence, array $recommended_snapshot, array $operator_checklist ) {
 		if ( ! is_array( $snapshot_detail ) || empty( $snapshot_detail['id'] ) ) {
-			return __( 'Run a preflight scan or create a snapshot to begin update-readiness work.', 'zignites-sentinel' );
+			return __( 'Create a checkpoint before updates, then validate it before you rely on it for restore.', 'zignites-sentinel' );
 		}
 
 		if ( 'older' === ( isset( $selected_intelligence['relation'] ) ? (string) $selected_intelligence['relation'] : '' ) && ! empty( $recommended_snapshot['label'] ) ) {
@@ -698,10 +698,10 @@ class UpdateReadinessStateBuilder {
 		}
 
 		if ( ! empty( $operator_checklist['can_execute'] ) ) {
-			return __( 'Review the impact summary, then continue with guarded restore only if the plan still matches your intent.', 'zignites-sentinel' );
+			return __( 'Review the latest plan, then restore the checkpoint only if it still matches your intent.', 'zignites-sentinel' );
 		}
 
-		return __( 'Complete the missing checklist items or refresh restore gates before continuing.', 'zignites-sentinel' );
+		return __( 'Refresh the checkpoint validation and restore plan before continuing.', 'zignites-sentinel' );
 	}
 
 	/**
@@ -715,18 +715,18 @@ class UpdateReadinessStateBuilder {
 	 */
 	protected function build_workspace_flow_message( $snapshot_detail, array $selected_intelligence, array $recommended_snapshot, array $operator_checklist ) {
 		if ( ! is_array( $snapshot_detail ) || empty( $snapshot_detail['id'] ) ) {
-			return __( 'Next: run a scan or choose a snapshot, then let the trust layer guide the next safe step.', 'zignites-sentinel' );
+			return __( 'Next: create or choose a checkpoint, then validate it before any restore decision.', 'zignites-sentinel' );
 		}
 
 		if ( 'older' === ( isset( $selected_intelligence['relation'] ) ? (string) $selected_intelligence['relation'] : '' ) && ! empty( $recommended_snapshot['label'] ) ) {
-			return __( 'Next: compare this workspace against the recommended snapshot, then proceed only if the older state is intentionally required.', 'zignites-sentinel' );
+			return __( 'Next: compare this checkpoint against the latest recommended one, then proceed only if the older state is intentional.', 'zignites-sentinel' );
 		}
 
 		if ( ! empty( $operator_checklist['can_execute'] ) ) {
-			return __( 'Next: confirm the impact summary, verify the checklist is still current, and only then move into guarded restore review.', 'zignites-sentinel' );
+			return __( 'Next: confirm the restore plan still matches your intent, then restore the checkpoint.', 'zignites-sentinel' );
 		}
 
-		return __( 'Next: focus on the highlighted trust warnings below, then open detail panels only where you need deeper proof.', 'zignites-sentinel' );
+		return __( 'Next: refresh the missing validation steps for this checkpoint.', 'zignites-sentinel' );
 	}
 
 	/**
@@ -758,15 +758,15 @@ class UpdateReadinessStateBuilder {
 		if ( '' !== (string) $snapshot_search || '' !== (string) $snapshot_status_filter ) {
 			return array(
 				'title'       => __( 'No snapshots match this view.', 'zignites-sentinel' ),
-				'description' => __( 'The current filters are valid, but no snapshot in the recorded library fits them yet.', 'zignites-sentinel' ),
-				'next_step'   => __( 'Reset the filters or broaden the search to return to the full snapshot library.', 'zignites-sentinel' ),
+				'description' => __( 'The current filters are valid, but no checkpoint in the saved list fits them yet.', 'zignites-sentinel' ),
+				'next_step'   => __( 'Reset the filters or broaden the search to return to the full checkpoint list.', 'zignites-sentinel' ),
 			);
 		}
 
 		return array(
-			'title'       => __( 'No snapshots have been captured yet.', 'zignites-sentinel' ),
-			'description' => __( 'Update Readiness becomes useful once Sentinel has a snapshot to evaluate, compare, and guide against.', 'zignites-sentinel' ),
-			'next_step'   => __( 'Create the first snapshot to unlock readiness guidance, trust scoring, and rollback context.', 'zignites-sentinel' ),
+			'title'       => __( 'No checkpoints have been captured yet.', 'zignites-sentinel' ),
+			'description' => __( 'Before Update becomes useful once Sentinel has a checkpoint to validate and restore.', 'zignites-sentinel' ),
+			'next_step'   => __( 'Create the first checkpoint before plugin or theme updates.', 'zignites-sentinel' ),
 		);
 	}
 
@@ -790,9 +790,9 @@ class UpdateReadinessStateBuilder {
 		}
 
 		return array(
-			'title'       => __( 'Start with a snapshot, then let Sentinel guide the rest.', 'zignites-sentinel' ),
-			'description' => __( 'This workspace is where operators judge restore readiness, compare site state, and review controlled recovery steps before doing anything risky.', 'zignites-sentinel' ),
-			'next_step'   => __( 'Create a snapshot, run a readiness scan, and use the trust panels below to decide what should happen next.', 'zignites-sentinel' ),
+			'title'       => __( 'Create a checkpoint before you update.', 'zignites-sentinel' ),
+			'description' => __( 'This workspace is for saving a rollback checkpoint, validating it, and restoring it later if a code update breaks the site.', 'zignites-sentinel' ),
+			'next_step'   => __( 'Create a checkpoint first, then validate it before relying on it for restore.', 'zignites-sentinel' ),
 		);
 	}
 
@@ -810,9 +810,9 @@ class UpdateReadinessStateBuilder {
 		}
 
 		return array(
-			'title'       => __( 'No readiness history yet.', 'zignites-sentinel' ),
-			'description' => __( 'Readiness checks, validation, and planning results will appear here after the first scan and snapshot review.', 'zignites-sentinel' ),
-			'next_step'   => __( 'Run preflight and capture a snapshot to generate the first readiness record.', 'zignites-sentinel' ),
+			'title'       => __( 'No checkpoint validation history yet.', 'zignites-sentinel' ),
+			'description' => __( 'Validation and restore-planning results will appear here after you check a saved checkpoint.', 'zignites-sentinel' ),
+			'next_step'   => __( 'Create a checkpoint and run the validation steps.', 'zignites-sentinel' ),
 		);
 	}
 
@@ -833,8 +833,8 @@ class UpdateReadinessStateBuilder {
 
 		return array(
 			'title'       => __( 'No restore or rollback history yet.', 'zignites-sentinel' ),
-			'description' => __( 'Sentinel will summarize controlled restore attempts and rollback evidence here once the workflow has been used.', 'zignites-sentinel' ),
-			'next_step'   => __( 'Build confidence with snapshots and readiness checks first. Recovery history appears after real restore activity.', 'zignites-sentinel' ),
+			'description' => __( 'Sentinel will summarize checkpoint restores and rollbacks here after the workflow has been used.', 'zignites-sentinel' ),
+			'next_step'   => __( 'Validate a checkpoint first. Restore history appears after real restore activity.', 'zignites-sentinel' ),
 		);
 	}
 
@@ -854,20 +854,20 @@ class UpdateReadinessStateBuilder {
 			array(
 				'title' => __( 'How to use this screen', 'zignites-sentinel' ),
 				'body'  => $has_snapshot
-					? __( 'Use this workspace to review one snapshot at a time. Start with the trust summary, then open only the detail sections you need to confirm the next safe step.', 'zignites-sentinel' )
-					: __( 'Choose or create a snapshot first. Sentinel will then turn this page into a guided restore-readiness workspace for that snapshot.', 'zignites-sentinel' ),
+					? __( 'Use this page to review one checkpoint at a time. Validate it first, then restore it only when the plan looks acceptable.', 'zignites-sentinel' )
+					: __( 'Create a checkpoint first. Sentinel will then show the validation, restore, and rollback steps for it.', 'zignites-sentinel' ),
 			),
 			array(
 				'title' => __( 'What this status means', 'zignites-sentinel' ),
 				'body'  => $is_safe
-					? __( 'A safer status means Sentinel currently sees current evidence, a trusted snapshot, and no obvious unresolved recovery blocker.', 'zignites-sentinel' )
-					: __( 'A warning or risky status means some of the restore evidence is missing, stale, or needs review before the snapshot should be trusted.', 'zignites-sentinel' ),
+					? __( 'A safer status means the selected checkpoint currently has enough validation to review for restore.', 'zignites-sentinel' )
+					: __( 'A warning or risky status means the checkpoint is missing validation or needs review before restore.', 'zignites-sentinel' ),
 			),
 			array(
 				'title' => __( 'What to do next', 'zignites-sentinel' ),
 				'body'  => $has_snapshot
-					? __( 'Follow the highlighted next action near the top of the page, then use the trust, checklist, and impact sections to confirm the decision.', 'zignites-sentinel' )
-					: __( 'Create a snapshot, run readiness checks, and return here once Sentinel has enough evidence to guide you.', 'zignites-sentinel' ),
+					? __( 'Follow the next action near the top of the page, then restore or roll back only when the checkpoint state is clear.', 'zignites-sentinel' )
+					: __( 'Create a checkpoint, validate it, and return here once Sentinel has enough evidence to guide you.', 'zignites-sentinel' ),
 			),
 		);
 	}
@@ -880,7 +880,7 @@ class UpdateReadinessStateBuilder {
 	protected function build_workspace_positioning_note() {
 		return array(
 			'title' => __( 'What Sentinel is designed to do', 'zignites-sentinel' ),
-			'body'  => __( 'Sentinel is a controlled restore and rollback-safety workspace. It helps operators prepare, review, and recover carefully, but it is not a transactional or atomic restore engine.', 'zignites-sentinel' ),
+			'body'  => __( 'Sentinel is a plugin and theme rollback checkpoint tool. It is not a full-site restore, database recovery, media restore, or WordPress core restore plugin.', 'zignites-sentinel' ),
 		);
 	}
 

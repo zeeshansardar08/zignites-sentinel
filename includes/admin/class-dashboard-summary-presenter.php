@@ -90,18 +90,18 @@ class DashboardSummaryPresenter {
 			array(
 				'title' => __( 'How to use this screen', 'zignites-sentinel' ),
 				'body'  => $has_snapshot
-					? __( 'Start with the hero summary, confirm the recommended snapshot, then open Update Readiness only when you need deeper proof or a guarded action review.', 'zignites-sentinel' )
-					: __( 'Start here to understand whether Sentinel has enough restore evidence yet, then follow the recommended first step to begin building that evidence.', 'zignites-sentinel' ),
+					? __( 'Start with the latest checkpoint, then open Before Update when you need to validate, restore, or roll back it.', 'zignites-sentinel' )
+					: __( 'Create a checkpoint before updates so you have a rollback point for the active theme and plugins.', 'zignites-sentinel' ),
 			),
 			array(
 				'title' => __( 'What this status means', 'zignites-sentinel' ),
-				'body'  => __( 'Dashboard status reflects trust in the current restore evidence. It highlights whether Sentinel sees a safe path, a review step, or a risk that should be resolved first.', 'zignites-sentinel' ),
+				'body'  => __( 'Dashboard status tells you whether the latest checkpoint looks usable, needs validation, or needs review before restore work.', 'zignites-sentinel' ),
 			),
 			array(
 				'title' => __( 'What to do next', 'zignites-sentinel' ),
 				'body'  => '' !== $next_step
 					? $next_step
-					: __( 'Create a fresh snapshot, validate it, and return here once Sentinel can recommend a trusted restore point.', 'zignites-sentinel' ),
+					: __( 'Create a fresh checkpoint, validate it, and keep it ready before updates.', 'zignites-sentinel' ),
 			),
 		);
 	}
@@ -119,9 +119,9 @@ class DashboardSummaryPresenter {
 
 		return array(
 			'hero' => array(
-				'title'       => __( 'Sentinel is ready to guide the first restore checkpoint.', 'zignites-sentinel' ),
-				'description' => __( 'This dashboard becomes your high-level restore control panel after the first snapshot and baseline evidence are recorded.', 'zignites-sentinel' ),
-				'next_step'   => __( 'Open Update Readiness and create a snapshot to establish your first controlled restore reference.', 'zignites-sentinel' ),
+				'title'       => __( 'Create your first rollback checkpoint.', 'zignites-sentinel' ),
+				'description' => __( 'Save the active theme and plugins before updates so you can restore that code layer later if needed.', 'zignites-sentinel' ),
+				'next_step'   => __( 'Open Before Update and create your first checkpoint.', 'zignites-sentinel' ),
 			),
 			'readiness' => array(
 				'title'       => __( 'No restore-ready snapshot yet.', 'zignites-sentinel' ),
@@ -146,9 +146,9 @@ class DashboardSummaryPresenter {
 				'next_step'   => __( 'Create and validate a snapshot first. Sentinel will start building the timeline as readiness and recovery events occur.', 'zignites-sentinel' ),
 			),
 			'snapshots' => array(
-				'title'       => __( 'No snapshots have been captured yet.', 'zignites-sentinel' ),
-				'description' => __( 'Snapshots are the starting point for trusted restore review, rollback confidence, and operator guidance across the plugin.', 'zignites-sentinel' ),
-				'next_step'   => __( 'Open Update Readiness and create the first snapshot before using the restore-planning workspace.', 'zignites-sentinel' ),
+				'title'       => __( 'No checkpoints have been captured yet.', 'zignites-sentinel' ),
+				'description' => __( 'Checkpoints are the starting point for restore and rollback work in Sentinel.', 'zignites-sentinel' ),
+				'next_step'   => __( 'Open Before Update and create the first checkpoint.', 'zignites-sentinel' ),
 			),
 		);
 	}
@@ -161,7 +161,7 @@ class DashboardSummaryPresenter {
 	protected function build_positioning_note() {
 		return array(
 			'title' => __( 'What Sentinel is designed to do', 'zignites-sentinel' ),
-			'body'  => __( 'Sentinel helps operators prepare controlled restores, judge restore readiness, and recover with clearer rollback context. It does not promise a fully transactional or atomic restore.', 'zignites-sentinel' ),
+			'body'  => __( 'Sentinel is a plugin and theme rollback checkpoint tool. It helps you create a checkpoint before updates and restore it later if the code layer breaks.', 'zignites-sentinel' ),
 		);
 	}
 

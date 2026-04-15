@@ -12,6 +12,22 @@ defined( 'ABSPATH' ) || exit;
 class SnapshotPackageManager {
 
 	/**
+	 * Artifact storage guard.
+	 *
+	 * @var ArtifactStorageGuard
+	 */
+	protected $storage_guard;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param ArtifactStorageGuard|null $storage_guard Artifact storage guard.
+	 */
+	public function __construct( ArtifactStorageGuard $storage_guard = null ) {
+		$this->storage_guard = $storage_guard ? $storage_guard : new ArtifactStorageGuard();
+	}
+
+	/**
 	 * Relative package directory under uploads.
 	 *
 	 * @var string
@@ -689,11 +705,11 @@ class SnapshotPackageManager {
 			return '';
 		}
 
-		if ( is_dir( $base_dir ) ) {
+		if ( is_dir( $base_dir ) && $this->storage_guard->protect_directory( $base_dir ) ) {
 			return $base_dir;
 		}
 
-		if ( wp_mkdir_p( $base_dir ) ) {
+		if ( $this->storage_guard->protect_directory( $base_dir ) ) {
 			return $base_dir;
 		}
 

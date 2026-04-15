@@ -62,7 +62,7 @@ function znts_test_dashboard_summary_presenter_adds_latest_snapshot_links() {
 	znts_assert_same( 'Snapshot taken', $payload['operator_timeline']['items'][0]['title'], 'Dashboard summary presenter should preserve the operator timeline payload.' );
 	znts_assert_same( 'How to use this screen', $payload['help_panels'][0]['title'], 'Dashboard summary presenter should expose launch-ready help panels.' );
 	znts_assert_same( 'What Sentinel is designed to do', $payload['positioning_note']['title'], 'Dashboard summary presenter should expose product-positioning guidance.' );
-	znts_assert_same( 'No snapshots have been captured yet.', $payload['empty_states']['snapshots']['title'], 'Dashboard summary presenter should expose polished empty states.' );
+	znts_assert_same( 'No checkpoints have been captured yet.', $payload['empty_states']['snapshots']['title'], 'Dashboard summary presenter should expose polished empty states.' );
 }
 
 function znts_test_dashboard_summary_presenter_builds_restore_summary_rows_and_urls() {

@@ -70,6 +70,13 @@ class RestoreExecutor {
 	protected $checkpoint_store;
 
 	/**
+	 * Artifact storage guard.
+	 *
+	 * @var ArtifactStorageGuard
+	 */
+	protected $storage_guard;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param RestoreStagingManager       $staging_manager  Staging manager.
@@ -79,13 +86,14 @@ class RestoreExecutor {
 	 * @param RestoreJournalRecorder|null $journal_recorder Journal recorder.
 	 * @param RestoreCheckpointStore|null $checkpoint_store Checkpoint store.
 	 */
-	public function __construct( RestoreStagingManager $staging_manager, RestoreExecutionPlanner $planner, RestoreHealthVerifier $health_verifier, Logger $logger = null, RestoreJournalRecorder $journal_recorder = null, RestoreCheckpointStore $checkpoint_store = null ) {
+	public function __construct( RestoreStagingManager $staging_manager, RestoreExecutionPlanner $planner, RestoreHealthVerifier $health_verifier, Logger $logger = null, RestoreJournalRecorder $journal_recorder = null, RestoreCheckpointStore $checkpoint_store = null, ArtifactStorageGuard $storage_guard = null ) {
 		$this->staging_manager  = $staging_manager;
 		$this->planner          = $planner;
 		$this->health_verifier  = $health_verifier;
 		$this->logger           = $logger;
 		$this->journal_recorder = $journal_recorder;
 		$this->checkpoint_store = $checkpoint_store;
+		$this->storage_guard    = $storage_guard ? $storage_guard : new ArtifactStorageGuard();
 	}
 
 	/**
@@ -876,7 +884,7 @@ class RestoreExecutor {
 			return '';
 		}
 
-		if ( ! is_dir( $base_dir ) && ! wp_mkdir_p( $base_dir ) ) {
+		if ( ! $this->storage_guard->protect_directory( $base_dir ) ) {
 			return '';
 		}
 
