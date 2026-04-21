@@ -6,6 +6,9 @@
  * plugins.php, themes.php, and update-core.php still surface Sentinel cues
  * cleanly during a real update window.
  *
+ * The network-admin checks in this sample are only expected to pass on a
+ * multisite install where network admin is enabled for the authenticated user.
+ *
  * Copy this file outside version control or pass values directly with CLI flags.
  * Do not commit real browser cookies.
  */
@@ -26,7 +29,7 @@ return array(
 		),
 		array(
 			'label'   => 'Network Plugins Update Surface',
-			'path'    => 'http://example.test/wp-admin/network/plugins.php',
+			'path'    => 'network/plugins.php',
 			'markers' => array( 'Plugins' ),
 			'optional_markers' => array(
 				'Create Fresh Checkpoint',
@@ -46,7 +49,7 @@ return array(
 		),
 		array(
 			'label'   => 'Network Themes Update Surface',
-			'path'    => 'http://example.test/wp-admin/network/themes.php',
+			'path'    => 'network/themes.php',
 			'markers' => array( 'Themes' ),
 			'optional_markers' => array(
 				'Create Fresh Checkpoint',
@@ -68,7 +71,7 @@ return array(
 		),
 		array(
 			'label'   => 'Network Core Update Surface',
-			'path'    => 'http://example.test/wp-admin/network/update-core.php',
+			'path'    => 'network/update-core.php',
 			'markers' => array( 'WordPress Updates' ),
 			'optional_markers' => array(
 				'Create Fresh Checkpoint',
