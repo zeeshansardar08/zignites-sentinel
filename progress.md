@@ -699,3 +699,7 @@
   - the live smoke runner now supports check-level skip decisions for expected environment limitations such as network-admin-only screens on non-multisite installs
   - the optional update-surface smoke sample now downgrades network-admin 403/404/500 responses to explicit skips with a stable reason instead of hard failures
   - local live verification now passes cleanly on `zee-dev.test`, with single-site update surfaces passing and network-admin checks reported as skipped because `is_multisite=no`
+- Current branch adds the smoke prerequisite-summary pass for:
+  - smoke configs can now surface a top-level prerequisite list before execution so operators know which live-state assumptions matter for the run
+  - the optional update-surface smoke config now declares both pending-update and multisite/network-admin prerequisites explicitly
+  - local live verification confirms the prerequisite summary prints before results while the update-surface smoke run still passes on `zee-dev.test`
