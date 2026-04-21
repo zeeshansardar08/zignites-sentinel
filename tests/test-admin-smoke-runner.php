@@ -378,3 +378,15 @@ function znts_test_admin_smoke_runner_resolves_widget_snapshot_activity_when_pre
 
 	znts_assert_same( 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=12', $resolved['url'], 'Admin smoke runner should resolve widget snapshot activity links when present.' );
 }
+
+function znts_test_admin_smoke_runner_allows_config_prerequisite_lists() {
+	$config = array(
+		'prerequisites' => array(
+			'Pending updates should exist on the target WordPress update screens.',
+			'Network checks require multisite and network admin access.',
+		),
+	);
+
+	znts_assert_same( 2, count( $config['prerequisites'] ), 'Admin smoke runner configs should support a top-level prerequisite list for operator guidance.' );
+	znts_assert_same( 'Network checks require multisite and network admin access.', $config['prerequisites'][1], 'Admin smoke runner prerequisite lists should preserve explanatory environment notes.' );
+}

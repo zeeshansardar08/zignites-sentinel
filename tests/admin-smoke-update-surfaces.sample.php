@@ -16,6 +16,10 @@
 return array(
 	'base_url'      => 'http://example.test/wp-admin/',
 	'cookie_header' => 'wordpress_logged_in_example=replace-me; wordpress_sec_example=replace-me;',
+	'prerequisites' => array(
+		'Single-site checks are only useful when plugin/theme/core update surfaces currently have pending updates to inspect.',
+		'Network checks are only expected to pass on multisite installs where network admin is enabled for the authenticated user.',
+	),
 	'checks'        => array(
 		array(
 			'label'   => 'Plugins Update Surface',

@@ -35,6 +35,7 @@ if ( '' === $cookie && ! empty( $config['cookie_header'] ) ) {
 }
 
 $checks = isset( $config['checks'] ) && is_array( $config['checks'] ) ? $config['checks'] : $runner->get_default_checks();
+$prerequisites = isset( $config['prerequisites'] ) && is_array( $config['prerequisites'] ) ? $config['prerequisites'] : array();
 
 if ( '' === trim( $base_url ) ) {
 	fwrite( STDERR, "Missing --base-url. Expected a wp-admin base URL such as http://example.test/wp-admin/.\n" );
@@ -52,6 +53,22 @@ $failures = 0;
 echo 'Sentinel live admin smoke' . PHP_EOL;
 echo 'Base URL: ' . $base_url . PHP_EOL;
 echo 'Checks: ' . count( $checks ) . PHP_EOL . PHP_EOL;
+
+if ( ! empty( $prerequisites ) ) {
+	echo 'Prerequisites:' . PHP_EOL;
+
+	foreach ( $prerequisites as $prerequisite ) {
+		$prerequisite = trim( (string) $prerequisite );
+
+		if ( '' === $prerequisite ) {
+			continue;
+		}
+
+		echo '- ' . $prerequisite . PHP_EOL;
+	}
+
+	echo PHP_EOL;
+}
 
 foreach ( $checks as $check ) {
 	$label     = isset( $check['label'] ) ? (string) $check['label'] : 'Smoke check';
