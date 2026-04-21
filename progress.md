@@ -691,3 +691,7 @@
   - the optional update-surface smoke config now includes `plugins-network`, `themes-network`, and `update-core-network` checks for multisite verification
   - the manual smoke checklist now includes a dedicated multisite/network update-surface section
   - operator QA assets now cover both single-site and network-native WordPress update screens
+- Current branch adds the network update-surface live-check pass for:
+  - the network update-surface smoke sample no longer hardcodes `example.test` for network admin URLs and now resolves them relative to the provided base URL
+  - live verification on the local `zee-dev.test` install confirmed single-site update surfaces pass while network-admin checks are environment-limited because `is_multisite=no`
+  - the sample config and manual checklist now state that network update-surface checks are only expected to pass on multisite installs with network admin enabled

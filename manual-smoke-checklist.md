@@ -106,6 +106,8 @@ Purpose: verify the current Dashboard, Before Update, History, and widget experi
 
 ## Network Update Surfaces
 
+Run this section only on multisite installs where network admin is enabled.
+
 1. In multisite, open `/wp-admin/network/plugins.php` during a window where network-visible plugin updates are pending.
 2. Confirm Sentinel cues still render without layout breakage and preserve the network update surface on return after checkpoint capture.
 3. Open `/wp-admin/network/themes.php` and confirm the same row-level and notice behavior for network theme updates.
