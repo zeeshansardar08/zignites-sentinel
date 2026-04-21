@@ -101,6 +101,38 @@ function znts_test_update_screen_notice_explains_core_boundary_on_core_only_upda
 	znts_assert_same( 'Open Before Update', $payload['actions'][0]['label'], 'Core boundary notice should still give the operator a way back into Sentinel.' );
 }
 
+function znts_test_update_screen_notice_explains_mixed_core_boundary_when_plugin_updates_are_also_pending() {
+	$admin   = new ZNTS_Testable_Update_Screen_Notice_Admin();
+	$payload = $admin->expose_build_update_screen_notice_payload(
+		array(
+			array(
+				'type' => 'plugin',
+				'key'  => 'plugin:example/example.php',
+			),
+			array(
+				'type' => 'core',
+				'key'  => 'core:wordpress',
+			),
+		),
+		array(
+			'site_status_card' => array(
+				'status'      => 'stable',
+				'detail_url'  => 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness&snapshot_id=18',
+				'activity_url'=> 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-event-logs&snapshot_id=18',
+				'latest_snapshot' => array(
+					'id'    => 18,
+					'label' => 'Checkpoint 18',
+				),
+			),
+		),
+		'update-core'
+	);
+
+	znts_assert_same( 'success', $payload['type'], 'Mixed update-core notice should still use the checkpoint status severity for plugin/theme updates.' );
+	znts_assert_same( 'Create Fresh Checkpoint', $payload['actions'][0]['label'], 'Mixed update-core notice should still prioritize fresh checkpoint capture for plugin/theme updates.' );
+	znts_assert_same( 'WordPress core updates are also pending on this screen. Sentinel can help you prepare rollback checkpoints for the active theme and plugins, but not for core recovery.', $payload['boundary'], 'Mixed update-core notice should explain that Sentinel only covers plugin and theme rollback preparation on the core updates screen.' );
+}
+
 function znts_test_update_screen_notice_skips_irrelevant_screens() {
 	$admin   = new ZNTS_Testable_Update_Screen_Notice_Admin();
 	$payload = $admin->expose_build_update_screen_notice_payload(

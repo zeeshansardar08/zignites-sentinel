@@ -1005,9 +1005,15 @@ class Admin {
 		$status           = isset( $site_status_card['status'] ) ? sanitize_key( (string) $site_status_card['status'] ) : '';
 		$detail_url       = ! empty( $site_status_card['detail_url'] ) ? (string) $site_status_card['detail_url'] : $before_update_url;
 		$activity_url     = ! empty( $site_status_card['activity_url'] ) ? (string) $site_status_card['activity_url'] : $history_url;
-		$boundary_note    = $core_count > 0
-			? __( 'WordPress core updates are also pending. Sentinel covers the active theme and plugins, not core recovery.', 'zignites-sentinel' )
-			: '';
+		$boundary_note    = '';
+
+		if ( $core_count > 0 ) {
+			$boundary_note = __( 'WordPress core updates are also pending. Sentinel covers the active theme and plugins, not core recovery.', 'zignites-sentinel' );
+
+			if ( 'update-core' === $screen_id && ( $plugin_count > 0 || $theme_count > 0 ) ) {
+				$boundary_note = __( 'WordPress core updates are also pending on this screen. Sentinel can help you prepare rollback checkpoints for the active theme and plugins, but not for core recovery.', 'zignites-sentinel' );
+			}
+		}
 
 		if ( 'snapshot-failed' === $notice_key ) {
 			return array(

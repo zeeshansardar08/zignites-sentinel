@@ -683,3 +683,7 @@
   - a dedicated sample smoke config now exists for `plugins.php`, `themes.php`, and `update-core.php` without polluting the default Sentinel admin smoke set
   - the manual smoke checklist now includes native update-surface verification steps for notice behavior, row-level links, and core-boundary honesty
   - operator QA assets now separate always-on Sentinel workspace checks from optional real update-window verification
+- Current branch adds the mixed core-boundary refinement pass for:
+  - `update-core.php` notices now use a more explicit boundary note when plugin or theme updates are mixed with pending core updates on the same screen
+  - the mixed-screen message now makes it clear that Sentinel can help with plugin/theme rollback preparation in that window, but not with core recovery
+  - focused regression coverage now includes the mixed core-plus-plugin update-screen boundary message
