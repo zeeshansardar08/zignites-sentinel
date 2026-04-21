@@ -104,6 +104,13 @@ Purpose: verify the current Dashboard, Before Update, History, and widget experi
 5. Open `/wp-admin/update-core.php` and confirm Sentinel stays honest about core recovery boundaries.
 6. If plugin or theme updates are also pending on the core updates screen, confirm the Sentinel notice still points back into `Before Update` or fresh checkpoint capture as appropriate.
 
+## Network Update Surfaces
+
+1. In multisite, open `/wp-admin/network/plugins.php` during a window where network-visible plugin updates are pending.
+2. Confirm Sentinel cues still render without layout breakage and preserve the network update surface on return after checkpoint capture.
+3. Open `/wp-admin/network/themes.php` and confirm the same row-level and notice behavior for network theme updates.
+4. Open `/wp-admin/network/update-core.php` and confirm Sentinel keeps the core recovery boundary explicit on the network updates screen as well.
+
 ## Product Boundaries
 
 1. Confirm the Dashboard and Before Update screens both state the restore boundary accurately.
@@ -142,6 +149,7 @@ Notes:
 - The page smoke helper is read-only and only performs GET requests.
 - A sample config is available at `tests/admin-smoke-config.sample.php`.
 - A separate sample config for native WordPress update surfaces is available at `tests/admin-smoke-update-surfaces.sample.php`.
+- That update-surface config also includes explicit network-admin checks for multisite verification.
 - The current smoke helper targets the simplified `Dashboard`, `Before Update`, `History`, selected-checkpoint, and widget surfaces.
 - PHP CLI may still emit the unrelated `pdo_snowflake` startup warning.
 

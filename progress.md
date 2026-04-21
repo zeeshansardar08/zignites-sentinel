@@ -687,3 +687,7 @@
   - `update-core.php` notices now use a more explicit boundary note when plugin or theme updates are mixed with pending core updates on the same screen
   - the mixed-screen message now makes it clear that Sentinel can help with plugin/theme rollback preparation in that window, but not with core recovery
   - focused regression coverage now includes the mixed core-plus-plugin update-screen boundary message
+- Current branch adds the network update-surface verification pass for:
+  - the optional update-surface smoke config now includes `plugins-network`, `themes-network`, and `update-core-network` checks for multisite verification
+  - the manual smoke checklist now includes a dedicated multisite/network update-surface section
+  - operator QA assets now cover both single-site and network-native WordPress update screens
