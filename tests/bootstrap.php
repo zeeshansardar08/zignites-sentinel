@@ -154,6 +154,14 @@ if ( ! function_exists( 'admin_url' ) ) {
 	}
 }
 
+if ( ! function_exists( 'network_admin_url' ) ) {
+	function network_admin_url( $path = '' ) {
+		$path = ltrim( (string) $path, '/' );
+
+		return 'http://example.test/wp-admin/network/' . $path;
+	}
+}
+
 if ( ! function_exists( 'wp_create_nonce' ) ) {
 	function wp_create_nonce( $action = -1 ) {
 		return 'nonce-' . sanitize_key( (string) $action );

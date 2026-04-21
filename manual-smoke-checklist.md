@@ -18,14 +18,19 @@ Purpose: verify the current Dashboard, Before Update, History, and widget experi
 
 1. Open `Sentinel` in wp-admin.
 2. Confirm the hero explains the product in plain language.
-3. Confirm both flow notes are readable:
+3. Confirm the dashboard sections render in the current simplified order:
+   - `Start Here`
+   - `What Sentinel is designed to do`
+   - `Latest Checkpoint`
+   - `Recent History`
+4. Confirm both flow notes are readable:
    - `Restore boundary`
    - `Best fit`
-4. Confirm the `Start Here` guidance cards render cleanly.
-5. Confirm the product-positioning note clearly says Sentinel is a rollback checkpoint tool.
-6. Confirm the primary action still points to `Before Update`.
-7. Confirm `Open History` still works when recent activity exists.
-8. At narrower widths, confirm the hero, guidance cards, and tables remain readable.
+5. Confirm the `Start Here` guidance cards render cleanly.
+6. Confirm the product-positioning note clearly says Sentinel is a rollback checkpoint tool.
+7. Confirm the primary action still points to `Before Update`.
+8. Confirm `Open History` still works when recent activity exists.
+9. At narrower widths, confirm the hero, guidance cards, and tables remain readable.
 
 ## WordPress Dashboard Widget
 
@@ -33,7 +38,7 @@ Purpose: verify the current Dashboard, Before Update, History, and widget experi
 2. Confirm the `Sentinel` widget renders without layout breakage.
 3. Confirm it shows:
    - site status
-   - recommended action
+   - next step
    - latest snapshot state when available
 4. Confirm widget links open correctly:
    - `Open Before Update`
@@ -119,6 +124,7 @@ Notes:
 - Use a real authenticated admin browser cookie header.
 - The page smoke helper is read-only and only performs GET requests.
 - A sample config is available at `tests/admin-smoke-config.sample.php`.
+- The current smoke helper targets the simplified `Dashboard`, `Before Update`, `History`, selected-checkpoint, and widget surfaces.
 - PHP CLI may still emit the unrelated `pdo_snowflake` startup warning.
 
 ## Merge Gate

@@ -848,7 +848,7 @@ class Admin {
 			}
 		}
 
-		return in_array( $screen_id, array( 'plugins', 'themes', 'update-core' ), true ) ? $screen_id : '';
+		return in_array( $screen_id, array( 'plugins', 'plugins-network', 'themes', 'themes-network', 'update-core', 'update-core-network' ), true ) ? $screen_id : '';
 	}
 
 	/**
@@ -935,7 +935,8 @@ class Admin {
 	 * @return array
 	 */
 	protected function build_update_screen_notice_payload( array $candidates, array $summary, $screen_id, $notice_key = '' ) {
-		$screen_id    = (string) $screen_id;
+		$raw_screen_id = sanitize_key( (string) $screen_id );
+		$screen_id    = $this->normalize_update_screen_id( $raw_screen_id );
 		$notice_key   = sanitize_key( (string) $notice_key );
 		$plugin_count = 0;
 		$theme_count  = 0;
@@ -975,7 +976,7 @@ class Admin {
 			),
 			admin_url( 'admin.php' )
 		);
-		$create_checkpoint_url = $this->build_update_screen_snapshot_action_url( $screen_id );
+		$create_checkpoint_url = $this->build_update_screen_snapshot_action_url( $raw_screen_id );
 		$history_url = add_query_arg(
 			array(
 				'page' => self::LOGS_PAGE_SLUG,
@@ -1097,6 +1098,10 @@ class Admin {
 						'url'   => $detail_url,
 					),
 					array(
+						'label' => __( 'Create Fresh Checkpoint', 'zignites-sentinel' ),
+						'url'   => $create_checkpoint_url,
+					),
+					array(
 						'label' => __( 'Open History', 'zignites-sentinel' ),
 						'url'   => $activity_url,
 					),
@@ -1124,6 +1129,10 @@ class Admin {
 						'url'   => $detail_url,
 					),
 					array(
+						'label' => __( 'Create Fresh Checkpoint', 'zignites-sentinel' ),
+						'url'   => $create_checkpoint_url,
+					),
+					array(
 						'label' => __( 'Open History', 'zignites-sentinel' ),
 						'url'   => $activity_url,
 					),
@@ -1140,11 +1149,15 @@ class Admin {
 			),
 			'description' => sprintf(
 				/* translators: %s: latest snapshot label */
-				__( 'The latest checkpoint, %s, is available before you update. Open Before Update if you want to review restore readiness or validate it again first.', 'zignites-sentinel' ),
+				__( 'The latest checkpoint, %s, is available before you update. Capture a fresh checkpoint for this update window, or open Before Update if you want to review restore readiness first.', 'zignites-sentinel' ),
 				$latest_label
 			),
 			'boundary'    => $boundary_note,
 			'actions'     => array(
+				array(
+					'label' => __( 'Create Fresh Checkpoint', 'zignites-sentinel' ),
+					'url'   => $create_checkpoint_url,
+				),
 				array(
 					'label' => __( 'Review Before Update', 'zignites-sentinel' ),
 					'url'   => $detail_url,
@@ -1166,6 +1179,8 @@ class Admin {
 	 * @return string
 	 */
 	protected function build_update_notice_scope_label( $screen_id, $plugin_count, $theme_count ) {
+		$screen_id = $this->normalize_update_screen_id( $screen_id );
+
 		if ( 'plugins' === $screen_id ) {
 			return $this->format_update_notice_count_label( $plugin_count, __( 'plugin', 'zignites-sentinel' ), __( 'plugins', 'zignites-sentinel' ) );
 		}
@@ -1212,7 +1227,7 @@ class Admin {
 	 * @return array
 	 */
 	protected function build_update_list_handoff_action( array $summary, $screen_id ) {
-		$screen_id        = 'themes-network' === $screen_id ? 'themes' : ( 'plugins-network' === $screen_id ? 'plugins' : (string) $screen_id );
+		$screen_id        = $this->normalize_update_screen_id( $screen_id );
 		$site_status_card = isset( $summary['site_status_card'] ) && is_array( $summary['site_status_card'] ) ? $summary['site_status_card'] : array();
 		$before_update_url = add_query_arg(
 			array(
@@ -1250,14 +1265,40 @@ class Admin {
 	 * @return string
 	 */
 	protected function build_update_screen_snapshot_action_url( $screen_id ) {
+		$screen_id = sanitize_key( (string) $screen_id );
+
 		return add_query_arg(
 			array(
 				'action'             => 'znts_create_snapshot',
-				'znts_return_screen' => sanitize_key( (string) $screen_id ),
+				'znts_return_screen' => $screen_id,
 				'_wpnonce'           => wp_create_nonce( 'znts_create_snapshot_action' ),
 			),
 			admin_url( 'admin-post.php' )
 		);
+	}
+
+	/**
+	 * Normalize supported update-screen variants to their base screen IDs.
+	 *
+	 * @param string $screen_id Screen identifier.
+	 * @return string
+	 */
+	protected function normalize_update_screen_id( $screen_id ) {
+		$screen_id = sanitize_key( (string) $screen_id );
+
+		if ( in_array( $screen_id, array( 'plugins', 'plugins-network' ), true ) ) {
+			return 'plugins';
+		}
+
+		if ( in_array( $screen_id, array( 'themes', 'themes-network' ), true ) ) {
+			return 'themes';
+		}
+
+		if ( in_array( $screen_id, array( 'update-core', 'update-core-network' ), true ) ) {
+			return 'update-core';
+		}
+
+		return $screen_id;
 	}
 
 	/**
@@ -2622,12 +2663,24 @@ class Admin {
 			return admin_url( 'plugins.php' );
 		}
 
+		if ( 'plugins-network' === $screen_id ) {
+			return network_admin_url( 'plugins.php' );
+		}
+
 		if ( 'themes' === $screen_id ) {
 			return admin_url( 'themes.php' );
 		}
 
+		if ( 'themes-network' === $screen_id ) {
+			return network_admin_url( 'themes.php' );
+		}
+
 		if ( 'update-core' === $screen_id ) {
 			return admin_url( 'update-core.php' );
+		}
+
+		if ( 'update-core-network' === $screen_id ) {
+			return network_admin_url( 'update-core.php' );
 		}
 
 		return '';

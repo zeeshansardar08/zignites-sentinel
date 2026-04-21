@@ -13,12 +13,17 @@ return array(
 		array(
 			'label'   => 'Sentinel Dashboard',
 			'path'    => 'admin.php?page=zignites-sentinel',
-			'markers' => array( 'Site Status', 'Recommended action', 'Recent Snapshots' ),
+			'markers' => array( 'Zignites Sentinel', 'Start Here', 'What Sentinel is designed to do', 'Latest Checkpoint', 'Recent History' ),
+		),
+		array(
+			'label'   => 'Sentinel Dashboard First Run',
+			'path'    => 'admin.php?page=zignites-sentinel&znts_capture=first-run',
+			'markers' => array( 'Zignites Sentinel', 'Create Your First Checkpoint', 'Start Here', 'No checkpoints' ),
 		),
 		array(
 			'label'   => 'Update Readiness',
 			'path'    => 'admin.php?page=zignites-sentinel-update-readiness',
-			'markers' => array( 'Update Readiness', 'Recent Snapshot Metadata', 'Sentinel Settings' ),
+			'markers' => array( 'Before Update', 'How Sentinel Works', 'What Sentinel is designed to do', 'Create Checkpoint', 'Saved Checkpoints' ),
 		),
 		array(
 			'label'   => 'Selected Snapshot Detail',
@@ -29,42 +34,29 @@ return array(
 					'snapshot_id' => true,
 				),
 			),
-			'markers' => array( 'Snapshot Summary', 'Download Summary', 'Snapshot Health Baseline' ),
-			'optional_markers' => array( 'Health Comparison', 'Restore Impact Summary' ),
+			'markers' => array( 'Before Update', 'Validate Checkpoint', 'Restore Checkpoint', 'Saved Checkpoints', 'Recent History' ),
+			'optional_markers' => array( 'Restore Result', 'Rollback Last Restore', 'Rollback Result' ),
 		),
 		array(
-			'label'   => 'Selected Snapshot Event Logs',
+			'label'   => 'Dashboard Snapshot History',
 			'resolve' => array(
-				'path'       => 'admin.php?page=zignites-sentinel-update-readiness',
+				'path'       => 'admin.php?page=zignites-sentinel',
 				'query_args' => array(
 					'page'        => 'zignites-sentinel-event-logs',
 					'snapshot_id' => true,
 				),
 			),
-			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter', 'Current filters are active.' ),
+			'markers' => array( 'History', 'Recent History', 'Filter', 'Checkpoint ID', 'Reset' ),
 		),
 		array(
-			'label'            => 'Selected Snapshot Run Journal',
-			'resolve'          => array(
-				'path'       => 'admin.php?page=zignites-sentinel-update-readiness',
-				'query_args' => array(
-					'page'   => 'zignites-sentinel-event-logs',
-					'source' => true,
-					'run_id' => true,
-				),
-			),
-			'resolve_optional' => true,
-			'markers'          => array( 'Event Logs', 'Export Filtered CSV', 'Filter', 'Current filters are active.', 'Run Journal' ),
-		),
-		array(
-			'label'   => 'Event Logs',
+			'label'   => 'History',
 			'path'    => 'admin.php?page=zignites-sentinel-event-logs',
-			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter' ),
+			'markers' => array( 'History', 'Recent History', 'Filter', 'Checkpoint ID', 'Reset' ),
 		),
 		array(
-			'label'   => 'Event Logs Empty State',
+			'label'   => 'History Empty State',
 			'path'    => 'admin.php?page=zignites-sentinel-event-logs&log_search=znts-smoke-empty-state-token-9f3a0d66',
-			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Apply Filters', 'Reset', 'Current filters are active.', 'No event logs match the current filters.' ),
+			'markers' => array( 'History', 'Recent History', 'Filter', 'Reset', 'No history entries match the current filters.' ),
 		),
 		array(
 			'label'            => 'Event Log Detail',
@@ -74,62 +66,10 @@ return array(
 					'page'   => 'zignites-sentinel-event-logs',
 					'log_id' => true,
 				),
-				'source_markers' => array( 'Event Explorer' ),
+				'source_markers' => array( 'Recent History' ),
 			),
 			'resolve_optional' => true,
-			'markers'          => array( 'Event Logs', 'Event Detail', 'Context' ),
-		),
-		array(
-			'label'            => 'Operational Event Detail',
-			'resolve'          => array(
-				'path'       => 'admin.php?page=zignites-sentinel-event-logs',
-				'query_args' => array(
-					'page'   => 'zignites-sentinel-event-logs',
-					'log_id' => true,
-				),
-				'source_markers' => array( 'Operational Events' ),
-				'source_scope_marker' => 'Operational Events',
-			),
-			'resolve_optional' => true,
-			'markers'          => array( 'Event Logs', 'Event Detail', 'Context' ),
-		),
-		array(
-			'label'            => 'Event Log Run Summary Journal',
-			'resolve'          => array(
-				'path'       => 'admin.php?page=zignites-sentinel-event-logs',
-				'query_args' => array(
-					'page'   => 'zignites-sentinel-event-logs',
-					'source' => true,
-					'run_id' => true,
-				),
-				'source_markers' => array( 'Run Summaries' ),
-			),
-			'resolve_optional' => true,
-			'markers'          => array( 'Event Logs', 'Export Filtered CSV', 'Filter', 'Current filters are active.', 'Run Journal' ),
-		),
-		array(
-			'label'            => 'Event Log Run Summary Snapshot',
-			'resolve'          => array(
-				'path'       => 'admin.php?page=zignites-sentinel-event-logs',
-				'query_args' => array(
-					'page'        => 'zignites-sentinel-update-readiness',
-					'snapshot_id' => true,
-				),
-				'source_markers' => array( 'Run Summaries' ),
-			),
-			'resolve_optional' => true,
-			'markers'          => array( 'Update Readiness', 'Recent Snapshot Metadata', 'Sentinel Settings', 'Snapshot Summary' ),
-		),
-		array(
-			'label'   => 'Dashboard Snapshot Event Logs',
-			'resolve' => array(
-				'path'       => 'admin.php?page=zignites-sentinel',
-				'query_args' => array(
-					'page'        => 'zignites-sentinel-event-logs',
-					'snapshot_id' => true,
-				),
-			),
-			'markers' => array( 'Event Logs', 'Export Filtered CSV', 'Filter' ),
+			'markers'          => array( 'History', 'Event Detail', 'Context' ),
 		),
 		array(
 			'label'            => 'Widget Snapshot Activity',
@@ -141,12 +81,12 @@ return array(
 				),
 			),
 			'resolve_optional' => true,
-			'markers'          => array( 'Event Logs', 'Export Filtered CSV', 'Filter', 'Current filters are active.' ),
+			'markers'          => array( 'History', 'Recent History', 'Filter', 'Checkpoint ID', 'Reset' ),
 		),
 		array(
 			'label'   => 'WordPress Dashboard Widget',
 			'path'    => 'index.php',
-			'markers' => array( 'Sentinel', 'Recommended action' ),
+			'markers' => array( 'Sentinel', 'Next step' ),
 		),
 	),
 );

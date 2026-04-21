@@ -655,3 +655,22 @@
 
 
 
+- Main is now current through the merged multisite update-surface handoff pass for:
+  - native Sentinel update notices now render on multisite plugin, theme, and core update screens as well as single-site screens
+  - one-click checkpoint capture from those notices now preserves the originating network update surface on return
+  - allowed post-snapshot redirect targets now include `plugins-network`, `themes-network`, and `update-core-network`
+  - focused regression coverage now includes multisite update notice routing and network admin return URLs
+- Main is now current through the merged live smoke realignment pass for:
+  - the admin smoke helper now targets the current simplified Dashboard, Before Update, History, selected-checkpoint, and widget surfaces instead of older pre-simplification headings
+  - stale smoke expectations for investigation-console, run-summary, and system-trust sections were removed from the default live checks
+  - focused regression coverage now matches the current smoke defaults and link-resolution paths
+  - authenticated live smoke now passes against the local `http://zee-dev.test/wp-admin/` environment
+- Main is now current through the merged QA artifact alignment pass for:
+  - `tests/admin-smoke-config.sample.php` now mirrors the current live smoke defaults instead of older screen labels
+  - `manual-smoke-checklist.md` now references the current simplified dashboard ordering and widget `Next step` language
+  - operator-facing verification docs now match the Dashboard, Before Update, and History surfaces exercised by the live smoke helper
+- Main is now current through the merged pre-update freshness prompt pass for:
+  - native plugin/theme update notices now keep a `Create Fresh Checkpoint` action visible even when Sentinel already has a recent checkpoint
+  - stable update surfaces now make fresh checkpoint capture the primary operator action for the current change window
+  - attention and at-risk update surfaces now preserve review-first behavior while still offering a fresh checkpoint path beside history
+  - focused regression coverage now includes fresh-checkpoint actions for stable and needs-attention update-screen notices
