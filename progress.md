@@ -674,3 +674,8 @@
   - stable update surfaces now make fresh checkpoint capture the primary operator action for the current change window
   - attention and at-risk update surfaces now preserve review-first behavior while still offering a fresh checkpoint path beside history
   - focused regression coverage now includes fresh-checkpoint actions for stable and needs-attention update-screen notices
+- Current branch adds the row-level pre-update freshness pass for:
+  - plugin and theme update-row handoff links now switch from passive `checkpoint ready` language to `create fresh checkpoint` when the latest snapshot is stable
+  - row-level handoff still keeps review-first behavior for `needs_attention` and `at_risk` states
+  - fresh-checkpoint row links preserve the originating update surface as the post-capture return target
+  - focused regression coverage now includes stable plugin and theme row-level fresh-checkpoint prompts

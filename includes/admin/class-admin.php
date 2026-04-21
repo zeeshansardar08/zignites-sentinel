@@ -1253,8 +1253,8 @@ class Admin {
 		}
 
 		return array(
-			'label' => __( 'Sentinel: checkpoint ready', 'zignites-sentinel' ),
-			'url'   => $detail_url,
+			'label' => __( 'Sentinel: create fresh checkpoint', 'zignites-sentinel' ),
+			'url'   => $this->build_update_screen_snapshot_action_url( $screen_id ),
 		);
 	}
 
