@@ -695,3 +695,7 @@
   - the network update-surface smoke sample no longer hardcodes `example.test` for network admin URLs and now resolves them relative to the provided base URL
   - live verification on the local `zee-dev.test` install confirmed single-site update surfaces pass while network-admin checks are environment-limited because `is_multisite=no`
   - the sample config and manual checklist now state that network update-surface checks are only expected to pass on multisite installs with network admin enabled
+- Current branch adds the smoke prerequisite-skip pass for:
+  - the live smoke runner now supports check-level skip decisions for expected environment limitations such as network-admin-only screens on non-multisite installs
+  - the optional update-surface smoke sample now downgrades network-admin 403/404/500 responses to explicit skips with a stable reason instead of hard failures
+  - local live verification now passes cleanly on `zee-dev.test`, with single-site update surfaces passing and network-admin checks reported as skipped because `is_multisite=no`
