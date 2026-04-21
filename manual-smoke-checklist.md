@@ -93,6 +93,17 @@ Purpose: verify the current Dashboard, Before Update, History, and widget experi
 5. Confirm event detail still opens from a row click.
 6. Confirm pagination still works when enough rows exist.
 
+## Native Update Surfaces
+
+1. Open `/wp-admin/plugins.php` during a window where plugin updates are pending.
+2. Confirm Sentinel surfaces the current pre-update cue cleanly:
+   - `Create Fresh Checkpoint` when the latest checkpoint is stable
+   - `Review Before Update` when Sentinel needs attention first
+3. Confirm any row-level Sentinel link keeps you on the originating update screen after checkpoint capture.
+4. Open `/wp-admin/themes.php` when theme updates are pending and confirm the same row-level cue behavior.
+5. Open `/wp-admin/update-core.php` and confirm Sentinel stays honest about core recovery boundaries.
+6. If plugin or theme updates are also pending on the core updates screen, confirm the Sentinel notice still points back into `Before Update` or fresh checkpoint capture as appropriate.
+
 ## Product Boundaries
 
 1. Confirm the Dashboard and Before Update screens both state the restore boundary accurately.
@@ -119,11 +130,18 @@ Optional live wp-admin smoke helper:
 php tests/smoke-admin-live.php --base-url=http://example.test/wp-admin/ --cookie="wordpress_logged_in_example=...; wordpress_sec_example=..."
 ```
 
+Optional native update-surface smoke helper:
+
+```powershell
+php tests/smoke-admin-live.php --config=tests/admin-smoke-update-surfaces.sample.php
+```
+
 Notes:
 
 - Use a real authenticated admin browser cookie header.
 - The page smoke helper is read-only and only performs GET requests.
 - A sample config is available at `tests/admin-smoke-config.sample.php`.
+- A separate sample config for native WordPress update surfaces is available at `tests/admin-smoke-update-surfaces.sample.php`.
 - The current smoke helper targets the simplified `Dashboard`, `Before Update`, `History`, selected-checkpoint, and widget surfaces.
 - PHP CLI may still emit the unrelated `pdo_snowflake` startup warning.
 
