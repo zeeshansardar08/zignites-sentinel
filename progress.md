@@ -679,3 +679,7 @@
   - row-level handoff still keeps review-first behavior for `needs_attention` and `at_risk` states
   - fresh-checkpoint row links preserve the originating update surface as the post-capture return target
   - focused regression coverage now includes stable plugin and theme row-level fresh-checkpoint prompts
+- Current branch adds the native update-surface verification pass for:
+  - a dedicated sample smoke config now exists for `plugins.php`, `themes.php`, and `update-core.php` without polluting the default Sentinel admin smoke set
+  - the manual smoke checklist now includes native update-surface verification steps for notice behavior, row-level links, and core-boundary honesty
+  - operator QA assets now separate always-on Sentinel workspace checks from optional real update-window verification
