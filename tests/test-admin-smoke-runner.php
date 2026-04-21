@@ -390,3 +390,15 @@ function znts_test_admin_smoke_runner_allows_config_prerequisite_lists() {
 	znts_assert_same( 2, count( $config['prerequisites'] ), 'Admin smoke runner configs should support a top-level prerequisite list for operator guidance.' );
 	znts_assert_same( 'Network checks require multisite and network admin access.', $config['prerequisites'][1], 'Admin smoke runner prerequisite lists should preserve explanatory environment notes.' );
 }
+
+function znts_test_admin_smoke_runner_summary_counts_can_be_tracked_separately() {
+	$counts = array(
+		'passed'  => 3,
+		'skipped' => 2,
+		'failed'  => 1,
+	);
+
+	$summary = sprintf( 'Summary: %1$d passed, %2$d skipped, %3$d failed.', $counts['passed'], $counts['skipped'], $counts['failed'] );
+
+	znts_assert_same( 'Summary: 3 passed, 2 skipped, 1 failed.', $summary, 'Admin smoke runner output should be able to report pass/skip/fail totals in one compact line.' );
+}

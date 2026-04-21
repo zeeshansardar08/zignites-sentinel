@@ -49,6 +49,8 @@ if ( '' === trim( $cookie ) ) {
 
 $base_url = $runner->normalize_base_url( $base_url );
 $failures = 0;
+$passes   = 0;
+$skips    = 0;
 
 echo 'Sentinel live admin smoke' . PHP_EOL;
 echo 'Base URL: ' . $base_url . PHP_EOL;
@@ -76,6 +78,7 @@ foreach ( $checks as $check ) {
 	$url       = isset( $resolved['url'] ) ? (string) $resolved['url'] : $runner->build_url( $base_url, isset( $check['path'] ) ? (string) $check['path'] : '' );
 
 	if ( ! empty( $resolved['skipped'] ) ) {
+		$skips++;
 		echo '[SKIP] ' . $label . PHP_EOL;
 		echo '  Source URL: ' . ( isset( $resolved['source_url'] ) ? (string) $resolved['source_url'] : '' ) . PHP_EOL;
 		echo '  Reason: ' . ( isset( $resolved['skip_reason'] ) ? (string) $resolved['skip_reason'] : 'Optional check was not applicable.' ) . PHP_EOL;
@@ -107,6 +110,7 @@ foreach ( $checks as $check ) {
 	);
 
 	if ( ! empty( $skip['skipped'] ) ) {
+		$skips++;
 		echo '[SKIP] ' . $label . PHP_EOL;
 		echo '  URL: ' . $url . PHP_EOL;
 		echo '  Reason: ' . ( isset( $skip['reason'] ) ? (string) $skip['reason'] : 'Environment prerequisite was not met.' ) . PHP_EOL;
@@ -116,6 +120,7 @@ foreach ( $checks as $check ) {
 	$eval = $runner->evaluate_response( $check, isset( $http['status_code'] ) ? (int) $http['status_code'] : 0, isset( $http['body'] ) ? (string) $http['body'] : '' );
 
 	if ( $eval['passed'] ) {
+		$passes++;
 		echo '[PASS] ' . $label . ' [' . $eval['status_code'] . ']' . PHP_EOL;
 
 		if ( ! empty( $eval['observed_optional_markers'] ) ) {
@@ -154,6 +159,8 @@ foreach ( $checks as $check ) {
 	}
 }
 
+echo PHP_EOL;
+echo 'Summary: ' . $passes . ' passed, ' . $skips . ' skipped, ' . $failures . ' failed.' . PHP_EOL;
 echo PHP_EOL;
 
 if ( $failures > 0 ) {

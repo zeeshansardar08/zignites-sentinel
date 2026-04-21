@@ -703,3 +703,7 @@
   - smoke configs can now surface a top-level prerequisite list before execution so operators know which live-state assumptions matter for the run
   - the optional update-surface smoke config now declares both pending-update and multisite/network-admin prerequisites explicitly
   - local live verification confirms the prerequisite summary prints before results while the update-surface smoke run still passes on `zee-dev.test`
+- Current branch adds the smoke result-summary pass for:
+  - the live smoke runner now prints a compact final totals line showing pass/skip/fail counts
+  - local live verification confirms the update-surface smoke run now ends with `Summary: 3 passed, 3 skipped, 0 failed.` on the current non-multisite environment
+  - operators can now scan smoke output faster without reading every individual check line
