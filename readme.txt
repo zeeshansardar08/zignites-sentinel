@@ -21,6 +21,13 @@ Use it to:
 * restore that checkpoint if an update breaks the code layer
 * roll back the last restore if needed
 
+= Why Use Sentinel =
+
+* It is built for plugin and theme update risk, not broad disaster recovery
+* It gives technical WordPress teams a faster rollback checkpoint workflow than full-site backup tools
+* It emphasizes validation before restore, not just checkpoint creation
+* It keeps the operator focused on the next safe step
+
 = What Sentinel Restores =
 
 * Active plugins
@@ -40,12 +47,26 @@ Use a full backup solution for full-site recovery.
 * Technical site maintainers
 * Agencies managing risky plugin and theme updates
 
+= Best Fit Use Cases =
+
+* Preparing for risky plugin or theme updates on client sites
+* Keeping a code-layer rollback path before maintenance windows
+* Giving technical operators a narrower recovery workflow than a full backup suite
+
 = What Sentinel Is Not =
 
 * Not a full backup plugin
 * Not a disaster recovery system
 * Not an off-site backup service
 * Not an atomic restore engine
+
+= Typical Workflow =
+
+1. Open **Sentinel > Before Update**.
+2. Create a checkpoint before plugin or theme updates.
+3. Run the validation steps before trusting that checkpoint.
+4. Restore it only if the update breaks the active code layer.
+5. Review **Sentinel > History** to confirm what happened.
 
 = Artifact Storage Protection =
 
@@ -73,6 +94,10 @@ If your host serves uploads directly without honoring `.htaccess` or `web.config
 = What should I do first? =
 
 Create a checkpoint before risky plugin or theme updates. Then run the built-in validation steps so you know whether that checkpoint is usable for restore.
+
+= Is Sentinel a replacement for my backup plugin? =
+
+No. Sentinel is a narrow rollback checkpoint tool for active plugins and the active theme. Use a full backup solution for database, media, and full-site recovery.
 
 = What does Sentinel restore? =
 

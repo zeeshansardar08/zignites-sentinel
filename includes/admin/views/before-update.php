@@ -18,6 +18,11 @@ $selected_snapshot_note = isset( $view_data['selected_snapshot_note'] ) ? (strin
 $workspace_status_label = isset( $view_data['workspace_status_label'] ) ? (string) $view_data['workspace_status_label'] : '';
 $workspace_status_badge = isset( $view_data['workspace_status_badge'] ) ? (string) $view_data['workspace_status_badge'] : 'info';
 $workspace_next_action = isset( $view_data['workspace_next_action'] ) ? (string) $view_data['workspace_next_action'] : '';
+$first_run_notice      = isset( $view_data['first_run_notice'] ) && is_array( $view_data['first_run_notice'] ) ? $view_data['first_run_notice'] : array();
+$readiness_history_empty_state = isset( $view_data['readiness_history_empty_state'] ) && is_array( $view_data['readiness_history_empty_state'] ) ? $view_data['readiness_history_empty_state'] : array();
+$restore_history_empty_state = isset( $view_data['restore_history_empty_state'] ) && is_array( $view_data['restore_history_empty_state'] ) ? $view_data['restore_history_empty_state'] : array();
+$workspace_help_panels = isset( $view_data['workspace_help_panels'] ) && is_array( $view_data['workspace_help_panels'] ) ? $view_data['workspace_help_panels'] : array();
+$workspace_positioning_note = isset( $view_data['workspace_positioning_note'] ) && is_array( $view_data['workspace_positioning_note'] ) ? $view_data['workspace_positioning_note'] : array();
 $restore_readiness_status = isset( $view_data['restore_readiness_status'] ) && is_array( $view_data['restore_readiness_status'] ) ? $view_data['restore_readiness_status'] : array();
 $restore_dry_run_status = isset( $view_data['restore_dry_run_status'] ) && is_array( $view_data['restore_dry_run_status'] ) ? $view_data['restore_dry_run_status'] : array();
 $restore_stage_status   = isset( $view_data['restore_stage_status'] ) && is_array( $view_data['restore_stage_status'] ) ? $view_data['restore_stage_status'] : array();
@@ -62,9 +67,67 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 			<strong><?php echo esc_html__( 'Restore boundary', 'zignites-sentinel' ); ?></strong>
 			<span><?php echo esc_html__( 'This plugin restores the active theme and active plugins only. It does not restore the database, uploads/media, or WordPress core. Use a full backup solution for full-site recovery.', 'zignites-sentinel' ); ?></span>
 		</div>
+		<div class="znts-flow-note">
+			<strong><?php echo esc_html__( 'Best fit', 'zignites-sentinel' ); ?></strong>
+			<span><?php echo esc_html__( 'Use Sentinel when you want a rollback checkpoint for plugin and theme updates. Do not treat it as a full backup replacement.', 'zignites-sentinel' ); ?></span>
+		</div>
 	</section>
 
 	<div class="znts-admin-grid znts-readiness-grid">
+		<?php if ( ! empty( $first_run_notice ) ) : ?>
+			<section class="znts-card znts-card-full znts-card-primary">
+				<h2><?php echo esc_html( isset( $first_run_notice['title'] ) ? $first_run_notice['title'] : '' ); ?></h2>
+				<p><?php echo esc_html( isset( $first_run_notice['description'] ) ? $first_run_notice['description'] : '' ); ?></p>
+				<div class="znts-flow-note">
+					<strong><?php echo esc_html__( 'Next step', 'zignites-sentinel' ); ?></strong>
+					<span><?php echo esc_html( isset( $first_run_notice['next_step'] ) ? $first_run_notice['next_step'] : '' ); ?></span>
+				</div>
+			</section>
+		<?php endif; ?>
+
+		<?php if ( ! empty( $workspace_help_panels ) ) : ?>
+			<section class="znts-card znts-card-full znts-card-flat">
+				<h2><?php echo esc_html__( 'How Sentinel Works', 'zignites-sentinel' ); ?></h2>
+				<div class="znts-summary-strip">
+					<?php foreach ( $workspace_help_panels as $panel ) : ?>
+						<div class="znts-summary-item">
+							<span><?php echo esc_html( isset( $panel['title'] ) ? $panel['title'] : '' ); ?></span>
+							<p><?php echo esc_html( isset( $panel['body'] ) ? $panel['body'] : '' ); ?></p>
+						</div>
+					<?php endforeach; ?>
+				</div>
+			</section>
+		<?php endif; ?>
+
+		<?php if ( ! empty( $workspace_positioning_note ) ) : ?>
+			<section class="znts-card znts-card-full znts-card-flat">
+				<h2><?php echo esc_html( isset( $workspace_positioning_note['title'] ) ? $workspace_positioning_note['title'] : __( 'What Sentinel is designed to do', 'zignites-sentinel' ) ); ?></h2>
+				<p><?php echo esc_html( isset( $workspace_positioning_note['body'] ) ? $workspace_positioning_note['body'] : '' ); ?></p>
+			</section>
+		<?php endif; ?>
+
+		<?php if ( ! empty( $readiness_history_empty_state ) || ! empty( $restore_history_empty_state ) ) : ?>
+			<section class="znts-card znts-card-full znts-card-flat">
+				<h2><?php echo esc_html__( 'Adoption Guide', 'zignites-sentinel' ); ?></h2>
+				<div class="znts-summary-strip">
+					<?php if ( ! empty( $readiness_history_empty_state ) ) : ?>
+						<div class="znts-summary-item">
+							<span><?php echo esc_html( isset( $readiness_history_empty_state['title'] ) ? $readiness_history_empty_state['title'] : '' ); ?></span>
+							<p><?php echo esc_html( isset( $readiness_history_empty_state['description'] ) ? $readiness_history_empty_state['description'] : '' ); ?></p>
+							<p><?php echo esc_html( isset( $readiness_history_empty_state['next_step'] ) ? $readiness_history_empty_state['next_step'] : '' ); ?></p>
+						</div>
+					<?php endif; ?>
+					<?php if ( ! empty( $restore_history_empty_state ) ) : ?>
+						<div class="znts-summary-item">
+							<span><?php echo esc_html( isset( $restore_history_empty_state['title'] ) ? $restore_history_empty_state['title'] : '' ); ?></span>
+							<p><?php echo esc_html( isset( $restore_history_empty_state['description'] ) ? $restore_history_empty_state['description'] : '' ); ?></p>
+							<p><?php echo esc_html( isset( $restore_history_empty_state['next_step'] ) ? $restore_history_empty_state['next_step'] : '' ); ?></p>
+						</div>
+					<?php endif; ?>
+				</div>
+			</section>
+		<?php endif; ?>
+
 		<section class="znts-card znts-card-full znts-card-primary">
 			<h2><?php echo esc_html__( 'Create Checkpoint', 'zignites-sentinel' ); ?></h2>
 			<p><?php echo esc_html__( 'Use this before plugin or theme updates. Sentinel saves rollback artifacts for the active theme and active plugins.', 'zignites-sentinel' ); ?></p>
@@ -104,6 +167,7 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 		<?php if ( $has_form_snapshot ) : ?>
 			<section class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Validate Checkpoint', 'zignites-sentinel' ); ?></h2>
+				<p><?php echo esc_html__( 'Run these checks in order so the checkpoint is easier to trust before any live restore decision.', 'zignites-sentinel' ); ?></p>
 				<div class="znts-actions">
 					<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
 						<input type="hidden" name="action" value="znts_check_restore_readiness" />
@@ -140,7 +204,7 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 
 			<section class="znts-card znts-card-full znts-card-primary">
 				<h2><?php echo esc_html__( 'Restore Checkpoint', 'zignites-sentinel' ); ?></h2>
-				<p class="description"><?php echo esc_html__( 'This writes the checkpoint payload into live plugin and theme paths. It is not a full-site restore.', 'zignites-sentinel' ); ?></p>
+				<p class="description"><?php echo esc_html__( 'Use this only after validation. Sentinel writes the checkpoint payload into live plugin and theme paths. It is not a full-site restore.', 'zignites-sentinel' ); ?></p>
 				<?php if ( $can_execute_restore ) : ?>
 					<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
 						<input type="hidden" name="action" value="znts_execute_restore" />
@@ -179,6 +243,7 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 		<?php if ( $has_form_snapshot && ! empty( $restore_execution_status ) ) : ?>
 			<section class="znts-card znts-card-full znts-card-primary">
 				<h2><?php echo esc_html__( 'Rollback Last Restore', 'zignites-sentinel' ); ?></h2>
+				<p class="description"><?php echo esc_html__( 'Use rollback when the last restore introduced a new problem and Sentinel still has the related backup context.', 'zignites-sentinel' ); ?></p>
 				<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
 					<input type="hidden" name="action" value="znts_rollback_restore" />
 					<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />

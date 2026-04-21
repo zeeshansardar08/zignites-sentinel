@@ -142,6 +142,12 @@ if ( ! function_exists( 'admin_url' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_create_nonce' ) ) {
+	function wp_create_nonce( $action = -1 ) {
+		return 'nonce-' . sanitize_key( (string) $action );
+	}
+}
+
 if ( ! function_exists( 'get_theme_root' ) ) {
 	function get_theme_root() {
 		return 'D:/themes';
