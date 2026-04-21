@@ -18,6 +18,8 @@ $primary_action_title  = isset( $primary_action['title'] ) ? (string) $primary_a
 $primary_action_note   = isset( $primary_action['description'] ) ? (string) $primary_action['description'] : __( 'Capture a checkpoint of your active plugins and theme before updating anything.', 'zignites-sentinel' );
 $primary_action_label  = isset( $primary_action['button_label'] ) ? (string) $primary_action['button_label'] : __( 'Open Before Update', 'zignites-sentinel' );
 $primary_action_url    = isset( $primary_action['url'] ) ? (string) $primary_action['url'] : '';
+$help_panels           = isset( $view_data['help_panels'] ) && is_array( $view_data['help_panels'] ) ? $view_data['help_panels'] : array();
+$positioning_note      = isset( $view_data['positioning_note'] ) && is_array( $view_data['positioning_note'] ) ? $view_data['positioning_note'] : array();
 $admin_page_url        = \Zignites\Sentinel\Admin\znts_admin_url( 'admin.php' );
 $first_run_cta_url     = add_query_arg(
 	array(
@@ -62,9 +64,34 @@ $first_run_cta_url     = add_query_arg(
 			<strong><?php echo esc_html__( 'Restore boundary', 'zignites-sentinel' ); ?></strong>
 			<span><?php echo esc_html__( 'Sentinel restores the active theme and active plugins only. It does not restore the database, uploads/media, or WordPress core. Use a full backup solution for full-site recovery.', 'zignites-sentinel' ); ?></span>
 		</div>
+		<div class="znts-flow-note">
+			<strong><?php echo esc_html__( 'Best fit', 'zignites-sentinel' ); ?></strong>
+			<span><?php echo esc_html__( 'Built for developers, agencies, and technical maintainers who want a rollback checkpoint before risky plugin or theme updates.', 'zignites-sentinel' ); ?></span>
+		</div>
 	</section>
 
 	<div class="znts-admin-grid znts-readiness-grid">
+		<?php if ( ! empty( $help_panels ) ) : ?>
+			<section class="znts-card znts-card-full znts-card-flat">
+				<h2><?php echo esc_html__( 'Start Here', 'zignites-sentinel' ); ?></h2>
+				<div class="znts-summary-strip">
+					<?php foreach ( $help_panels as $panel ) : ?>
+						<div class="znts-summary-item">
+							<span><?php echo esc_html( isset( $panel['title'] ) ? $panel['title'] : '' ); ?></span>
+							<p><?php echo esc_html( isset( $panel['body'] ) ? $panel['body'] : '' ); ?></p>
+						</div>
+					<?php endforeach; ?>
+				</div>
+			</section>
+		<?php endif; ?>
+
+		<?php if ( ! empty( $positioning_note ) ) : ?>
+			<section class="znts-card znts-card-full znts-card-flat">
+				<h2><?php echo esc_html( isset( $positioning_note['title'] ) ? $positioning_note['title'] : __( 'What Sentinel is designed to do', 'zignites-sentinel' ) ); ?></h2>
+				<p><?php echo esc_html( isset( $positioning_note['body'] ) ? $positioning_note['body'] : '' ); ?></p>
+			</section>
+		<?php endif; ?>
+
 		<section class="znts-card znts-card-full znts-card-primary">
 			<h2><?php echo esc_html__( 'Latest Checkpoint', 'zignites-sentinel' ); ?></h2>
 			<?php if ( empty( $latest_snapshot ) ) : ?>

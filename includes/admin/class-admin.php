@@ -547,6 +547,7 @@ class Admin {
 	public function register_hooks() {
 		add_action( 'admin_menu', array( $this, 'register_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+		add_action( 'admin_notices', array( $this, 'render_update_screen_notice' ) );
 		add_action( 'wp_dashboard_setup', array( $this, 'register_dashboard_widget' ) );
 		add_action( 'admin_post_znts_run_preflight', array( $this, 'handle_run_preflight' ) );
 		add_action( 'admin_post_znts_export_event_logs', array( $this, 'handle_export_event_logs' ) );
@@ -622,6 +623,396 @@ class Admin {
 			ZNTS_PLUGIN_URL . 'assets/css/admin.css',
 			array(),
 			ZNTS_VERSION
+		);
+	}
+
+	/**
+	 * Render a Sentinel notice on native WordPress update surfaces.
+	 *
+	 * @return void
+	 */
+	public function render_update_screen_notice() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$screen_id = $this->get_update_screen_notice_context();
+
+		if ( '' === $screen_id ) {
+			return;
+		}
+
+		$payload = $this->build_update_screen_notice_payload(
+			$this->update_planner->get_candidates(),
+			$this->get_dashboard_summary_payload( 1 ),
+			$screen_id,
+			isset( $_GET['znts_notice'] ) ? sanitize_key( wp_unslash( $_GET['znts_notice'] ) ) : ''
+		);
+
+		if ( empty( $payload ) ) {
+			return;
+		}
+
+		$type        = isset( $payload['type'] ) ? (string) $payload['type'] : 'info';
+		$title       = isset( $payload['title'] ) ? (string) $payload['title'] : '';
+		$description = isset( $payload['description'] ) ? (string) $payload['description'] : '';
+		$boundary    = isset( $payload['boundary'] ) ? (string) $payload['boundary'] : '';
+		$actions     = isset( $payload['actions'] ) && is_array( $payload['actions'] ) ? $payload['actions'] : array();
+
+		?>
+		<div class="notice notice-<?php echo esc_attr( $type ); ?>">
+			<?php if ( '' !== $title ) : ?>
+				<p><strong><?php echo esc_html( $title ); ?></strong></p>
+			<?php endif; ?>
+			<?php if ( '' !== $description ) : ?>
+				<p><?php echo esc_html( $description ); ?></p>
+			<?php endif; ?>
+			<?php if ( '' !== $boundary ) : ?>
+				<p><?php echo esc_html( $boundary ); ?></p>
+			<?php endif; ?>
+			<?php if ( ! empty( $actions ) ) : ?>
+				<p>
+					<?php foreach ( $actions as $index => $action ) : ?>
+						<?php
+						$label = isset( $action['label'] ) ? (string) $action['label'] : '';
+						$url   = isset( $action['url'] ) ? (string) $action['url'] : '';
+						$class = 0 === $index ? 'button button-primary' : 'button button-secondary';
+						?>
+						<?php if ( '' !== $label && '' !== $url ) : ?>
+							<a class="<?php echo esc_attr( $class ); ?>" href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $label ); ?></a>
+						<?php endif; ?>
+					<?php endforeach; ?>
+				</p>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Determine whether the current admin screen should show the Sentinel update notice.
+	 *
+	 * @return string
+	 */
+	protected function get_update_screen_notice_context() {
+		$screen_id = '';
+
+		if ( function_exists( 'get_current_screen' ) ) {
+			$screen = get_current_screen();
+
+			if ( is_object( $screen ) && ! empty( $screen->id ) ) {
+				$screen_id = (string) $screen->id;
+			}
+		}
+
+		if ( '' === $screen_id ) {
+			global $pagenow;
+
+			$pagenow = isset( $pagenow ) ? (string) $pagenow : '';
+
+			if ( 'plugins.php' === $pagenow ) {
+				$screen_id = 'plugins';
+			} elseif ( 'themes.php' === $pagenow ) {
+				$screen_id = 'themes';
+			} elseif ( 'update-core.php' === $pagenow ) {
+				$screen_id = 'update-core';
+			}
+		}
+
+		return in_array( $screen_id, array( 'plugins', 'themes', 'update-core' ), true ) ? $screen_id : '';
+	}
+
+	/**
+	 * Build a pre-update Sentinel notice payload for native WordPress update screens.
+	 *
+	 * @param array  $candidates Pending update candidates.
+	 * @param array  $summary    Dashboard summary payload.
+	 * @param string $screen_id  Current screen identifier.
+	 * @return array
+	 */
+	protected function build_update_screen_notice_payload( array $candidates, array $summary, $screen_id, $notice_key = '' ) {
+		$screen_id    = (string) $screen_id;
+		$notice_key   = sanitize_key( (string) $notice_key );
+		$plugin_count = 0;
+		$theme_count  = 0;
+		$core_count   = 0;
+
+		foreach ( $candidates as $candidate ) {
+			if ( ! is_array( $candidate ) || empty( $candidate['type'] ) ) {
+				continue;
+			}
+
+			$type = sanitize_key( (string) $candidate['type'] );
+
+			if ( 'plugin' === $type ) {
+				++$plugin_count;
+			} elseif ( 'theme' === $type ) {
+				++$theme_count;
+			} elseif ( 'core' === $type ) {
+				++$core_count;
+			}
+		}
+
+		if ( 'plugins' === $screen_id && $plugin_count < 1 ) {
+			return array();
+		}
+
+		if ( 'themes' === $screen_id && $theme_count < 1 ) {
+			return array();
+		}
+
+		if ( 'update-core' === $screen_id && $plugin_count < 1 && $theme_count < 1 && $core_count < 1 ) {
+			return array();
+		}
+
+		$before_update_url = add_query_arg(
+			array(
+				'page' => self::UPDATE_PAGE_SLUG,
+			),
+			admin_url( 'admin.php' )
+		);
+		$create_checkpoint_url = $this->build_update_screen_snapshot_action_url( $screen_id );
+		$history_url = add_query_arg(
+			array(
+				'page' => self::LOGS_PAGE_SLUG,
+			),
+			admin_url( 'admin.php' )
+		);
+
+		if ( 'update-core' === $screen_id && $plugin_count < 1 && $theme_count < 1 && $core_count > 0 ) {
+			return array(
+				'type'        => 'info',
+				'title'       => __( 'Sentinel does not restore WordPress core updates.', 'zignites-sentinel' ),
+				'description' => __( 'Use Sentinel for plugin and theme rollback checkpoints. Use a full backup solution before changing WordPress core.', 'zignites-sentinel' ),
+				'actions'     => array(
+					array(
+						'label' => __( 'Open Before Update', 'zignites-sentinel' ),
+						'url'   => $before_update_url,
+					),
+				),
+			);
+		}
+
+		$scope_label      = $this->build_update_notice_scope_label( $screen_id, $plugin_count, $theme_count );
+		$site_status_card = isset( $summary['site_status_card'] ) && is_array( $summary['site_status_card'] ) ? $summary['site_status_card'] : array();
+		$latest_snapshot  = isset( $site_status_card['latest_snapshot'] ) && is_array( $site_status_card['latest_snapshot'] ) ? $site_status_card['latest_snapshot'] : array();
+		$latest_label     = ! empty( $latest_snapshot['label'] ) ? (string) $latest_snapshot['label'] : __( 'the latest checkpoint', 'zignites-sentinel' );
+		$status           = isset( $site_status_card['status'] ) ? sanitize_key( (string) $site_status_card['status'] ) : '';
+		$detail_url       = ! empty( $site_status_card['detail_url'] ) ? (string) $site_status_card['detail_url'] : $before_update_url;
+		$activity_url     = ! empty( $site_status_card['activity_url'] ) ? (string) $site_status_card['activity_url'] : $history_url;
+		$boundary_note    = $core_count > 0
+			? __( 'WordPress core updates are also pending. Sentinel covers the active theme and plugins, not core recovery.', 'zignites-sentinel' )
+			: '';
+
+		if ( 'snapshot-failed' === $notice_key ) {
+			return array(
+				'type'        => 'error',
+				'title'       => sprintf(
+					/* translators: %s: update scope label */
+					__( 'Sentinel could not create a checkpoint before updating %s.', 'zignites-sentinel' ),
+					$scope_label
+				),
+				'description' => __( 'Open Before Update and review storage or package issues before relying on Sentinel for this change window.', 'zignites-sentinel' ),
+				'boundary'    => $boundary_note,
+				'actions'     => array(
+					array(
+						'label' => __( 'Open Before Update', 'zignites-sentinel' ),
+						'url'   => $before_update_url,
+					),
+				),
+			);
+		}
+
+		if ( empty( $latest_snapshot ) ) {
+			return array(
+				'type'        => 'warning',
+				'title'       => sprintf(
+					/* translators: %s: update scope label */
+					__( 'Create a rollback checkpoint before updating %s.', 'zignites-sentinel' ),
+					$scope_label
+				),
+				'description' => __( 'Sentinel has not recorded a recent checkpoint for the active theme and plugins. Create one now so you have a code-layer rollback point if the update breaks the site.', 'zignites-sentinel' ),
+				'boundary'    => $boundary_note,
+				'actions'     => array(
+					array(
+						'label' => __( 'Create Checkpoint Now', 'zignites-sentinel' ),
+						'url'   => $create_checkpoint_url,
+					),
+					array(
+						'label' => __( 'Open Before Update', 'zignites-sentinel' ),
+						'url'   => $before_update_url,
+					),
+				),
+			);
+		}
+
+		if ( 'snapshot-created' === $notice_key ) {
+			return array(
+				'type'        => 'success',
+				'title'       => sprintf(
+					/* translators: %s: update scope label */
+					__( 'Sentinel created a checkpoint before updating %s.', 'zignites-sentinel' ),
+					$scope_label
+				),
+				'description' => sprintf(
+					/* translators: %s: latest snapshot label */
+					__( 'The latest checkpoint, %s, was just captured. Review it in Before Update if you want to validate it before running the update.', 'zignites-sentinel' ),
+					$latest_label
+				),
+				'boundary'    => $boundary_note,
+				'actions'     => array(
+					array(
+						'label' => __( 'Review Before Update', 'zignites-sentinel' ),
+						'url'   => $detail_url,
+					),
+					array(
+						'label' => __( 'Open History', 'zignites-sentinel' ),
+						'url'   => $activity_url,
+					),
+				),
+			);
+		}
+
+		if ( 'at_risk' === $status ) {
+			return array(
+				'type'        => 'error',
+				'title'       => sprintf(
+					/* translators: %s: update scope label */
+					__( 'Sentinel needs review before you update %s.', 'zignites-sentinel' ),
+					$scope_label
+				),
+				'description' => sprintf(
+					/* translators: %s: latest snapshot label */
+					__( 'The latest checkpoint, %s, is currently marked at risk or tied to unresolved failure signals. Review Sentinel before continuing with the update.', 'zignites-sentinel' ),
+					$latest_label
+				),
+				'boundary'    => $boundary_note,
+				'actions'     => array(
+					array(
+						'label' => __( 'Review Before Update', 'zignites-sentinel' ),
+						'url'   => $detail_url,
+					),
+					array(
+						'label' => __( 'Open History', 'zignites-sentinel' ),
+						'url'   => $activity_url,
+					),
+				),
+			);
+		}
+
+		if ( 'needs_attention' === $status ) {
+			return array(
+				'type'        => 'warning',
+				'title'       => sprintf(
+					/* translators: %s: update scope label */
+					__( 'Latest checkpoint needs review before updating %s.', 'zignites-sentinel' ),
+					$scope_label
+				),
+				'description' => sprintf(
+					/* translators: %s: latest snapshot label */
+					__( 'Sentinel has a recent checkpoint, %s, but its restore evidence still needs attention. Open Before Update and finish the validation steps first.', 'zignites-sentinel' ),
+					$latest_label
+				),
+				'boundary'    => $boundary_note,
+				'actions'     => array(
+					array(
+						'label' => __( 'Review Before Update', 'zignites-sentinel' ),
+						'url'   => $detail_url,
+					),
+					array(
+						'label' => __( 'Open History', 'zignites-sentinel' ),
+						'url'   => $activity_url,
+					),
+				),
+			);
+		}
+
+		return array(
+			'type'        => 'success',
+			'title'       => sprintf(
+				/* translators: %s: update scope label */
+				__( 'Sentinel already has a checkpoint for %s.', 'zignites-sentinel' ),
+				$scope_label
+			),
+			'description' => sprintf(
+				/* translators: %s: latest snapshot label */
+				__( 'The latest checkpoint, %s, is available before you update. Open Before Update if you want to review restore readiness or validate it again first.', 'zignites-sentinel' ),
+				$latest_label
+			),
+			'boundary'    => $boundary_note,
+			'actions'     => array(
+				array(
+					'label' => __( 'Review Before Update', 'zignites-sentinel' ),
+					'url'   => $detail_url,
+				),
+				array(
+					'label' => __( 'Open History', 'zignites-sentinel' ),
+					'url'   => $activity_url,
+				),
+			),
+		);
+	}
+
+	/**
+	 * Build a human-readable update scope label for a notice title.
+	 *
+	 * @param string $screen_id    Current screen identifier.
+	 * @param int    $plugin_count Pending plugin updates.
+	 * @param int    $theme_count  Pending theme updates.
+	 * @return string
+	 */
+	protected function build_update_notice_scope_label( $screen_id, $plugin_count, $theme_count ) {
+		if ( 'plugins' === $screen_id ) {
+			return $this->format_update_notice_count_label( $plugin_count, __( 'plugin', 'zignites-sentinel' ), __( 'plugins', 'zignites-sentinel' ) );
+		}
+
+		if ( 'themes' === $screen_id ) {
+			return $this->format_update_notice_count_label( $theme_count, __( 'theme', 'zignites-sentinel' ), __( 'themes', 'zignites-sentinel' ) );
+		}
+
+		$parts = array();
+
+		if ( $plugin_count > 0 ) {
+			$parts[] = $this->format_update_notice_count_label( $plugin_count, __( 'plugin', 'zignites-sentinel' ), __( 'plugins', 'zignites-sentinel' ) );
+		}
+
+		if ( $theme_count > 0 ) {
+			$parts[] = $this->format_update_notice_count_label( $theme_count, __( 'theme', 'zignites-sentinel' ), __( 'themes', 'zignites-sentinel' ) );
+		}
+
+		return implode( __( ' and ', 'zignites-sentinel' ), $parts );
+	}
+
+	/**
+	 * Format a singular or plural update count label.
+	 *
+	 * @param int    $count    Item count.
+	 * @param string $singular Singular noun.
+	 * @param string $plural   Plural noun.
+	 * @return string
+	 */
+	protected function format_update_notice_count_label( $count, $singular, $plural ) {
+		return sprintf(
+			/* translators: 1: item count, 2: item label */
+			__( '%1$d %2$s', 'zignites-sentinel' ),
+			(int) $count,
+			1 === (int) $count ? (string) $singular : (string) $plural
+		);
+	}
+
+	/**
+	 * Build a one-click snapshot capture URL for a supported update screen.
+	 *
+	 * @param string $screen_id Current screen identifier.
+	 * @return string
+	 */
+	protected function build_update_screen_snapshot_action_url( $screen_id ) {
+		return add_query_arg(
+			array(
+				'action'             => 'znts_create_snapshot',
+				'znts_return_screen' => sanitize_key( (string) $screen_id ),
+				'_wpnonce'           => wp_create_nonce( 'znts_create_snapshot_action' ),
+			),
+			admin_url( 'admin-post.php' )
 		);
 	}
 
@@ -1095,14 +1486,15 @@ class Admin {
 	 */
 	public function handle_create_snapshot() {
 		$this->assert_admin_action_permissions( 'znts_create_snapshot_action' );
+		$return_screen = isset( $_REQUEST['znts_return_screen'] ) ? sanitize_key( wp_unslash( $_REQUEST['znts_return_screen'] ) ) : '';
 
 		$result = $this->snapshot_manager->create_manual_snapshot( get_current_user_id() );
 
 		if ( false === $result ) {
-			$this->redirect_with_notice( 'snapshot-failed' );
+			$this->redirect_after_snapshot_creation( 'snapshot-failed', $return_screen );
 		}
 
-		$this->redirect_with_notice( 'snapshot-created' );
+		$this->redirect_after_snapshot_creation( 'snapshot-created', $return_screen );
 	}
 
 	/**
@@ -1945,6 +2337,56 @@ class Admin {
 
 		wp_safe_redirect( $url );
 		exit;
+	}
+
+	/**
+	 * Redirect after snapshot creation, optionally back to an allowed update screen.
+	 *
+	 * @param string $notice        Notice key.
+	 * @param string $return_screen Optional native WordPress update screen.
+	 * @return void
+	 */
+	protected function redirect_after_snapshot_creation( $notice, $return_screen = '' ) {
+		$return_screen = sanitize_key( (string) $return_screen );
+		$return_url    = $this->get_allowed_update_screen_url( $return_screen );
+
+		if ( '' === $return_url ) {
+			$this->redirect_with_notice( $notice );
+		}
+
+		$url = add_query_arg(
+			array(
+				'znts_notice' => sanitize_key( $notice ),
+			),
+			$return_url
+		);
+
+		wp_safe_redirect( $url );
+		exit;
+	}
+
+	/**
+	 * Return the URL for an allowed native WordPress update screen.
+	 *
+	 * @param string $screen_id Screen identifier.
+	 * @return string
+	 */
+	protected function get_allowed_update_screen_url( $screen_id ) {
+		$screen_id = sanitize_key( (string) $screen_id );
+
+		if ( 'plugins' === $screen_id ) {
+			return admin_url( 'plugins.php' );
+		}
+
+		if ( 'themes' === $screen_id ) {
+			return admin_url( 'themes.php' );
+		}
+
+		if ( 'update-core' === $screen_id ) {
+			return admin_url( 'update-core.php' );
+		}
+
+		return '';
 	}
 
 	/**
