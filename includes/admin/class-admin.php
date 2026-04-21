@@ -175,6 +175,13 @@ class Admin {
 	protected $hook_suffixes = array();
 
 	/**
+	 * Cached row-level update handoff context.
+	 *
+	 * @var array|null
+	 */
+	protected $update_screen_row_handoff_context = null;
+
+	/**
 	 * Structured logger.
 	 *
 	 * @var Logger
@@ -548,6 +555,9 @@ class Admin {
 		add_action( 'admin_menu', array( $this, 'register_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_action( 'admin_notices', array( $this, 'render_update_screen_notice' ) );
+		add_filter( 'plugin_row_meta', array( $this, 'filter_plugin_update_handoff_meta' ), 10, 4 );
+		add_filter( 'theme_action_links', array( $this, 'filter_theme_update_handoff_links' ), 10, 3 );
+		add_filter( 'theme_row_meta', array( $this, 'filter_theme_update_handoff_meta' ), 10, 4 );
 		add_action( 'wp_dashboard_setup', array( $this, 'register_dashboard_widget' ) );
 		add_action( 'admin_post_znts_run_preflight', array( $this, 'handle_run_preflight' ) );
 		add_action( 'admin_post_znts_export_event_logs', array( $this, 'handle_export_event_logs' ) );
@@ -689,6 +699,126 @@ class Admin {
 	}
 
 	/**
+	 * Add a Sentinel handoff cue to plugin rows with pending updates.
+	 *
+	 * @param array  $plugin_meta Existing plugin row meta items.
+	 * @param string $plugin_file Plugin file path.
+	 * @param array  $plugin_data Plugin header data.
+	 * @param string $status      Current plugin list status.
+	 * @return array
+	 */
+	public function filter_plugin_update_handoff_meta( $plugin_meta, $plugin_file, $plugin_data, $status ) {
+		$plugin_meta = is_array( $plugin_meta ) ? $plugin_meta : array();
+		$context     = $this->get_update_screen_row_handoff_context();
+
+		if ( empty( $context['screen_id'] ) || ! in_array( $context['screen_id'], array( 'plugins', 'plugins-network' ), true ) ) {
+			return $plugin_meta;
+		}
+
+		if ( empty( $context['plugin_candidates'][ (string) $plugin_file ] ) ) {
+			return $plugin_meta;
+		}
+
+		$action = $this->build_update_list_handoff_action(
+			isset( $context['summary'] ) && is_array( $context['summary'] ) ? $context['summary'] : array(),
+			$context['screen_id']
+		);
+
+		if ( empty( $action['label'] ) || empty( $action['url'] ) ) {
+			return $plugin_meta;
+		}
+
+		$plugin_meta[] = sprintf(
+			'<a href="%1$s">%2$s</a>',
+			esc_url( (string) $action['url'] ),
+			esc_html( (string) $action['label'] )
+		);
+
+		return $plugin_meta;
+	}
+
+	/**
+	 * Add a Sentinel handoff cue to theme action links on the themes screen.
+	 *
+	 * @param array    $actions Existing theme action links.
+	 * @param \WP_Theme $theme   Theme object.
+	 * @param string   $context Theme action context.
+	 * @return array
+	 */
+	public function filter_theme_update_handoff_links( $actions, $theme, $context ) {
+		$actions = is_array( $actions ) ? $actions : array();
+		$context_state = $this->get_update_screen_row_handoff_context();
+
+		if ( empty( $context_state['screen_id'] ) || ! in_array( $context_state['screen_id'], array( 'themes', 'themes-network' ), true ) ) {
+			return $actions;
+		}
+
+		$stylesheet = is_object( $theme ) && method_exists( $theme, 'get_stylesheet' ) ? (string) $theme->get_stylesheet() : '';
+
+		if ( '' === $stylesheet || empty( $context_state['theme_candidates'][ $stylesheet ] ) ) {
+			return $actions;
+		}
+
+		$action = $this->build_update_list_handoff_action(
+			isset( $context_state['summary'] ) && is_array( $context_state['summary'] ) ? $context_state['summary'] : array(),
+			$context_state['screen_id']
+		);
+
+		if ( empty( $action['label'] ) || empty( $action['url'] ) ) {
+			return $actions;
+		}
+
+		$actions['znts_sentinel'] = sprintf(
+			'<a href="%1$s">%2$s</a>',
+			esc_url( (string) $action['url'] ),
+			esc_html( (string) $action['label'] )
+		);
+
+		return $actions;
+	}
+
+	/**
+	 * Add a Sentinel handoff cue to multisite theme row meta.
+	 *
+	 * @param array    $theme_meta Existing theme row meta items.
+	 * @param string   $stylesheet Theme stylesheet.
+	 * @param \WP_Theme $theme      Theme object.
+	 * @param string   $status     Current theme list status.
+	 * @return array
+	 */
+	public function filter_theme_update_handoff_meta( $theme_meta, $stylesheet, $theme, $status ) {
+		$theme_meta = is_array( $theme_meta ) ? $theme_meta : array();
+		$context    = $this->get_update_screen_row_handoff_context();
+
+		if ( empty( $context['screen_id'] ) || 'themes-network' !== $context['screen_id'] ) {
+			return $theme_meta;
+		}
+
+		$stylesheet = (string) $stylesheet;
+
+		if ( '' === $stylesheet || empty( $context['theme_candidates'][ $stylesheet ] ) ) {
+			return $theme_meta;
+		}
+
+		$action = $this->build_update_list_handoff_action(
+			isset( $context['summary'] ) && is_array( $context['summary'] ) ? $context['summary'] : array(),
+			$context['screen_id']
+		);
+
+		if ( empty( $action['label'] ) || empty( $action['url'] ) ) {
+			return $theme_meta;
+		}
+
+		$theme_meta[] = sprintf(
+			'<a href="%1$s">%2$s</a>',
+			esc_url( (string) $action['url'] ),
+			esc_html( (string) $action['label'] )
+		);
+
+		return $theme_meta;
+	}
+
+	/**
 	 * Determine whether the current admin screen should show the Sentinel update notice.
 	 *
 	 * @return string
@@ -719,6 +849,81 @@ class Admin {
 		}
 
 		return in_array( $screen_id, array( 'plugins', 'themes', 'update-core' ), true ) ? $screen_id : '';
+	}
+
+	/**
+	 * Determine whether the current screen supports row-level Sentinel handoff cues.
+	 *
+	 * @return string
+	 */
+	protected function get_update_screen_row_handoff_screen() {
+		$screen_id = '';
+
+		if ( function_exists( 'get_current_screen' ) ) {
+			$screen = get_current_screen();
+
+			if ( is_object( $screen ) && ! empty( $screen->id ) ) {
+				$screen_id = (string) $screen->id;
+			}
+		}
+
+		if ( '' === $screen_id ) {
+			global $pagenow;
+
+			$pagenow = isset( $pagenow ) ? (string) $pagenow : '';
+
+			if ( 'plugins.php' === $pagenow ) {
+				$screen_id = 'plugins';
+			} elseif ( 'themes.php' === $pagenow ) {
+				$screen_id = 'themes';
+			}
+		}
+
+		return in_array( $screen_id, array( 'plugins', 'plugins-network', 'themes', 'themes-network' ), true ) ? $screen_id : '';
+	}
+
+	/**
+	 * Build cached context for row-level update handoff links.
+	 *
+	 * @return array
+	 */
+	protected function get_update_screen_row_handoff_context() {
+		if ( null !== $this->update_screen_row_handoff_context ) {
+			return $this->update_screen_row_handoff_context;
+		}
+
+		$screen_id = $this->get_update_screen_row_handoff_screen();
+		$context   = array(
+			'screen_id'         => $screen_id,
+			'plugin_candidates' => array(),
+			'theme_candidates'  => array(),
+			'summary'           => array(),
+		);
+
+		if ( '' === $screen_id ) {
+			$this->update_screen_row_handoff_context = $context;
+			return $context;
+		}
+
+		foreach ( $this->update_planner->get_candidates() as $candidate ) {
+			if ( ! is_array( $candidate ) || empty( $candidate['type'] ) || empty( $candidate['slug'] ) ) {
+				continue;
+			}
+
+			$type = sanitize_key( (string) $candidate['type'] );
+			$slug = (string) $candidate['slug'];
+
+			if ( 'plugin' === $type ) {
+				$context['plugin_candidates'][ $slug ] = true;
+			} elseif ( 'theme' === $type ) {
+				$context['theme_candidates'][ $slug ] = true;
+			}
+		}
+
+		$context['summary'] = $this->get_dashboard_summary_payload( 1 );
+		$this->update_screen_row_handoff_context = $context;
+
+		return $context;
 	}
 
 	/**
@@ -996,6 +1201,45 @@ class Admin {
 			__( '%1$d %2$s', 'zignites-sentinel' ),
 			(int) $count,
 			1 === (int) $count ? (string) $singular : (string) $plural
+		);
+	}
+
+	/**
+	 * Build a compact row-level handoff action for plugin and theme update items.
+	 *
+	 * @param array  $summary    Dashboard summary payload.
+	 * @param string $screen_id  Current screen identifier.
+	 * @return array
+	 */
+	protected function build_update_list_handoff_action( array $summary, $screen_id ) {
+		$screen_id        = 'themes-network' === $screen_id ? 'themes' : ( 'plugins-network' === $screen_id ? 'plugins' : (string) $screen_id );
+		$site_status_card = isset( $summary['site_status_card'] ) && is_array( $summary['site_status_card'] ) ? $summary['site_status_card'] : array();
+		$before_update_url = add_query_arg(
+			array(
+				'page' => self::UPDATE_PAGE_SLUG,
+			),
+			admin_url( 'admin.php' )
+		);
+		$detail_url = ! empty( $site_status_card['detail_url'] ) ? (string) $site_status_card['detail_url'] : $before_update_url;
+		$status     = isset( $site_status_card['status'] ) ? sanitize_key( (string) $site_status_card['status'] ) : '';
+
+		if ( empty( $site_status_card['latest_snapshot'] ) ) {
+			return array(
+				'label' => __( 'Sentinel: create checkpoint now', 'zignites-sentinel' ),
+				'url'   => $this->build_update_screen_snapshot_action_url( $screen_id ),
+			);
+		}
+
+		if ( in_array( $status, array( 'needs_attention', 'at_risk' ), true ) ) {
+			return array(
+				'label' => __( 'Sentinel: review checkpoint', 'zignites-sentinel' ),
+				'url'   => $detail_url,
+			);
+		}
+
+		return array(
+			'label' => __( 'Sentinel: checkpoint ready', 'zignites-sentinel' ),
+			'url'   => $detail_url,
 		);
 	}
 
