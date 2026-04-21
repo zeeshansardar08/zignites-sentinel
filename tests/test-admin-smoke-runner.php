@@ -268,6 +268,34 @@ function znts_test_admin_smoke_runner_requires_event_detail_markers_when_link_is
 	znts_assert_true( $result['passed'], 'Admin smoke runner should require the Event Detail and Context sections when an Event Log detail link resolves successfully.' );
 }
 
+function znts_test_admin_smoke_runner_skips_when_expected_status_code_matches_environment_limit() {
+	$runner = new ZNTS_Admin_Smoke_Runner();
+	$skip   = $runner->get_skip_decision(
+		array(
+			'skip_on_status_codes' => array( 403, 500 ),
+			'skip_reason'          => 'Skipped because network admin is not available on this install or for this user.',
+		),
+		403,
+		''
+	);
+
+	znts_assert_true( ! empty( $skip['skipped'] ), 'Admin smoke runner should skip checks when an expected environment-limitation status code is returned.' );
+	znts_assert_same( 'Skipped because network admin is not available on this install or for this user.', $skip['reason'], 'Admin smoke runner should preserve the explicit skip reason for environment-limited checks.' );
+}
+
+function znts_test_admin_smoke_runner_does_not_skip_when_status_code_is_not_listed() {
+	$runner = new ZNTS_Admin_Smoke_Runner();
+	$skip   = $runner->get_skip_decision(
+		array(
+			'skip_on_status_codes' => array( 403, 500 ),
+		),
+		200,
+		''
+	);
+
+	znts_assert_true( empty( $skip['skipped'] ), 'Admin smoke runner should not skip checks when the response status code does not match an environment-limitation status.' );
+}
+
 function znts_test_admin_smoke_runner_resolves_snapshot_scoped_event_logs_from_dashboard() {
 	$runner = new ZNTS_Test_Admin_Smoke_Runner();
 	$runner->responses['http://example.test/wp-admin/admin.php?page=zignites-sentinel'] = array(

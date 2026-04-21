@@ -31,6 +31,8 @@ return array(
 			'label'   => 'Network Plugins Update Surface',
 			'path'    => 'network/plugins.php',
 			'markers' => array( 'Plugins' ),
+			'skip_on_status_codes' => array( 403, 404, 500 ),
+			'skip_reason' => 'Skipped because network admin is not available on this install or for this user.',
 			'optional_markers' => array(
 				'Create Fresh Checkpoint',
 				'Review Before Update',
@@ -51,6 +53,8 @@ return array(
 			'label'   => 'Network Themes Update Surface',
 			'path'    => 'network/themes.php',
 			'markers' => array( 'Themes' ),
+			'skip_on_status_codes' => array( 403, 404, 500 ),
+			'skip_reason' => 'Skipped because network admin is not available on this install or for this user.',
 			'optional_markers' => array(
 				'Create Fresh Checkpoint',
 				'Review Before Update',
@@ -73,6 +77,8 @@ return array(
 			'label'   => 'Network Core Update Surface',
 			'path'    => 'network/update-core.php',
 			'markers' => array( 'WordPress Updates' ),
+			'skip_on_status_codes' => array( 403, 404, 500 ),
+			'skip_reason' => 'Skipped because network admin is not available on this install or for this user.',
 			'optional_markers' => array(
 				'Create Fresh Checkpoint',
 				'Review Before Update',

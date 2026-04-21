@@ -83,6 +83,19 @@ foreach ( $checks as $check ) {
 	}
 
 	$http = $runner->fetch( $url, $cookie, $timeout );
+	$skip = $runner->get_skip_decision(
+		$check,
+		isset( $http['status_code'] ) ? (int) $http['status_code'] : 0,
+		isset( $http['error'] ) ? (string) $http['error'] : ''
+	);
+
+	if ( ! empty( $skip['skipped'] ) ) {
+		echo '[SKIP] ' . $label . PHP_EOL;
+		echo '  URL: ' . $url . PHP_EOL;
+		echo '  Reason: ' . ( isset( $skip['reason'] ) ? (string) $skip['reason'] : 'Environment prerequisite was not met.' ) . PHP_EOL;
+		continue;
+	}
+
 	$eval = $runner->evaluate_response( $check, isset( $http['status_code'] ) ? (int) $http['status_code'] : 0, isset( $http['body'] ) ? (string) $http['body'] : '' );
 
 	if ( $eval['passed'] ) {

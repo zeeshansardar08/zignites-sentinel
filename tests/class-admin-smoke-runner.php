@@ -316,6 +316,47 @@ class ZNTS_Admin_Smoke_Runner {
 	}
 
 	/**
+	 * Determine whether a check should be skipped for an expected environment limitation.
+	 *
+	 * @param array  $check        Check definition.
+	 * @param int    $status_code  HTTP status code.
+	 * @param string $error        Transport error.
+	 * @return array
+	 */
+	public function get_skip_decision( array $check, $status_code = 0, $error = '' ) {
+		$status_code         = (int) $status_code;
+		$error               = (string) $error;
+		$skip_status_codes   = isset( $check['skip_on_status_codes'] ) && is_array( $check['skip_on_status_codes'] ) ? $check['skip_on_status_codes'] : array();
+		$skip_error_patterns = isset( $check['skip_on_error_patterns'] ) && is_array( $check['skip_on_error_patterns'] ) ? $check['skip_on_error_patterns'] : array();
+		$skip_reason         = isset( $check['skip_reason'] ) ? trim( (string) $check['skip_reason'] ) : '';
+
+		foreach ( $skip_status_codes as $code ) {
+			if ( $status_code === (int) $code ) {
+				return array(
+					'skipped' => true,
+					'reason'  => '' !== $skip_reason ? $skip_reason : 'Skipped because the current environment returned HTTP ' . $status_code . '.',
+				);
+			}
+		}
+
+		foreach ( $skip_error_patterns as $pattern ) {
+			$pattern = (string) $pattern;
+
+			if ( '' !== $pattern && false !== stripos( $error, $pattern ) ) {
+				return array(
+					'skipped' => true,
+					'reason'  => '' !== $skip_reason ? $skip_reason : 'Skipped because the current environment returned an expected transport limitation.',
+				);
+			}
+		}
+
+		return array(
+			'skipped' => false,
+			'reason'  => '',
+		);
+	}
+
+	/**
 	 * Detect whether wp-admin appears to have fallen back to the login screen.
 	 *
 	 * @param string $body Response body.
