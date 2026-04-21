@@ -135,5 +135,33 @@ function znts_test_theme_update_row_handoff_adds_checkpoint_link_to_theme_action
 	$actions = $admin->expose_filter_theme_update_handoff_links( array(), new ZNTS_Fake_Update_Row_Handoff_Theme( 'example-theme' ) );
 
 	znts_assert_true( isset( $actions['znts_sentinel'] ), 'Theme row handoff should add a Sentinel action for updateable themes.' );
-	znts_assert_true( false !== strpos( $actions['znts_sentinel'], 'Sentinel: checkpoint ready' ), 'Theme row handoff should show the ready label when the latest checkpoint is stable.' );
+	znts_assert_true( false !== strpos( $actions['znts_sentinel'], 'Sentinel: create fresh checkpoint' ), 'Theme row handoff should prompt for a fresh checkpoint when the latest checkpoint is stable.' );
+	znts_assert_true( false !== strpos( $actions['znts_sentinel'], 'znts_return_screen=themes' ), 'Theme row handoff should preserve the theme update screen as the checkpoint return target.' );
+}
+
+function znts_test_plugin_update_row_handoff_prompts_for_fresh_checkpoint_when_latest_is_stable() {
+	$admin = new ZNTS_Testable_Update_Row_Handoff_Admin();
+	$admin->fixture['screen_id'] = 'plugins';
+	$admin->fixture['summary']   = array(
+		'site_status_card' => array(
+			'status'         => 'stable',
+			'detail_url'     => 'http://example.test/wp-admin/admin.php?page=zignites-sentinel-update-readiness&snapshot_id=22',
+			'latest_snapshot'=> array(
+				'id' => 22,
+			),
+		),
+	);
+	$admin->set_candidates(
+		array(
+			array(
+				'type' => 'plugin',
+				'slug' => 'example/example.php',
+			),
+		)
+	);
+
+	$meta = $admin->expose_filter_plugin_update_handoff_meta( array(), 'example/example.php' );
+
+	znts_assert_true( false !== strpos( $meta[0], 'Sentinel: create fresh checkpoint' ), 'Plugin row handoff should prompt for a fresh checkpoint when the latest checkpoint is stable.' );
+	znts_assert_true( false !== strpos( $meta[0], 'znts_return_screen=plugins' ), 'Plugin row handoff should preserve the plugin update screen as the checkpoint return target for fresh capture.' );
 }
