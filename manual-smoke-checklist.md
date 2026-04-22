@@ -89,9 +89,10 @@ Purpose: verify the current Dashboard, Before Update, History, and widget experi
    - run ID
    - checkpoint ID
    - search
-4. Confirm empty-state text is readable when filters return no rows.
-5. Confirm event detail still opens from a row click.
-6. Confirm pagination still works when enough rows exist.
+4. Confirm the `Export CSV` action is visible and exports the current filtered view.
+5. Confirm empty-state text is readable when filters return no rows.
+6. Confirm event detail still opens from a row click.
+7. Confirm pagination still works when enough rows exist.
 
 ## Native Update Surfaces
 

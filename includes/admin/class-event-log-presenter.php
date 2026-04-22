@@ -38,7 +38,7 @@ class EventLogPresenter {
 	 * @param array $pagination         Pagination payload.
 	 * @return array
 	 */
-	public function build_view_payload( array $recent_logs, array $log_filters, array $run_summaries, array $operational_events, array $run_journal, array $pagination ) {
+	public function build_view_payload( array $recent_logs, array $log_filters, array $run_summaries, array $operational_events, array $run_journal, array $pagination, array $export_form = array() ) {
 		$active_filter_count = $this->count_active_filters( $log_filters );
 		$total_logs          = isset( $pagination['total_logs'] ) ? (int) $pagination['total_logs'] : 0;
 
@@ -55,6 +55,7 @@ class EventLogPresenter {
 			'empty_state'         => $this->build_empty_state( $active_filter_count, $total_logs ),
 			'history_empty_state' => $this->build_history_empty_state( $operational_events, $run_summaries, $run_journal ),
 			'positioning_note'    => $this->build_positioning_note(),
+			'export_form'         => $this->build_export_form( $log_filters, $export_form ),
 			'summary_tiles'       => array(
 				array(
 					'label' => __( 'Matching Events', 'zignites-sentinel' ),
@@ -73,6 +74,35 @@ class EventLogPresenter {
 					'value' => (string) count( $operational_events ),
 				),
 			),
+		);
+	}
+
+	/**
+	 * Build prepared state for the Event Logs CSV export form.
+	 *
+	 * @param array $log_filters Active log filters.
+	 * @param array $export_form Export form inputs.
+	 * @return array
+	 */
+	protected function build_export_form( array $log_filters, array $export_form ) {
+		$action_url = isset( $export_form['action_url'] ) ? (string) $export_form['action_url'] : '';
+		$nonce      = isset( $export_form['nonce'] ) ? (string) $export_form['nonce'] : '';
+
+		return array(
+			'action_url'   => $action_url,
+			'method'       => 'post',
+			'submit_label' => __( 'Export CSV', 'zignites-sentinel' ),
+			'description'  => __( 'Download the current filtered History view as CSV.', 'zignites-sentinel' ),
+			'fields'       => array(
+				'action'      => 'znts_export_event_logs',
+				'_wpnonce'    => $nonce,
+				'severity'    => isset( $log_filters['severity'] ) ? (string) $log_filters['severity'] : '',
+				'source'      => isset( $log_filters['source'] ) ? (string) $log_filters['source'] : '',
+				'run_id'      => isset( $log_filters['run_id'] ) ? (string) $log_filters['run_id'] : '',
+				'snapshot_id' => ! empty( $log_filters['snapshot_id'] ) ? (string) absint( $log_filters['snapshot_id'] ) : '',
+				'log_search'  => isset( $log_filters['search'] ) ? (string) $log_filters['search'] : '',
+			),
+			'show_form'    => '' !== $action_url && '' !== $nonce,
 		);
 	}
 

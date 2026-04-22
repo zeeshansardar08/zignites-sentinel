@@ -62,6 +62,7 @@ function znts_test_admin_smoke_runner_normalizes_base_url_and_builds_paths() {
 	znts_assert_true( in_array( 'Validate Checkpoint', $detail_markers, true ), 'Admin smoke runner should require the selected checkpoint validation section.' );
 	znts_assert_true( in_array( 'Rollback Last Restore', $detail_optional, true ), 'Admin smoke runner should track optional rollback controls on the selected checkpoint page.' );
 	znts_assert_same( 'admin.php?page=zignites-sentinel', isset( $snapshot_history_resolve['path'] ) ? $snapshot_history_resolve['path'] : '', 'Admin smoke runner should discover snapshot-scoped History links from the dashboard.' );
+	znts_assert_true( in_array( 'Export CSV', $history_markers, true ), 'Admin smoke runner should require the History export action.' );
 	znts_assert_true( in_array( 'Checkpoint ID', $history_markers, true ), 'Admin smoke runner should require the checkpoint filter control on History.' );
 	znts_assert_true( false !== strpos( $empty_history_path, 'znts-smoke-empty-state-token-9f3a0d66' ), 'Admin smoke runner should keep the deterministic empty-state History query.' );
 	znts_assert_same( array( 'Recent History' ), isset( $event_detail_resolve['source_markers'] ) ? $event_detail_resolve['source_markers'] : array(), 'Admin smoke runner should require the History hero before resolving log detail links.' );
@@ -107,13 +108,13 @@ function znts_test_admin_smoke_runner_passes_when_status_and_markers_match() {
 	$check  = array(
 		'label'   => 'History',
 		'path'    => 'admin.php?page=zignites-sentinel-event-logs',
-		'markers' => array( 'History', 'Recent History', 'Filter', 'Checkpoint ID', 'Reset' ),
+		'markers' => array( 'History', 'Recent History', 'Filter', 'Export CSV', 'Checkpoint ID', 'Reset' ),
 	);
 
 	$result = $runner->evaluate_response(
 		$check,
 		200,
-		'<html><body><h1>History</h1><h2>Recent History</h2><button>Filter</button><label>Checkpoint ID</label><a>Reset</a></body></html>'
+		'<html><body><h1>History</h1><h2>Recent History</h2><button>Filter</button><button>Export CSV</button><label>Checkpoint ID</label><a>Reset</a></body></html>'
 	);
 
 	znts_assert_true( $result['passed'], 'Admin smoke runner should pass when the response is HTTP 200 and all expected markers are present.' );
@@ -145,13 +146,13 @@ function znts_test_admin_smoke_runner_requires_empty_state_markers_for_empty_his
 	$check  = array(
 		'label'   => 'History Empty State',
 		'path'    => 'admin.php?page=zignites-sentinel-event-logs&log_search=znts-smoke-empty-state-token-9f3a0d66',
-		'markers' => array( 'History', 'Recent History', 'Filter', 'Reset', 'No history entries match the current filters.' ),
+		'markers' => array( 'History', 'Recent History', 'Filter', 'Export CSV', 'Reset', 'No history entries match the current filters.' ),
 	);
 
 	$result = $runner->evaluate_response(
 		$check,
 		200,
-		'<html><body><h1>History</h1><h2>Recent History</h2><button>Filter</button><a>Reset</a><strong>No history entries match the current filters.</strong></body></html>'
+		'<html><body><h1>History</h1><h2>Recent History</h2><button>Filter</button><button>Export CSV</button><a>Reset</a><strong>No history entries match the current filters.</strong></body></html>'
 	);
 
 	znts_assert_true( $result['passed'], 'Admin smoke runner should require the History empty-state copy and reset affordance for the deterministic no-match query.' );
