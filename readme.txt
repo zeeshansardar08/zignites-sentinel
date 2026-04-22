@@ -68,6 +68,20 @@ Use a full backup solution for full-site recovery.
 4. Restore it only if the update breaks the active code layer.
 5. Review **Sentinel > History** to confirm what happened.
 
+= Restore Workflow Safeguards =
+
+* Restore is meant to be operator-driven, not fire-and-forget
+* Sentinel keeps validation steps in front of the restore action so teams can check readiness before touching live code
+* Live restore is gated by current validation evidence and an explicit confirmation phrase
+* Rollback is available for the last restore when the related backup context still exists
+
+= Artifact and Backup Handling =
+
+* Checkpoint exports, rollback packages, staged validation files, and restore backups are stored under `uploads/zignites-sentinel/`
+* Sentinel writes guard files for common Apache and IIS setups to reduce direct web access to those artifacts
+* During restore, Sentinel backs up the existing plugin and theme payloads it is about to replace
+* Those backups are part of the narrow restore workflow, not a substitute for a full off-site backup strategy
+
 = Artifact Storage Protection =
 
 Sentinel stores checkpoint packages, exports, temporary stage files, and restore backups under a protected `uploads/zignites-sentinel/` directory.
@@ -95,6 +109,14 @@ If your host serves uploads directly without honoring `.htaccess` or `web.config
 
 Create a checkpoint before risky plugin or theme updates. Then run the built-in validation steps so you know whether that checkpoint is usable for restore.
 
+= When should I create a checkpoint? =
+
+Create it immediately before the plugin or theme update window you want covered. A checkpoint created much earlier may no longer represent the live code state you are about to change.
+
+= Do I need to run validation before restore? =
+
+Yes. Sentinel is designed around validation before restore so you can confirm the checkpoint package, staging flow, and restore plan are still current before writing back to live plugin or theme paths.
+
 = Is Sentinel a replacement for my backup plugin? =
 
 No. Sentinel is a narrow rollback checkpoint tool for active plugins and the active theme. Use a full backup solution for database, media, and full-site recovery.
@@ -111,12 +133,20 @@ No. Sentinel does not restore the database, uploads/media, or WordPress core.
 
 No. Use a full backup solution for complete site recovery.
 
+= Where does Sentinel store checkpoint packages and restore backups? =
+
+Sentinel stores them under `wp-content/uploads/zignites-sentinel/`. It also adds common guard files such as `index.php`, `.htaccess`, and `web.config` where relevant, but you should still treat those artifacts as sensitive operational files.
+
+= What should I review after a restore or rollback? =
+
+Open **Sentinel > History** to review the recorded events, then confirm the site behaves as expected. Sentinel helps with the code-layer rollback workflow, but it does not replace normal post-change verification.
+
 == Screenshots ==
 
-1. Dashboard showing the latest checkpoint and the next step.
-2. Before Update showing checkpoint creation and validation.
-3. Before Update showing restore and rollback actions for a selected checkpoint.
-4. History showing recent checkpoint, restore, and rollback events.
+1. Dashboard showing the latest checkpoint, next step, and restore boundary guidance.
+2. Before Update showing first-run checkpoint guidance and checkpoint creation.
+3. Before Update showing validation, restore, and rollback actions for a selected checkpoint.
+4. History showing filtered activity review and CSV export for the current view.
 
 == Changelog ==
 
@@ -125,6 +155,7 @@ No. Use a full backup solution for complete site recovery.
 * Narrowed the product around pre-update rollback checkpoints for the active theme and active plugins.
 * Simplified the admin UI to Dashboard, Before Update, and History.
 * Added artifact directory guards for stored packages, exports, stage files, and restore backups under uploads.
+* Clarified public plugin-page copy around validation flow, artifact handling, and restore boundaries.
 
 == Upgrade Notice ==
 

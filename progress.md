@@ -740,3 +740,7 @@
   - shared admin CSS now includes compact empty-state and toolbar-panel variants to keep those surfaces balanced on both desktop and narrower widths
 - Current branch live verification now also confirms:
   - authenticated Sentinel admin smoke still passes on `http://zee-dev.test/wp-admin/` via `--local-user=1` with `Summary: 10 passed, 0 skipped, 0 failed.` after the screenshot polish pass
+- Current branch adds the release-copy clarity pass for:
+  - `readme.txt` now explains restore safeguards, artifact handling, checkpoint timing, and post-restore review more directly for WordPress.org readers
+  - screenshot captions now match the current Dashboard, Before Update, and History surfaces more closely
+  - public-facing FAQ copy now reinforces the same restore boundary and validation expectations used in the admin UI
