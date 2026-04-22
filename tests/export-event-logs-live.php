@@ -5,6 +5,10 @@
  * Usage:
  * php tests/export-event-logs-live.php --base-url=http://example.test/wp-admin/ --cookie="wordpress_logged_in_...=..." --path="admin.php?page=zignites-sentinel-event-logs&source=restore-execution-journal&run_id=run-42"
  * php tests/export-event-logs-live.php --config=tests/event-log-export-config.sample.php
+ *
+ * Local config discovery:
+ * - tests/event-log-export-config.php
+ * - tests/event-log-export-config.local.php
  */
 
 require_once __DIR__ . '/class-admin-smoke-runner.php';
@@ -17,9 +21,19 @@ if ( 'cli' !== PHP_SAPI ) {
 $options = getopt( '', array( 'base-url::', 'cookie::', 'path::', 'config::', 'timeout::' ) );
 $runner  = new ZNTS_Admin_Smoke_Runner();
 $config  = array();
+$config_path = isset( $options['config'] ) ? trim( (string) $options['config'] ) : '';
 
-if ( ! empty( $options['config'] ) ) {
-	$config = $runner->load_config( (string) $options['config'] );
+if ( '' === $config_path ) {
+	$config_path = $runner->find_existing_config_path(
+		array(
+			__DIR__ . '/event-log-export-config.php',
+			__DIR__ . '/event-log-export-config.local.php',
+		)
+	);
+}
+
+if ( '' !== $config_path ) {
+	$config = $runner->load_config( $config_path );
 }
 
 $base_url = isset( $options['base-url'] ) ? (string) $options['base-url'] : '';
@@ -27,16 +41,36 @@ $cookie   = isset( $options['cookie'] ) ? (string) $options['cookie'] : '';
 $path     = isset( $options['path'] ) ? (string) $options['path'] : '';
 $timeout  = isset( $options['timeout'] ) ? (int) $options['timeout'] : 20;
 
-if ( '' === $base_url && ! empty( $config['base_url'] ) ) {
+if ( '' === trim( $base_url ) ) {
+	$base_url = $runner->get_environment_value( array( 'ZNTS_SMOKE_BASE_URL' ) );
+}
+
+if ( '' === trim( $base_url ) && ! empty( $config['base_url'] ) ) {
 	$base_url = (string) $config['base_url'];
 }
 
-if ( '' === $cookie && ! empty( $config['cookie_header'] ) ) {
+if ( '' === trim( $cookie ) ) {
+	$cookie = $runner->get_environment_value( array( 'ZNTS_SMOKE_COOKIE_HEADER' ) );
+}
+
+if ( '' === trim( $cookie ) && ! empty( $config['cookie_header'] ) ) {
 	$cookie = (string) $config['cookie_header'];
 }
 
-if ( '' === $path && ! empty( $config['path'] ) ) {
+if ( '' === trim( $path ) ) {
+	$path = $runner->get_environment_value( array( 'ZNTS_EVENT_LOG_EXPORT_PATH' ) );
+}
+
+if ( '' === trim( $path ) && ! empty( $config['path'] ) ) {
 	$path = (string) $config['path'];
+}
+
+if ( empty( $options['timeout'] ) ) {
+	$timeout_env = $runner->get_environment_value( array( 'ZNTS_SMOKE_TIMEOUT', 'ZNTS_EVENT_LOG_EXPORT_TIMEOUT' ) );
+
+	if ( '' !== $timeout_env ) {
+		$timeout = (int) $timeout_env;
+	}
 }
 
 if ( empty( $options['timeout'] ) && ! empty( $config['timeout'] ) ) {
@@ -63,6 +97,9 @@ $source_url = $runner->build_url( $base_url, $path );
 
 echo 'Sentinel Event Log export check' . PHP_EOL;
 echo 'Base URL: ' . $base_url . PHP_EOL;
+if ( '' !== $config_path ) {
+	echo 'Config: ' . $config_path . PHP_EOL;
+}
 echo 'Source URL: ' . $source_url . PHP_EOL;
 
 $page = znts_export_request( $source_url, $cookie, $timeout );

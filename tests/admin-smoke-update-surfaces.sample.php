@@ -9,7 +9,8 @@
  * The network-admin checks in this sample are only expected to pass on a
  * multisite install where network admin is enabled for the authenticated user.
  *
- * Copy this file outside version control or pass values directly with CLI flags.
+ * Copy this file to tests/admin-smoke-update-surfaces.php or
+ * tests/admin-smoke-update-surfaces.local.php, or pass values directly with CLI flags.
  * Do not commit real browser cookies.
  */
 

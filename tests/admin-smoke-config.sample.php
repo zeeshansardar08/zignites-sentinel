@@ -2,13 +2,15 @@
 /**
  * Sample config for tests/smoke-admin-live.php.
  *
- * Copy this file outside version control or pass values directly with CLI flags.
+ * Copy this file to tests/admin-smoke-config.php or tests/admin-smoke-config.local.php,
+ * or pass values directly with CLI flags.
  * Do not commit real browser cookies.
  */
 
 return array(
 	'base_url'      => 'http://example.test/wp-admin/',
 	'cookie_header' => 'wordpress_logged_in_example=replace-me; wordpress_sec_example=replace-me;',
+	'timeout'       => 20,
 	'checks'        => array(
 		array(
 			'label'   => 'Sentinel Dashboard',

@@ -5,6 +5,10 @@
  * Usage:
  * php tests/smoke-admin-live.php --base-url=http://example.test/wp-admin/ --cookie="wordpress_logged_in_...=..."
  * php tests/smoke-admin-live.php --config=tests/admin-smoke-config.sample.php
+ *
+ * Local config discovery:
+ * - tests/admin-smoke-config.php
+ * - tests/admin-smoke-config.local.php
  */
 
 require_once __DIR__ . '/class-admin-smoke-runner.php';
@@ -17,21 +21,51 @@ if ( 'cli' !== PHP_SAPI ) {
 $options = getopt( '', array( 'base-url::', 'cookie::', 'config::', 'timeout::' ) );
 $runner  = new ZNTS_Admin_Smoke_Runner();
 $config  = array();
+$config_path = isset( $options['config'] ) ? trim( (string) $options['config'] ) : '';
 
-if ( ! empty( $options['config'] ) ) {
-	$config = $runner->load_config( (string) $options['config'] );
+if ( '' === $config_path ) {
+	$config_path = $runner->find_existing_config_path(
+		array(
+			__DIR__ . '/admin-smoke-config.php',
+			__DIR__ . '/admin-smoke-config.local.php',
+		)
+	);
+}
+
+if ( '' !== $config_path ) {
+	$config = $runner->load_config( $config_path );
 }
 
 $base_url = isset( $options['base-url'] ) ? (string) $options['base-url'] : '';
 $cookie   = isset( $options['cookie'] ) ? (string) $options['cookie'] : '';
 $timeout  = isset( $options['timeout'] ) ? (int) $options['timeout'] : 20;
 
-if ( '' === $base_url && ! empty( $config['base_url'] ) ) {
+if ( '' === trim( $base_url ) ) {
+	$base_url = $runner->get_environment_value( array( 'ZNTS_SMOKE_BASE_URL' ) );
+}
+
+if ( '' === trim( $base_url ) && ! empty( $config['base_url'] ) ) {
 	$base_url = (string) $config['base_url'];
 }
 
-if ( '' === $cookie && ! empty( $config['cookie_header'] ) ) {
+if ( '' === trim( $cookie ) ) {
+	$cookie = $runner->get_environment_value( array( 'ZNTS_SMOKE_COOKIE_HEADER' ) );
+}
+
+if ( '' === trim( $cookie ) && ! empty( $config['cookie_header'] ) ) {
 	$cookie = (string) $config['cookie_header'];
+}
+
+if ( empty( $options['timeout'] ) ) {
+	$timeout_env = $runner->get_environment_value( array( 'ZNTS_SMOKE_TIMEOUT' ) );
+
+	if ( '' !== $timeout_env ) {
+		$timeout = (int) $timeout_env;
+	}
+}
+
+if ( empty( $options['timeout'] ) && ! empty( $config['timeout'] ) ) {
+	$timeout = (int) $config['timeout'];
 }
 
 $checks = isset( $config['checks'] ) && is_array( $config['checks'] ) ? $config['checks'] : $runner->get_default_checks();
@@ -54,6 +88,9 @@ $skips    = 0;
 
 echo 'Sentinel live admin smoke' . PHP_EOL;
 echo 'Base URL: ' . $base_url . PHP_EOL;
+if ( '' !== $config_path ) {
+	echo 'Config: ' . $config_path . PHP_EOL;
+}
 echo 'Checks: ' . count( $checks ) . PHP_EOL . PHP_EOL;
 
 if ( ! empty( $prerequisites ) ) {

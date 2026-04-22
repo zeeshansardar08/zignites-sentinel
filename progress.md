@@ -707,3 +707,13 @@
   - the live smoke runner now prints a compact final totals line showing pass/skip/fail counts
   - local live verification confirms the update-surface smoke run now ends with `Summary: 3 passed, 3 skipped, 0 failed.` on the current non-multisite environment
   - operators can now scan smoke output faster without reading every individual check line
+- Current branch adds the live smoke local-config workflow pass for:
+  - `tests/smoke-admin-live.php` now auto-loads `tests/admin-smoke-config.php` or `tests/admin-smoke-config.local.php` when present
+  - `tests/export-event-logs-live.php` now auto-loads `tests/event-log-export-config.php` or `tests/event-log-export-config.local.php` when present
+  - both live helpers now support environment overrides for base URL, cookie header, timeout, and export path where applicable
+  - local sample-config docs now explicitly describe the gitignored local config file names for smoke and export verification
+  - focused regression coverage now includes local-config path discovery and first-non-empty environment override selection
+- Current branch live verification now confirms:
+  - authenticated Sentinel admin smoke passes on the local `http://zee-dev.test/wp-admin/` environment with `Summary: 10 passed, 0 skipped, 0 failed.`
+  - optional native update-surface smoke still passes on the same environment with `Summary: 3 passed, 3 skipped, 0 failed.`
+  - network update-surface checks still skip cleanly because the current install is not multisite / network-admin enabled

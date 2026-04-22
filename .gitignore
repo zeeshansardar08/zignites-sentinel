@@ -1,0 +1,6 @@
+tests/admin-smoke-config.php
+tests/admin-smoke-config.local.php
+tests/admin-smoke-update-surfaces.php
+tests/admin-smoke-update-surfaces.local.php
+tests/event-log-export-config.php
+tests/event-log-export-config.local.php
