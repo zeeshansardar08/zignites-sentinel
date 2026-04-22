@@ -51,17 +51,17 @@ return array(
 					'snapshot_id' => true,
 				),
 			),
-			'markers' => array( 'History', 'Recent History', 'Filter', 'Checkpoint ID', 'Reset' ),
+			'markers' => array( 'History', 'Recent History', 'Filter', 'Export CSV', 'Checkpoint ID', 'Reset' ),
 		),
 		array(
 			'label'   => 'History',
 			'path'    => 'admin.php?page=zignites-sentinel-event-logs',
-			'markers' => array( 'History', 'Recent History', 'Filter', 'Checkpoint ID', 'Reset' ),
+			'markers' => array( 'History', 'Recent History', 'Filter', 'Export CSV', 'Checkpoint ID', 'Reset' ),
 		),
 		array(
 			'label'   => 'History Empty State',
 			'path'    => 'admin.php?page=zignites-sentinel-event-logs&log_search=znts-smoke-empty-state-token-9f3a0d66',
-			'markers' => array( 'History', 'Recent History', 'Filter', 'Reset', 'No history entries match the current filters.' ),
+			'markers' => array( 'History', 'Recent History', 'Filter', 'Export CSV', 'Reset', 'No history entries match the current filters.' ),
 		),
 		array(
 			'label'            => 'Event Log Detail',
@@ -86,7 +86,7 @@ return array(
 				),
 			),
 			'resolve_optional' => true,
-			'markers'          => array( 'History', 'Recent History', 'Filter', 'Checkpoint ID', 'Reset' ),
+			'markers'          => array( 'History', 'Recent History', 'Filter', 'Export CSV', 'Checkpoint ID', 'Reset' ),
 		),
 		array(
 			'label'   => 'WordPress Dashboard Widget',

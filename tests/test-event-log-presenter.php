@@ -33,6 +33,10 @@ function znts_test_event_log_presenter_builds_summary_tiles_and_filter_state() {
 		array(),
 		array(
 			'total_logs' => 27,
+		),
+		array(
+			'action_url' => 'http://example.test/wp-admin/admin-post.php',
+			'nonce'      => 'nonce-znts_export_event_logs_action',
 		)
 	);
 
@@ -44,6 +48,11 @@ function znts_test_event_log_presenter_builds_summary_tiles_and_filter_state() {
 	znts_assert_same( '2', $payload['summary_tiles'][3]['value'], 'Event log presenter should expose the operational event count in the summary tiles.' );
 	znts_assert_same( 'Warning', $payload['recent_logs'][0]['severity_label'], 'Event log presenter should decorate recent log rows with readable severity labels.' );
 	znts_assert_same( 'warning', $payload['recent_logs'][0]['severity_pill'], 'Event log presenter should preserve warning severity pill variants for recent logs.' );
+	znts_assert_same( 'http://example.test/wp-admin/admin-post.php', $payload['export_form']['action_url'], 'Event log presenter should expose the prepared export action URL.' );
+	znts_assert_same( 'znts_export_event_logs', $payload['export_form']['fields']['action'], 'Event log presenter should keep the event-log export action stable.' );
+	znts_assert_same( '44', $payload['export_form']['fields']['snapshot_id'], 'Event log presenter should preserve snapshot filters in the export form payload.' );
+	znts_assert_same( 'payload', $payload['export_form']['fields']['log_search'], 'Event log presenter should preserve text-search filters in the export form payload.' );
+	znts_assert_true( ! empty( $payload['export_form']['show_form'] ), 'Event log presenter should mark the export form visible when action URL and nonce are available.' );
 	znts_assert_same( 'How to use this screen', $payload['guidance_panels'][0]['title'], 'Event log presenter should expose inline guidance panels.' );
 	znts_assert_same( 'What this history is for', $payload['positioning_note']['title'], 'Event log presenter should expose product-positioning guidance.' );
 }

@@ -1519,6 +1519,10 @@ class Admin {
 				'per_page'     => $per_page,
 				'total_logs'   => $total_logs,
 				'total_pages'  => $total_pages,
+			),
+			array(
+				'action_url' => admin_url( 'admin-post.php' ),
+				'nonce'      => wp_create_nonce( 'znts_export_event_logs_action' ),
 			)
 		);
 

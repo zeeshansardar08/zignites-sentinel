@@ -12,6 +12,7 @@ $log_detail         = isset( $view_data['log_detail'] ) && is_array( $view_data[
 $log_filters        = isset( $view_data['log_filters'] ) && is_array( $view_data['log_filters'] ) ? $view_data['log_filters'] : array();
 $event_log_ui       = isset( $view_data['event_log_ui'] ) && is_array( $view_data['event_log_ui'] ) ? $view_data['event_log_ui'] : array();
 $recent_logs        = isset( $event_log_ui['recent_logs'] ) && is_array( $event_log_ui['recent_logs'] ) ? $event_log_ui['recent_logs'] : $recent_logs;
+$export_form        = isset( $event_log_ui['export_form'] ) && is_array( $event_log_ui['export_form'] ) ? $event_log_ui['export_form'] : array();
 $pagination         = isset( $view_data['pagination'] ) && is_array( $view_data['pagination'] ) ? $view_data['pagination'] : array();
 $current_page       = isset( $pagination['current_page'] ) ? (int) $pagination['current_page'] : 1;
 $total_pages        = isset( $pagination['total_pages'] ) ? (int) $pagination['total_pages'] : 1;
@@ -65,6 +66,17 @@ $admin_page_url     = \Zignites\Sentinel\Admin\znts_admin_url( 'admin.php' );
 					<a class="button button-link" href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs' ), $admin_page_url ) ); ?>"><?php echo esc_html__( 'Reset', 'zignites-sentinel' ); ?></a>
 				</p>
 			</form>
+			<?php if ( ! empty( $export_form['show_form'] ) ) : ?>
+				<form method="post" action="<?php echo esc_url( isset( $export_form['action_url'] ) ? $export_form['action_url'] : '' ); ?>" class="znts-export-form">
+					<?php foreach ( isset( $export_form['fields'] ) && is_array( $export_form['fields'] ) ? $export_form['fields'] : array() as $field_name => $field_value ) : ?>
+						<input type="hidden" name="<?php echo esc_attr( $field_name ); ?>" value="<?php echo esc_attr( (string) $field_value ); ?>" />
+					<?php endforeach; ?>
+					<p class="znts-export-actions">
+						<span class="description"><?php echo esc_html( isset( $export_form['description'] ) ? $export_form['description'] : '' ); ?></span>
+						<?php submit_button( isset( $export_form['submit_label'] ) ? $export_form['submit_label'] : __( 'Export CSV', 'zignites-sentinel' ), 'secondary', '', false ); ?>
+					</p>
+				</form>
+			<?php endif; ?>
 
 			<?php if ( empty( $recent_logs ) ) : ?>
 				<p><?php echo esc_html__( 'No history entries match the current filters.', 'zignites-sentinel' ); ?></p>

@@ -726,3 +726,10 @@
 - Current branch live verification now also confirms:
   - authenticated Sentinel admin smoke passes on `http://zee-dev.test/wp-admin/` via `--local-user=1` with `Summary: 10 passed, 0 skipped, 0 failed.`
   - authenticated Event Logs export verification passes on the same environment via `--local-user=1`, exporting the current History scope successfully
+- Current branch adds the History export-form alignment pass for:
+  - the simplified `History` screen now exposes a visible `Export CSV` action again while preserving the current filtered scope
+  - Event Logs presenter state now prepares the export form payload so the template does not reconstruct export fields inline
+  - smoke expectations and manual QA now treat the History export action as part of the stable screen surface
+- Current branch live verification now further confirms:
+  - the local `History` screen exposes both the export action and export form markers on `http://zee-dev.test/wp-admin/`
+  - authenticated Event Logs export verification now passes against the on-page export control path, not only the local-auth fallback path
