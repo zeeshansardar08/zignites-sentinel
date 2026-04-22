@@ -36,6 +36,7 @@ require_once __DIR__ . '/test-admin-update-screen-notice.php';
 require_once __DIR__ . '/test-admin-update-row-handoff.php';
 require_once __DIR__ . '/test-health-comparison.php';
 require_once __DIR__ . '/test-admin-smoke-runner.php';
+require_once __DIR__ . '/test-local-admin-auth-helper.php';
 require_once __DIR__ . '/test-resume-admin-presentation.php';
 require_once __DIR__ . '/test-status-presenter.php';
 

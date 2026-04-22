@@ -4,6 +4,7 @@
  *
  * Usage:
  * php tests/export-event-logs-live.php --base-url=http://example.test/wp-admin/ --cookie="wordpress_logged_in_...=..." --path="admin.php?page=zignites-sentinel-event-logs&source=restore-execution-journal&run_id=run-42"
+ * php tests/export-event-logs-live.php --base-url=http://zee-dev.test/wp-admin/ --local-user=1 --path="admin.php?page=zignites-sentinel-event-logs"
  * php tests/export-event-logs-live.php --config=tests/event-log-export-config.sample.php
  *
  * Local config discovery:
@@ -12,15 +13,17 @@
  */
 
 require_once __DIR__ . '/class-admin-smoke-runner.php';
+require_once __DIR__ . '/class-local-admin-auth-helper.php';
 
 if ( 'cli' !== PHP_SAPI ) {
 	fwrite( STDERR, "This script must be run from the command line.\n" );
 	exit( 1 );
 }
 
-$options = getopt( '', array( 'base-url::', 'cookie::', 'path::', 'config::', 'timeout::' ) );
-$runner  = new ZNTS_Admin_Smoke_Runner();
-$config  = array();
+$options = getopt( '', array( 'base-url::', 'cookie::', 'local-user::', 'wp-root::', 'path::', 'config::', 'timeout::' ) );
+$runner      = new ZNTS_Admin_Smoke_Runner();
+$auth_helper = new ZNTS_Local_Admin_Auth_Helper();
+$config      = array();
 $config_path = isset( $options['config'] ) ? trim( (string) $options['config'] ) : '';
 
 if ( '' === $config_path ) {
@@ -36,10 +39,14 @@ if ( '' !== $config_path ) {
 	$config = $runner->load_config( $config_path );
 }
 
-$base_url = isset( $options['base-url'] ) ? (string) $options['base-url'] : '';
-$cookie   = isset( $options['cookie'] ) ? (string) $options['cookie'] : '';
-$path     = isset( $options['path'] ) ? (string) $options['path'] : '';
-$timeout  = isset( $options['timeout'] ) ? (int) $options['timeout'] : 20;
+$base_url   = isset( $options['base-url'] ) ? (string) $options['base-url'] : '';
+$cookie     = isset( $options['cookie'] ) ? (string) $options['cookie'] : '';
+$local_user = isset( $options['local-user'] ) ? (string) $options['local-user'] : '';
+$wp_root    = isset( $options['wp-root'] ) ? (string) $options['wp-root'] : '';
+$path       = isset( $options['path'] ) ? (string) $options['path'] : '';
+$timeout    = isset( $options['timeout'] ) ? (int) $options['timeout'] : 20;
+$auth_label = '';
+$auth_context = array();
 
 if ( '' === trim( $base_url ) ) {
 	$base_url = $runner->get_environment_value( array( 'ZNTS_SMOKE_BASE_URL' ) );
@@ -55,6 +62,22 @@ if ( '' === trim( $cookie ) ) {
 
 if ( '' === trim( $cookie ) && ! empty( $config['cookie_header'] ) ) {
 	$cookie = (string) $config['cookie_header'];
+}
+
+if ( '' === trim( $local_user ) ) {
+	$local_user = $runner->get_environment_value( array( 'ZNTS_SMOKE_LOCAL_USER' ) );
+}
+
+if ( '' === trim( $local_user ) && ! empty( $config['local_user'] ) ) {
+	$local_user = (string) $config['local_user'];
+}
+
+if ( '' === trim( $wp_root ) ) {
+	$wp_root = $runner->get_environment_value( array( 'ZNTS_SMOKE_WORDPRESS_ROOT' ) );
+}
+
+if ( '' === trim( $wp_root ) && ! empty( $config['wordpress_root'] ) ) {
+	$wp_root = (string) $config['wordpress_root'];
 }
 
 if ( '' === trim( $path ) ) {
@@ -83,8 +106,19 @@ if ( '' === trim( $base_url ) ) {
 }
 
 if ( '' === trim( $cookie ) ) {
-	fwrite( STDERR, "Missing --cookie. Provide the authenticated browser Cookie header value for wp-admin.\n" );
-	exit( 1 );
+	if ( '' === trim( $local_user ) ) {
+		fwrite( STDERR, "Missing --cookie. Provide the authenticated browser Cookie header value for wp-admin, or pass --local-user for local auth.\n" );
+		exit( 1 );
+	}
+
+	try {
+		$auth_context = $auth_helper->build_cookie_context( $base_url, $local_user, $wp_root );
+		$cookie       = isset( $auth_context['cookie_header'] ) ? (string) $auth_context['cookie_header'] : '';
+		$auth_label   = 'local user ' . ( isset( $auth_context['user_login'] ) ? (string) $auth_context['user_login'] : $local_user ) . ' via ' . ( isset( $auth_context['wordpress_root'] ) ? (string) $auth_context['wordpress_root'] : '' );
+	} catch ( Throwable $throwable ) {
+		fwrite( STDERR, 'Local auth setup failed: ' . $throwable->getMessage() . PHP_EOL );
+		exit( 1 );
+	}
 }
 
 if ( '' === trim( $path ) ) {
@@ -99,6 +133,9 @@ echo 'Sentinel Event Log export check' . PHP_EOL;
 echo 'Base URL: ' . $base_url . PHP_EOL;
 if ( '' !== $config_path ) {
 	echo 'Config: ' . $config_path . PHP_EOL;
+}
+if ( '' !== $auth_label ) {
+	echo 'Auth: ' . $auth_label . PHP_EOL;
 }
 echo 'Source URL: ' . $source_url . PHP_EOL;
 
@@ -120,6 +157,18 @@ if ( $runner->detect_login_fallback( $page['body'] ) ) {
 }
 
 $form = znts_find_event_log_export_form( $page['body'] );
+
+if ( ( empty( $form['action'] ) || empty( $form['fields'] ) ) && ! empty( $auth_context['user_id'] ) ) {
+	$form = znts_build_event_log_export_form_from_filters(
+		$source_url,
+		admin_url( 'admin-post.php' ),
+		$auth_helper->build_nonce(
+			'znts_export_event_logs_action',
+			(int) $auth_context['user_id'],
+			isset( $auth_context['logged_in_cookie'] ) ? (string) $auth_context['logged_in_cookie'] : ''
+		)
+	);
+}
 
 if ( empty( $form['action'] ) || empty( $form['fields'] ) ) {
 	fwrite( STDERR, "Could not find the Event Logs export form on the source page.\n" );
@@ -396,6 +445,36 @@ function znts_find_event_log_export_form( $body ) {
 	}
 
 	return array();
+}
+
+function znts_build_event_log_export_form_from_filters( $source_url, $action_url, $nonce ) {
+	$source_url = (string) $source_url;
+	$action_url = (string) $action_url;
+	$nonce      = trim( (string) $nonce );
+
+	if ( '' === $action_url || '' === $nonce ) {
+		return array();
+	}
+
+	$query = (string) parse_url( $source_url, PHP_URL_QUERY );
+	$args  = array();
+
+	if ( '' !== $query ) {
+		parse_str( $query, $args );
+	}
+
+	return array(
+		'action' => $action_url,
+		'fields' => array(
+			'action'      => 'znts_export_event_logs',
+			'_wpnonce'    => $nonce,
+			'severity'    => isset( $args['severity'] ) ? (string) $args['severity'] : '',
+			'source'      => isset( $args['source'] ) ? (string) $args['source'] : '',
+			'run_id'      => isset( $args['run_id'] ) ? (string) $args['run_id'] : '',
+			'snapshot_id' => isset( $args['snapshot_id'] ) ? (string) $args['snapshot_id'] : '',
+			'log_search'  => isset( $args['log_search'] ) ? (string) $args['log_search'] : '',
+		),
+	);
 }
 
 function znts_parse_html_attributes( $html ) {
