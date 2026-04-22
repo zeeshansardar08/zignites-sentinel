@@ -1,9 +1,11 @@
 .git
 .gitignore
 .distignore
+build/
 README.md
 manual-smoke-checklist.md
 product-strategy.md
 progress.md
 release-checklist.md
+scripts/
 tests/

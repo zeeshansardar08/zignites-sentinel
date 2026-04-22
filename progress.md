@@ -750,3 +750,7 @@
 - Current branch adds the release package manifest pass for:
   - a new `.distignore` now excludes repo-only docs, git metadata, and the `tests/` directory from release packaging
   - the release checklist and repo README now point to that manifest so packaging rules stay visible instead of implicit
+- Current branch adds the release zip dry-run pass for:
+  - a new `scripts/build-release.ps1` now builds a release zip from the repo while honoring `.distignore`
+  - release docs now point to a concrete packaging command instead of only describing packaging checks at a policy level
+  - local dry-run verification now confirms `build/zignites-sentinel.zip` includes runtime plugin files while excluding `.git`, repo-only docs, `tests/`, and the packaging script itself

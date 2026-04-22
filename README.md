@@ -96,3 +96,5 @@ Sentinel is a weak fit when:
 ## Packaging
 
 - [.distignore](/D:/laragon/www/zee-dev/wp-content/plugins/zignites-sentinel/.distignore) defines repo-only files and folders that should stay out of the release zip.
+- [scripts/build-release.ps1](/D:/laragon/www/zee-dev/wp-content/plugins/zignites-sentinel/scripts/build-release.ps1) builds a release zip from the tracked plugin files while honoring `.distignore`.
+- The default dry-run output path is `build/zignites-sentinel.zip`.

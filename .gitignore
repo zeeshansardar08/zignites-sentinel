@@ -1,3 +1,4 @@
+build/
 tests/admin-smoke-config.php
 tests/admin-smoke-config.local.php
 tests/admin-smoke-update-surfaces.php

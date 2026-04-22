@@ -132,11 +132,22 @@ Before accepting screenshots:
 ## 9. Packaging Check
 
 - Confirm [.distignore](/D:/laragon/www/zee-dev/wp-content/plugins/zignites-sentinel/.distignore) still matches the files that should stay out of the release zip.
+- Build the release package with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\build-release.ps1
+```
+
+Default output:
+
+- `build/zignites-sentinel.zip`
+
 - Confirm local smoke config files and local export config files are not included in the release package.
 - Confirm gitignored environment-specific files are still excluded.
 - Confirm internal repo-only docs such as progress notes and strategy docs are not included in the release package.
 - Confirm the `tests/` directory is excluded from the release package unless there is a deliberate reason to ship it.
 - Confirm release packaging does not include transient test outputs or local secrets.
+- Confirm the generated zip still contains the expected runtime entry points such as `readme.txt`, `zignites-sentinel.php`, `includes/`, and `assets/`.
 - Confirm the plugin activates from a clean package on the target WordPress version if a packaging/install dry run is available.
 
 ## 10. Release Handoff
