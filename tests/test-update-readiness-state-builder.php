@@ -137,12 +137,31 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 			'snapshot_detail' => array(
 				'id'               => 101,
 				'label'            => 'Release snapshot',
+				'description'      => 'Checkpoint captured from the plugins update screen before updating Example Plugin.',
 				'created_at'       => '2026-04-09 10:00:00',
 				'theme_stylesheet' => 'twentytwentysix',
 				'core_version'     => '6.8.0',
 				'php_version'      => '8.1.10',
 				'metadata_decoded' => array(
 					'site_url'           => 'https://example.test',
+					'capture_context'    => array(
+						'source'       => 'update_screen',
+						'return_screen'=> 'plugins',
+						'screen_id'    => 'plugins',
+						'capture_mode' => 'targeted',
+						'scope'        => 'plugin',
+						'target_count' => 1,
+						'targets'      => array(
+							array(
+								'key'             => 'plugin:example/example.php',
+								'type'            => 'plugin',
+								'slug'            => 'example/example.php',
+								'label'           => 'Example Plugin',
+								'current_version' => '1.0.0',
+								'new_version'     => '1.1.0',
+							),
+						),
+					),
 					'component_manifest' => array(
 						'generated_at' => '2026-04-09 10:00:01',
 						'theme'        => array(
@@ -624,6 +643,12 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'Release snapshot', $state['snapshot_basic_rows'][0]['value'], 'Update Readiness state builder should derive snapshot basics values.' );
 	znts_assert_same( 'Site Url', $state['snapshot_metadata_rows'][0]['label'], 'Update Readiness state builder should humanize snapshot metadata keys.' );
 	znts_assert_same( 'https://example.test', $state['snapshot_metadata_rows'][0]['value'], 'Update Readiness state builder should derive scalar snapshot metadata values.' );
+	znts_assert_same( 'Checkpoint Context', $state['selected_snapshot_capture_context_card']['title'], 'Update Readiness state builder should expose a dedicated checkpoint-context card for update-aware captures.' );
+	znts_assert_same( 'Checkpoint captured from the plugins update screen before updating Example Plugin.', $state['selected_snapshot_capture_context_card']['description'], 'Update Readiness state builder should reuse the snapshot description in the checkpoint-context card.' );
+	znts_assert_same( 'Captured From', $state['selected_snapshot_capture_context_card']['rows'][0]['label'], 'Update Readiness state builder should expose a capture-source row for update-aware snapshots.' );
+	znts_assert_same( 'Plugins update screen', $state['selected_snapshot_capture_context_card']['rows'][0]['value'], 'Update Readiness state builder should humanize the originating update screen in the checkpoint-context card.' );
+	znts_assert_same( 'Specific plugin update', $state['selected_snapshot_capture_context_card']['rows'][1]['value'], 'Update Readiness state builder should humanize update-aware checkpoint scope.' );
+	znts_assert_same( 'Example Plugin to 1.1.0', $state['selected_snapshot_capture_context_card']['rows'][2]['value'], 'Update Readiness state builder should summarize targeted update components in the checkpoint-context card.' );
 	znts_assert_same( 'Theme Source', $state['component_manifest_rows'][1]['label'], 'Update Readiness state builder should derive component manifest labels.' );
 	znts_assert_same( '/themes/twentytwentysix', $state['component_manifest_rows'][1]['value'], 'Update Readiness state builder should derive component manifest values.' );
 	znts_assert_same( 'Plugin', $state['snapshot_artifact_rows'][0]['type_label'], 'Update Readiness state builder should derive snapshot artifact type labels.' );
@@ -1016,6 +1041,7 @@ function znts_test_update_readiness_state_builder_defaults_missing_inputs() {
 	znts_assert_same( null, $state['snapshot_detail'], 'Update Readiness state builder should normalize missing snapshot detail to null.' );
 	znts_assert_same( '', $state['snapshot_activity_url'], 'Update Readiness state builder should default missing activity URL to an empty string.' );
 	znts_assert_same( 'No checkpoint selected', $state['selected_snapshot_label'], 'Update Readiness state builder should derive the empty selected snapshot label.' );
+	znts_assert_same( array(), $state['selected_snapshot_capture_context_card'], 'Update Readiness state builder should default missing capture-context cards to an empty array.' );
 	znts_assert_same( 'Awaiting snapshot', $state['workspace_status_label'], 'Update Readiness state builder should derive awaiting-snapshot workspace status.' );
 	znts_assert_same( 'critical', $state['workspace_status_badge'], 'Update Readiness state builder should derive the awaiting-snapshot workspace badge.' );
 	znts_assert_same( 'No snapshots match this view.', $state['snapshot_empty_state']['title'], 'Update Readiness state builder should expose a filtered snapshot empty state when search terms are active.' );

@@ -182,6 +182,7 @@ class UpdateReadinessStateBuilder {
 		if ( ! empty( $selected_intelligence['message'] ) ) {
 			$view_data['selected_snapshot_note'] .= ' ' . (string) $selected_intelligence['message'];
 		}
+		$view_data['selected_snapshot_capture_context_card'] = $this->build_selected_snapshot_capture_context_card( $snapshot_detail );
 		$view_data['snapshot_match_count'] = isset( $snapshot_pagination['total_items'] ) ? (int) $snapshot_pagination['total_items'] : count( $recent_snapshots );
 		$view_data['workspace_status_label'] = $this->build_workspace_status_label( $snapshot_detail, $system_health, $selected_intelligence, $operator_checklist );
 		$view_data['workspace_status_badge'] = $this->build_workspace_status_badge( $snapshot_detail, $system_health, $selected_intelligence, $operator_checklist );
@@ -1391,6 +1392,10 @@ class UpdateReadinessStateBuilder {
 		$rows     = array();
 
 		foreach ( $metadata as $meta_key => $meta_value ) {
+			if ( in_array( (string) $meta_key, array( 'component_manifest', 'capture_context' ), true ) ) {
+				continue;
+			}
+
 			$rows[] = array(
 				'label' => ucwords( str_replace( '_', ' ', (string) $meta_key ) ),
 				'value' => is_scalar( $meta_value ) ? (string) $meta_value : wp_json_encode( $meta_value ),
@@ -1398,6 +1403,143 @@ class UpdateReadinessStateBuilder {
 		}
 
 		return $rows;
+	}
+
+	/**
+	 * Build a readable checkpoint-context summary card for update-aware snapshots.
+	 *
+	 * @param array|null $snapshot_detail Snapshot detail payload.
+	 * @return array
+	 */
+	protected function build_selected_snapshot_capture_context_card( $snapshot_detail ) {
+		$metadata = is_array( $snapshot_detail ) && isset( $snapshot_detail['metadata_decoded'] ) && is_array( $snapshot_detail['metadata_decoded'] ) ? $snapshot_detail['metadata_decoded'] : array();
+		$context  = isset( $metadata['capture_context'] ) && is_array( $metadata['capture_context'] ) ? $metadata['capture_context'] : array();
+
+		if ( empty( $context['targets'] ) || ! is_array( $context['targets'] ) ) {
+			return array();
+		}
+
+		return array(
+			'title'       => __( 'Checkpoint Context', 'zignites-sentinel' ),
+			'description' => ! empty( $snapshot_detail['description'] )
+				? (string) $snapshot_detail['description']
+				: __( 'This checkpoint was captured for a specific update window.', 'zignites-sentinel' ),
+			'rows'        => array(
+				array(
+					'label' => __( 'Captured From', 'zignites-sentinel' ),
+					'value' => $this->build_capture_context_screen_label( $context ),
+				),
+				array(
+					'label' => __( 'Scope', 'zignites-sentinel' ),
+					'value' => $this->build_capture_context_scope_label( $context ),
+				),
+				array(
+					'label' => __( 'Targets', 'zignites-sentinel' ),
+					'value' => $this->build_capture_context_target_label( $context ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Build a human-readable label for the originating capture screen.
+	 *
+	 * @param array $context Capture context payload.
+	 * @return string
+	 */
+	protected function build_capture_context_screen_label( array $context ) {
+		$return_screen = isset( $context['return_screen'] ) ? sanitize_key( (string) $context['return_screen'] ) : '';
+
+		if ( in_array( $return_screen, array( 'plugins', 'plugins-network' ), true ) ) {
+			return __( 'Plugins update screen', 'zignites-sentinel' );
+		}
+
+		if ( in_array( $return_screen, array( 'themes', 'themes-network' ), true ) ) {
+			return __( 'Themes update screen', 'zignites-sentinel' );
+		}
+
+		if ( in_array( $return_screen, array( 'update-core', 'update-core-network' ), true ) ) {
+			return __( 'Updates screen', 'zignites-sentinel' );
+		}
+
+		return __( 'Manual workspace', 'zignites-sentinel' );
+	}
+
+	/**
+	 * Build a human-readable label for capture scope.
+	 *
+	 * @param array $context Capture context payload.
+	 * @return string
+	 */
+	protected function build_capture_context_scope_label( array $context ) {
+		$scope = isset( $context['scope'] ) ? sanitize_key( (string) $context['scope'] ) : '';
+
+		if ( 'plugin' === $scope ) {
+			return __( 'Specific plugin update', 'zignites-sentinel' );
+		}
+
+		if ( 'theme' === $scope ) {
+			return __( 'Specific theme update', 'zignites-sentinel' );
+		}
+
+		if ( 'plugins' === $scope ) {
+			return __( 'Plugins update window', 'zignites-sentinel' );
+		}
+
+		if ( 'themes' === $scope ) {
+			return __( 'Themes update window', 'zignites-sentinel' );
+		}
+
+		if ( 'mixed' === $scope ) {
+			return __( 'Mixed plugin and theme update window', 'zignites-sentinel' );
+		}
+
+		return __( 'Manual checkpoint', 'zignites-sentinel' );
+	}
+
+	/**
+	 * Build a compact target summary for capture context.
+	 *
+	 * @param array $context Capture context payload.
+	 * @return string
+	 */
+	protected function build_capture_context_target_label( array $context ) {
+		$targets = isset( $context['targets'] ) && is_array( $context['targets'] ) ? $context['targets'] : array();
+		$labels  = array();
+
+		foreach ( $targets as $target ) {
+			if ( ! is_array( $target ) ) {
+				continue;
+			}
+
+			$label       = isset( $target['label'] ) ? trim( (string) $target['label'] ) : '';
+			$new_version = isset( $target['new_version'] ) ? trim( (string) $target['new_version'] ) : '';
+
+			if ( '' === $label ) {
+				$label = isset( $target['slug'] ) ? trim( (string) $target['slug'] ) : '';
+			}
+
+			if ( '' === $label ) {
+				continue;
+			}
+
+			if ( '' !== $new_version ) {
+				$labels[] = sprintf(
+					/* translators: 1: component label, 2: target version */
+					__( '%1$s to %2$s', 'zignites-sentinel' ),
+					$label,
+					$new_version
+				);
+			} else {
+				$labels[] = $label;
+			}
+		}
+
+		if ( empty( $labels ) ) {
+			return __( 'Not recorded', 'zignites-sentinel' );
+		}
+
+		return implode( ', ', $labels );
 	}
 
 	/**

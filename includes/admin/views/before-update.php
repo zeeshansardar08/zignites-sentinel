@@ -18,6 +18,7 @@ $selected_snapshot_note = isset( $view_data['selected_snapshot_note'] ) ? (strin
 $workspace_status_label = isset( $view_data['workspace_status_label'] ) ? (string) $view_data['workspace_status_label'] : '';
 $workspace_status_badge = isset( $view_data['workspace_status_badge'] ) ? (string) $view_data['workspace_status_badge'] : 'info';
 $workspace_next_action = isset( $view_data['workspace_next_action'] ) ? (string) $view_data['workspace_next_action'] : '';
+$selected_snapshot_capture_context_card = isset( $view_data['selected_snapshot_capture_context_card'] ) && is_array( $view_data['selected_snapshot_capture_context_card'] ) ? $view_data['selected_snapshot_capture_context_card'] : array();
 $first_run_notice      = isset( $view_data['first_run_notice'] ) && is_array( $view_data['first_run_notice'] ) ? $view_data['first_run_notice'] : array();
 $readiness_history_empty_state = isset( $view_data['readiness_history_empty_state'] ) && is_array( $view_data['readiness_history_empty_state'] ) ? $view_data['readiness_history_empty_state'] : array();
 $restore_history_empty_state = isset( $view_data['restore_history_empty_state'] ) && is_array( $view_data['restore_history_empty_state'] ) ? $view_data['restore_history_empty_state'] : array();
@@ -178,6 +179,21 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 		</section>
 
 		<?php if ( $has_form_snapshot ) : ?>
+			<?php if ( ! empty( $selected_snapshot_capture_context_card ) ) : ?>
+				<section class="znts-card znts-card-full znts-card-flat">
+					<h2><?php echo esc_html( isset( $selected_snapshot_capture_context_card['title'] ) ? $selected_snapshot_capture_context_card['title'] : __( 'Checkpoint Context', 'zignites-sentinel' ) ); ?></h2>
+					<p><?php echo esc_html( isset( $selected_snapshot_capture_context_card['description'] ) ? $selected_snapshot_capture_context_card['description'] : '' ); ?></p>
+					<div class="znts-summary-strip znts-summary-strip-compact">
+						<?php foreach ( isset( $selected_snapshot_capture_context_card['rows'] ) && is_array( $selected_snapshot_capture_context_card['rows'] ) ? $selected_snapshot_capture_context_card['rows'] : array() as $row ) : ?>
+							<div class="znts-summary-item">
+								<span><?php echo esc_html( isset( $row['label'] ) ? $row['label'] : '' ); ?></span>
+								<p><?php echo esc_html( isset( $row['value'] ) ? $row['value'] : '' ); ?></p>
+							</div>
+						<?php endforeach; ?>
+					</div>
+				</section>
+			<?php endif; ?>
+
 			<section class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Validate Checkpoint', 'zignites-sentinel' ); ?></h2>
 				<p><?php echo esc_html__( 'Run these checks in order so the checkpoint is easier to trust before any live restore decision.', 'zignites-sentinel' ); ?></p>

@@ -762,3 +762,10 @@
 - Current branch verification now also confirms:
   - `php tests/run.php` passes with the new update-aware snapshot coverage included
   - `php -l` passes for the touched admin, snapshot-manager, and new focused test files
+- Current branch adds the checkpoint-context presentation pass for:
+  - the `Before Update` workspace now exposes a dedicated `Checkpoint Context` summary whenever a selected snapshot was captured from a native update screen
+  - the context card makes the originating screen, update scope, and targeted plugin/theme components readable without forcing operators to parse stored JSON metadata
+  - the internal snapshot metadata rows now skip structured `capture_context` and `component_manifest` payloads so future metadata views stay focused on scalar values
+- Current branch verification now further confirms:
+  - `php tests/run.php` still passes after adding the new checkpoint-context UI state
+  - `php -l` passes for `includes/admin/class-update-readiness-state-builder.php`, `includes/admin/views/before-update.php`, and the updated state-builder test coverage
