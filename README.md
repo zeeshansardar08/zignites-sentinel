@@ -87,3 +87,8 @@ Sentinel is a weak fit when:
 - Sentinel is designed for technical WordPress users, developers, and agencies.
 - It does not claim atomic restore behavior.
 - This phase intentionally narrows the product instead of adding new features.
+
+## Repo Checklists
+
+- [manual-smoke-checklist.md](/D:/laragon/www/zee-dev/wp-content/plugins/zignites-sentinel/manual-smoke-checklist.md): screen-by-screen UI and workflow verification.
+- [release-checklist.md](/D:/laragon/www/zee-dev/wp-content/plugins/zignites-sentinel/release-checklist.md): version sync, smoke, screenshots, packaging, and final release handoff.

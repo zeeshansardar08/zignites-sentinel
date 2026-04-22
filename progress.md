@@ -744,3 +744,6 @@
   - `readme.txt` now explains restore safeguards, artifact handling, checkpoint timing, and post-restore review more directly for WordPress.org readers
   - screenshot captions now match the current Dashboard, Before Update, and History surfaces more closely
   - public-facing FAQ copy now reinforces the same restore boundary and validation expectations used in the admin UI
+- Current branch adds the release checklist pass for:
+  - a new `release-checklist.md` now captures version sync, verification, screenshot, packaging, and publish steps in one repo-local document
+  - release prep no longer depends on reconstructing the latest smoke/export/screenshot expectations from prior handoff notes
