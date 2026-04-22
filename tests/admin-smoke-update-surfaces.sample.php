@@ -11,12 +11,15 @@
  *
  * Copy this file to tests/admin-smoke-update-surfaces.php or
  * tests/admin-smoke-update-surfaces.local.php, or pass values directly with CLI flags.
+ * Use either cookie_header or local_user for authentication.
  * Do not commit real browser cookies.
  */
 
 return array(
 	'base_url'      => 'http://example.test/wp-admin/',
 	'cookie_header' => 'wordpress_logged_in_example=replace-me; wordpress_sec_example=replace-me;',
+	'local_user'    => '',
+	'wordpress_root' => '',
 	'prerequisites' => array(
 		'Single-site checks are only useful when plugin/theme/core update surfaces currently have pending updates to inspect.',
 		'Network checks are only expected to pass on multisite installs where network admin is enabled for the authenticated user.',

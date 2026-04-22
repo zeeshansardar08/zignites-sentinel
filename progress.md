@@ -717,3 +717,12 @@
   - authenticated Sentinel admin smoke passes on the local `http://zee-dev.test/wp-admin/` environment with `Summary: 10 passed, 0 skipped, 0 failed.`
   - optional native update-surface smoke still passes on the same environment with `Summary: 3 passed, 3 skipped, 0 failed.`
   - network update-surface checks still skip cleanly because the current install is not multisite / network-admin enabled
+- Current branch adds the local admin auth helper pass for:
+  - `tests/class-local-admin-auth-helper.php` can now discover the local WordPress root from the plugin test directory and generate a one-off authenticated wp-admin cookie header for a local user ID, login, or email
+  - `tests/smoke-admin-live.php` now supports `--local-user` and optional `--wp-root` so local page smoke runs no longer require copying a browser cookie
+  - `tests/export-event-logs-live.php` now supports the same local-user auth flow and can fall back to building the export POST directly from the current History filters when the page no longer renders the older export form
+  - smoke/export sample configs and manual smoke docs now describe both browser-cookie and local-user auth flows
+  - focused regression coverage now includes WordPress-root discovery and base-URL context parsing for the local auth helper
+- Current branch live verification now also confirms:
+  - authenticated Sentinel admin smoke passes on `http://zee-dev.test/wp-admin/` via `--local-user=1` with `Summary: 10 passed, 0 skipped, 0 failed.`
+  - authenticated Event Logs export verification passes on the same environment via `--local-user=1`, exporting the current History scope successfully

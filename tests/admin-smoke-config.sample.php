@@ -4,12 +4,15 @@
  *
  * Copy this file to tests/admin-smoke-config.php or tests/admin-smoke-config.local.php,
  * or pass values directly with CLI flags.
+ * Use either cookie_header or local_user for authentication.
  * Do not commit real browser cookies.
  */
 
 return array(
 	'base_url'      => 'http://example.test/wp-admin/',
 	'cookie_header' => 'wordpress_logged_in_example=replace-me; wordpress_sec_example=replace-me;',
+	'local_user'    => '',
+	'wordpress_root' => '',
 	'timeout'       => 20,
 	'checks'        => array(
 		array(

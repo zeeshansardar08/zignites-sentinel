@@ -146,10 +146,22 @@ Copy-Item tests/admin-smoke-config.sample.php tests/admin-smoke-config.php
 php tests/smoke-admin-live.php
 ```
 
+Local WordPress auth alternative:
+
+```powershell
+php tests/smoke-admin-live.php --base-url=http://zee-dev.test/wp-admin/ --local-user=1
+```
+
 Optional native update-surface smoke helper:
 
 ```powershell
 php tests/smoke-admin-live.php --config=tests/admin-smoke-update-surfaces.sample.php
+```
+
+Optional live Event Logs export verifier:
+
+```powershell
+php tests/export-event-logs-live.php --base-url=http://zee-dev.test/wp-admin/ --local-user=1 --path="admin.php?page=zignites-sentinel-event-logs"
 ```
 
 Notes:
@@ -161,7 +173,8 @@ Notes:
 - A separate sample config for native WordPress update surfaces is available at `tests/admin-smoke-update-surfaces.sample.php`.
 - Optional local update-surface config names are `tests/admin-smoke-update-surfaces.php` and `tests/admin-smoke-update-surfaces.local.php`.
 - The export verifier can also auto-load `tests/event-log-export-config.php` or `tests/event-log-export-config.local.php`.
-- Environment overrides are available for `ZNTS_SMOKE_BASE_URL`, `ZNTS_SMOKE_COOKIE_HEADER`, `ZNTS_SMOKE_TIMEOUT`, and `ZNTS_EVENT_LOG_EXPORT_PATH`.
+- Local auth is also available through `--local-user` plus optional `--wp-root`, or config/env equivalents when the repo sits inside a local WordPress install.
+- Environment overrides are available for `ZNTS_SMOKE_BASE_URL`, `ZNTS_SMOKE_COOKIE_HEADER`, `ZNTS_SMOKE_LOCAL_USER`, `ZNTS_SMOKE_WORDPRESS_ROOT`, `ZNTS_SMOKE_TIMEOUT`, `ZNTS_EVENT_LOG_EXPORT_PATH`, and `ZNTS_EVENT_LOG_EXPORT_TIMEOUT`.
 - That update-surface config also includes explicit network-admin checks for multisite verification.
 - The current smoke helper targets the simplified `Dashboard`, `Before Update`, `History`, selected-checkpoint, and widget surfaces.
 - PHP CLI may still emit the unrelated `pdo_snowflake` startup warning.
