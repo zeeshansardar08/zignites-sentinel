@@ -92,3 +92,7 @@ Sentinel is a weak fit when:
 
 - [manual-smoke-checklist.md](/D:/laragon/www/zee-dev/wp-content/plugins/zignites-sentinel/manual-smoke-checklist.md): screen-by-screen UI and workflow verification.
 - [release-checklist.md](/D:/laragon/www/zee-dev/wp-content/plugins/zignites-sentinel/release-checklist.md): version sync, smoke, screenshots, packaging, and final release handoff.
+
+## Packaging
+
+- [.distignore](/D:/laragon/www/zee-dev/wp-content/plugins/zignites-sentinel/.distignore) defines repo-only files and folders that should stay out of the release zip.

@@ -747,3 +747,6 @@
 - Current branch adds the release checklist pass for:
   - a new `release-checklist.md` now captures version sync, verification, screenshot, packaging, and publish steps in one repo-local document
   - release prep no longer depends on reconstructing the latest smoke/export/screenshot expectations from prior handoff notes
+- Current branch adds the release package manifest pass for:
+  - a new `.distignore` now excludes repo-only docs, git metadata, and the `tests/` directory from release packaging
+  - the release checklist and repo README now point to that manifest so packaging rules stay visible instead of implicit
