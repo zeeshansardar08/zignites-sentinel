@@ -61,6 +61,7 @@ function znts_test_plugin_update_row_handoff_adds_checkpoint_action_when_no_snap
 	$admin->set_candidates(
 		array(
 			array(
+				'key'  => 'plugin:example/example.php',
 				'type' => 'plugin',
 				'slug' => 'example/example.php',
 			),
@@ -72,6 +73,7 @@ function znts_test_plugin_update_row_handoff_adds_checkpoint_action_when_no_snap
 	znts_assert_same( 1, count( $meta ), 'Plugin row handoff should append a single Sentinel cue for updateable plugins.' );
 	znts_assert_true( false !== strpos( $meta[0], 'Sentinel: create checkpoint now' ), 'Plugin row handoff should offer checkpoint creation when no latest snapshot exists.' );
 	znts_assert_true( false !== strpos( $meta[0], 'znts_return_screen=plugins' ), 'Plugin row handoff should preserve the plugin update screen as the checkpoint return target.' );
+	znts_assert_true( false !== strpos( $meta[0], 'znts_update_target=plugin%3Aexample%2Fexample.php' ), 'Plugin row handoff should capture the exact plugin target for the checkpoint action.' );
 }
 
 function znts_test_plugin_update_row_handoff_uses_review_label_when_checkpoint_needs_attention() {
@@ -89,6 +91,7 @@ function znts_test_plugin_update_row_handoff_uses_review_label_when_checkpoint_n
 	$admin->set_candidates(
 		array(
 			array(
+				'key'  => 'plugin:example/example.php',
 				'type' => 'plugin',
 				'slug' => 'example/example.php',
 			),
@@ -126,6 +129,7 @@ function znts_test_theme_update_row_handoff_adds_checkpoint_link_to_theme_action
 	$admin->set_candidates(
 		array(
 			array(
+				'key'  => 'theme:example-theme',
 				'type' => 'theme',
 				'slug' => 'example-theme',
 			),
@@ -137,6 +141,7 @@ function znts_test_theme_update_row_handoff_adds_checkpoint_link_to_theme_action
 	znts_assert_true( isset( $actions['znts_sentinel'] ), 'Theme row handoff should add a Sentinel action for updateable themes.' );
 	znts_assert_true( false !== strpos( $actions['znts_sentinel'], 'Sentinel: create fresh checkpoint' ), 'Theme row handoff should prompt for a fresh checkpoint when the latest checkpoint is stable.' );
 	znts_assert_true( false !== strpos( $actions['znts_sentinel'], 'znts_return_screen=themes' ), 'Theme row handoff should preserve the theme update screen as the checkpoint return target.' );
+	znts_assert_true( false !== strpos( $actions['znts_sentinel'], 'znts_update_target=theme%3Aexample-theme' ), 'Theme row handoff should capture the exact theme target for the checkpoint action.' );
 }
 
 function znts_test_plugin_update_row_handoff_prompts_for_fresh_checkpoint_when_latest_is_stable() {
@@ -154,6 +159,7 @@ function znts_test_plugin_update_row_handoff_prompts_for_fresh_checkpoint_when_l
 	$admin->set_candidates(
 		array(
 			array(
+				'key'  => 'plugin:example/example.php',
 				'type' => 'plugin',
 				'slug' => 'example/example.php',
 			),
@@ -164,4 +170,5 @@ function znts_test_plugin_update_row_handoff_prompts_for_fresh_checkpoint_when_l
 
 	znts_assert_true( false !== strpos( $meta[0], 'Sentinel: create fresh checkpoint' ), 'Plugin row handoff should prompt for a fresh checkpoint when the latest checkpoint is stable.' );
 	znts_assert_true( false !== strpos( $meta[0], 'znts_return_screen=plugins' ), 'Plugin row handoff should preserve the plugin update screen as the checkpoint return target for fresh capture.' );
+	znts_assert_true( false !== strpos( $meta[0], 'znts_update_target=plugin%3Aexample%2Fexample.php' ), 'Fresh plugin checkpoint cues should preserve the exact plugin target.' );
 }

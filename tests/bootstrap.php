@@ -84,6 +84,16 @@ if ( ! function_exists( 'wp_json_encode' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_unslash' ) ) {
+	function wp_unslash( $value ) {
+		if ( is_array( $value ) ) {
+			return array_map( 'wp_unslash', $value );
+		}
+
+		return is_string( $value ) ? stripslashes( $value ) : $value;
+	}
+}
+
 if ( ! function_exists( 'wp_salt' ) ) {
 	function wp_salt( $scheme = 'auth' ) {
 		return 'znts-test-salt-' . (string) $scheme;
@@ -115,6 +125,12 @@ if ( ! function_exists( 'delete_option' ) ) {
 if ( ! function_exists( 'current_time' ) ) {
 	function current_time( $type, $gmt = 0 ) {
 		return gmdate( 'Y-m-d H:i:s' );
+	}
+}
+
+if ( ! function_exists( 'wp_date' ) ) {
+	function wp_date( $format, $timestamp = null, $timezone = null ) {
+		return gmdate( $format, null === $timestamp ? time() : (int) $timestamp );
 	}
 }
 
@@ -229,6 +245,7 @@ if ( ! class_exists( 'Zignites\\Sentinel\\Snapshots\\RestoreExecutionPlanner' ) 
 }
 
 require_once __DIR__ . '/../includes/snapshots/class-artifact-storage-guard.php';
+require_once __DIR__ . '/../includes/snapshots/class-component-manifest-builder.php';
 require_once __DIR__ . '/../includes/snapshots/class-restore-health-verifier.php';
 require_once __DIR__ . '/../includes/logging/class-log-repository.php';
 require_once __DIR__ . '/../includes/snapshots/class-restore-checkpoint-store.php';
@@ -236,6 +253,10 @@ require_once __DIR__ . '/../includes/snapshots/class-restore-journal-recorder.ph
 require_once __DIR__ . '/../includes/snapshots/class-restore-executor.php';
 require_once __DIR__ . '/../includes/snapshots/class-restore-rollback-manager.php';
 require_once __DIR__ . '/../includes/snapshots/class-snapshot-artifact-repository.php';
+require_once __DIR__ . '/../includes/snapshots/class-snapshot-export-manager.php';
+require_once __DIR__ . '/../includes/snapshots/class-snapshot-package-manager.php';
+require_once __DIR__ . '/../includes/snapshots/class-snapshot-repository.php';
+require_once __DIR__ . '/../includes/snapshots/class-snapshot-manager.php';
 require_once __DIR__ . '/../includes/admin/class-audit-report-verifier.php';
 require_once __DIR__ . '/../includes/admin/class-status-presenter.php';
 require_once __DIR__ . '/../includes/admin/class-event-log-presenter.php';

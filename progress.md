@@ -754,3 +754,11 @@
   - a new `scripts/build-release.ps1` now builds a release zip from the repo while honoring `.distignore`
   - release docs now point to a concrete packaging command instead of only describing packaging checks at a policy level
   - local dry-run verification now confirms `build/zignites-sentinel.zip` includes runtime plugin files while excluding `.git`, repo-only docs, `tests/`, and the packaging script itself
+- Current branch adds the update-aware snapshot capture pass for:
+  - native WordPress update-screen checkpoint actions now preserve the exact plugin or theme target when they originate from row-level handoff links
+  - checkpoint captures launched from supported update surfaces now store update-window context, so new snapshot labels and descriptions reflect whether the capture was for a specific plugin, a theme window, or a mixed plugin/theme update pass
+  - snapshot metadata now records sanitized `capture_context` details for the originating update screen and targeted components, which makes later review and export artifacts more intelligible
+  - focused regression coverage now includes row-level target preservation, request-derived update capture context, and context-aware snapshot label/description generation
+- Current branch verification now also confirms:
+  - `php tests/run.php` passes with the new update-aware snapshot coverage included
+  - `php -l` passes for the touched admin, snapshot-manager, and new focused test files

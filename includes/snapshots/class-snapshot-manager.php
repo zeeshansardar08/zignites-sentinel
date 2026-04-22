@@ -79,28 +79,13 @@ class SnapshotManager {
 	/**
 	 * Create a manual metadata snapshot.
 	 *
-	 * @param int $user_id Current user ID.
+	 * @param int   $user_id Current user ID.
+	 * @param array $context Optional capture context.
 	 * @return int|false
 	 */
-	public function create_manual_snapshot( $user_id ) {
+	public function create_manual_snapshot( $user_id, array $context = array() ) {
 		$state         = $this->collect_site_state();
-		$snapshot_data = array(
-			'snapshot_type'    => 'manual',
-			'status'           => 'ready',
-			'label'            => sprintf(
-				/* translators: %s = date/time */
-				__( 'Manual snapshot %s', 'zignites-sentinel' ),
-				wp_date( 'Y-m-d H:i:s' )
-			),
-			'description'      => __( 'Metadata snapshot captured before manual review or update activity.', 'zignites-sentinel' ),
-			'core_version'     => $state['core_version'],
-			'php_version'      => $state['php_version'],
-			'theme_stylesheet' => $state['theme_stylesheet'],
-			'active_plugins'   => wp_json_encode( $state['active_plugins'] ),
-			'metadata'         => wp_json_encode( $state['metadata'] ),
-			'created_by'       => absint( $user_id ),
-			'created_at'       => current_time( 'mysql', true ),
-		);
+		$snapshot_data = $this->build_manual_snapshot_record_data( $state, $user_id, $context );
 		$inserted      = $this->repository->insert( $snapshot_data );
 
 		if ( false === $inserted ) {
@@ -198,6 +183,46 @@ class SnapshotManager {
 	}
 
 	/**
+	 * Build the stored snapshot record payload.
+	 *
+	 * @param array $state   Collected site state.
+	 * @param int   $user_id Current user ID.
+	 * @param array $context Optional capture context.
+	 * @return array
+	 */
+	protected function build_manual_snapshot_record_data( array $state, $user_id, array $context = array() ) {
+		$context     = $this->normalize_manual_snapshot_context( $context );
+		$timestamp   = wp_date( 'Y-m-d H:i:s' );
+		$metadata    = isset( $state['metadata'] ) && is_array( $state['metadata'] ) ? $state['metadata'] : array();
+		$label       = sprintf(
+			/* translators: %s = date/time */
+			__( 'Manual snapshot %s', 'zignites-sentinel' ),
+			$timestamp
+		);
+		$description = __( 'Metadata snapshot captured before manual review or update activity.', 'zignites-sentinel' );
+
+		if ( ! empty( $context['targets'] ) ) {
+			$label       = $this->build_contextual_snapshot_label( $context, $timestamp );
+			$description = $this->build_contextual_snapshot_description( $context );
+			$metadata['capture_context'] = $context;
+		}
+
+		return array(
+			'snapshot_type'    => 'manual',
+			'status'           => 'ready',
+			'label'            => $label,
+			'description'      => $description,
+			'core_version'     => isset( $state['core_version'] ) ? $state['core_version'] : '',
+			'php_version'      => isset( $state['php_version'] ) ? $state['php_version'] : '',
+			'theme_stylesheet' => isset( $state['theme_stylesheet'] ) ? $state['theme_stylesheet'] : '',
+			'active_plugins'   => wp_json_encode( isset( $state['active_plugins'] ) ? $state['active_plugins'] : array() ),
+			'metadata'         => wp_json_encode( $metadata ),
+			'created_by'       => absint( $user_id ),
+			'created_at'       => current_time( 'mysql', true ),
+		);
+	}
+
+	/**
 	 * Collect current site state for metadata storage.
 	 *
 	 * @return array
@@ -237,6 +262,176 @@ class SnapshotManager {
 				'component_manifest'  => $this->manifest_builder->build( $active_plugin_states ),
 			),
 		);
+	}
+
+	/**
+	 * Normalize optional capture context for pre-update checkpoints.
+	 *
+	 * @param array $context Raw capture context.
+	 * @return array
+	 */
+	protected function normalize_manual_snapshot_context( array $context ) {
+		$normalized = array(
+			'source'       => isset( $context['source'] ) ? sanitize_key( (string) $context['source'] ) : '',
+			'return_screen'=> isset( $context['return_screen'] ) ? sanitize_key( (string) $context['return_screen'] ) : '',
+			'screen_id'    => isset( $context['screen_id'] ) ? sanitize_key( (string) $context['screen_id'] ) : '',
+			'capture_mode' => isset( $context['capture_mode'] ) ? sanitize_key( (string) $context['capture_mode'] ) : '',
+			'scope'        => isset( $context['scope'] ) ? sanitize_key( (string) $context['scope'] ) : 'manual',
+			'target_count' => isset( $context['target_count'] ) ? absint( $context['target_count'] ) : 0,
+			'targets'      => array(),
+		);
+
+		if ( empty( $context['targets'] ) || ! is_array( $context['targets'] ) ) {
+			return $normalized;
+		}
+
+		foreach ( $context['targets'] as $target ) {
+			if ( ! is_array( $target ) ) {
+				continue;
+			}
+
+			$normalized['targets'][] = array(
+				'key'             => isset( $target['key'] ) ? sanitize_text_field( (string) $target['key'] ) : '',
+				'type'            => isset( $target['type'] ) ? sanitize_key( (string) $target['type'] ) : '',
+				'slug'            => isset( $target['slug'] ) ? sanitize_text_field( (string) $target['slug'] ) : '',
+				'label'           => isset( $target['label'] ) ? sanitize_text_field( (string) $target['label'] ) : '',
+				'current_version' => isset( $target['current_version'] ) ? sanitize_text_field( (string) $target['current_version'] ) : '',
+				'new_version'     => isset( $target['new_version'] ) ? sanitize_text_field( (string) $target['new_version'] ) : '',
+			);
+		}
+
+		if ( empty( $normalized['targets'] ) ) {
+			$normalized['target_count'] = 0;
+			$normalized['scope']        = 'manual';
+		} else {
+			$normalized['target_count'] = count( $normalized['targets'] );
+		}
+
+		return $normalized;
+	}
+
+	/**
+	 * Build a contextual label for update-aware checkpoints.
+	 *
+	 * @param array  $context   Normalized capture context.
+	 * @param string $timestamp Current timestamp.
+	 * @return string
+	 */
+	protected function build_contextual_snapshot_label( array $context, $timestamp ) {
+		$primary_target = $this->get_primary_context_target( $context );
+		$scope          = isset( $context['scope'] ) ? sanitize_key( (string) $context['scope'] ) : 'manual';
+
+		if ( ! empty( $primary_target['label'] ) && in_array( $scope, array( 'plugin', 'theme' ), true ) ) {
+			return sprintf(
+				/* translators: 1: target label, 2: timestamp */
+				__( 'Pre-update checkpoint: %1$s %2$s', 'zignites-sentinel' ),
+				$primary_target['label'],
+				$timestamp
+			);
+		}
+
+		if ( 'plugins' === $scope ) {
+			return sprintf(
+				/* translators: %s: timestamp */
+				__( 'Pre-update plugins checkpoint %s', 'zignites-sentinel' ),
+				$timestamp
+			);
+		}
+
+		if ( 'themes' === $scope ) {
+			return sprintf(
+				/* translators: %s: timestamp */
+				__( 'Pre-update themes checkpoint %s', 'zignites-sentinel' ),
+				$timestamp
+			);
+		}
+
+		return sprintf(
+			/* translators: %s: timestamp */
+			__( 'Pre-update code checkpoint %s', 'zignites-sentinel' ),
+			$timestamp
+		);
+	}
+
+	/**
+	 * Build a contextual description for update-aware checkpoints.
+	 *
+	 * @param array $context Normalized capture context.
+	 * @return string
+	 */
+	protected function build_contextual_snapshot_description( array $context ) {
+		$screen_label   = $this->get_context_screen_label( $context );
+		$primary_target = $this->get_primary_context_target( $context );
+		$scope          = isset( $context['scope'] ) ? sanitize_key( (string) $context['scope'] ) : 'manual';
+
+		if ( ! empty( $primary_target['label'] ) && in_array( $scope, array( 'plugin', 'theme' ), true ) ) {
+			return sprintf(
+				/* translators: 1: source screen label, 2: target label */
+				__( 'Checkpoint captured from the %1$s before updating %2$s.', 'zignites-sentinel' ),
+				$screen_label,
+				$primary_target['label']
+			);
+		}
+
+		if ( 'plugins' === $scope ) {
+			return sprintf(
+				/* translators: %s: source screen label */
+				__( 'Checkpoint captured from the %s before a plugin update window.', 'zignites-sentinel' ),
+				$screen_label
+			);
+		}
+
+		if ( 'themes' === $scope ) {
+			return sprintf(
+				/* translators: %s: source screen label */
+				__( 'Checkpoint captured from the %s before a theme update window.', 'zignites-sentinel' ),
+				$screen_label
+			);
+		}
+
+		return sprintf(
+			/* translators: %s: source screen label */
+			__( 'Checkpoint captured from the %s before a mixed plugin and theme update window.', 'zignites-sentinel' ),
+			$screen_label
+		);
+	}
+
+	/**
+	 * Return the primary target from a contextual capture.
+	 *
+	 * @param array $context Normalized capture context.
+	 * @return array
+	 */
+	protected function get_primary_context_target( array $context ) {
+		if ( empty( $context['targets'] ) || ! is_array( $context['targets'] ) ) {
+			return array();
+		}
+
+		return is_array( $context['targets'][0] ) ? $context['targets'][0] : array();
+	}
+
+	/**
+	 * Build a human-readable source screen label for capture descriptions.
+	 *
+	 * @param array $context Normalized capture context.
+	 * @return string
+	 */
+	protected function get_context_screen_label( array $context ) {
+		$return_screen = isset( $context['return_screen'] ) ? sanitize_key( (string) $context['return_screen'] ) : '';
+
+		if ( in_array( $return_screen, array( 'plugins', 'plugins-network' ), true ) ) {
+			return __( 'plugins update screen', 'zignites-sentinel' );
+		}
+
+		if ( in_array( $return_screen, array( 'themes', 'themes-network' ), true ) ) {
+			return __( 'themes update screen', 'zignites-sentinel' );
+		}
+
+		if ( in_array( $return_screen, array( 'update-core', 'update-core-network' ), true ) ) {
+			return __( 'Updates screen', 'zignites-sentinel' );
+		}
+
+		return __( 'update workflow', 'zignites-sentinel' );
 	}
 
 	/**

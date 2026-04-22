@@ -710,18 +710,20 @@ class Admin {
 	public function filter_plugin_update_handoff_meta( $plugin_meta, $plugin_file, $plugin_data, $status ) {
 		$plugin_meta = is_array( $plugin_meta ) ? $plugin_meta : array();
 		$context     = $this->get_update_screen_row_handoff_context();
+		$plugin_file = (string) $plugin_file;
 
 		if ( empty( $context['screen_id'] ) || ! in_array( $context['screen_id'], array( 'plugins', 'plugins-network' ), true ) ) {
 			return $plugin_meta;
 		}
 
-		if ( empty( $context['plugin_candidates'][ (string) $plugin_file ] ) ) {
+		if ( empty( $context['plugin_candidates'][ $plugin_file ] ) || ! is_array( $context['plugin_candidates'][ $plugin_file ] ) ) {
 			return $plugin_meta;
 		}
 
 		$action = $this->build_update_list_handoff_action(
 			isset( $context['summary'] ) && is_array( $context['summary'] ) ? $context['summary'] : array(),
-			$context['screen_id']
+			$context['screen_id'],
+			isset( $context['plugin_candidates'][ $plugin_file ]['key'] ) ? (string) $context['plugin_candidates'][ $plugin_file ]['key'] : ''
 		);
 
 		if ( empty( $action['label'] ) || empty( $action['url'] ) ) {
@@ -755,13 +757,14 @@ class Admin {
 
 		$stylesheet = is_object( $theme ) && method_exists( $theme, 'get_stylesheet' ) ? (string) $theme->get_stylesheet() : '';
 
-		if ( '' === $stylesheet || empty( $context_state['theme_candidates'][ $stylesheet ] ) ) {
+		if ( '' === $stylesheet || empty( $context_state['theme_candidates'][ $stylesheet ] ) || ! is_array( $context_state['theme_candidates'][ $stylesheet ] ) ) {
 			return $actions;
 		}
 
 		$action = $this->build_update_list_handoff_action(
 			isset( $context_state['summary'] ) && is_array( $context_state['summary'] ) ? $context_state['summary'] : array(),
-			$context_state['screen_id']
+			$context_state['screen_id'],
+			isset( $context_state['theme_candidates'][ $stylesheet ]['key'] ) ? (string) $context_state['theme_candidates'][ $stylesheet ]['key'] : ''
 		);
 
 		if ( empty( $action['label'] ) || empty( $action['url'] ) ) {
@@ -796,13 +799,14 @@ class Admin {
 
 		$stylesheet = (string) $stylesheet;
 
-		if ( '' === $stylesheet || empty( $context['theme_candidates'][ $stylesheet ] ) ) {
+		if ( '' === $stylesheet || empty( $context['theme_candidates'][ $stylesheet ] ) || ! is_array( $context['theme_candidates'][ $stylesheet ] ) ) {
 			return $theme_meta;
 		}
 
 		$action = $this->build_update_list_handoff_action(
 			isset( $context['summary'] ) && is_array( $context['summary'] ) ? $context['summary'] : array(),
-			$context['screen_id']
+			$context['screen_id'],
+			isset( $context['theme_candidates'][ $stylesheet ]['key'] ) ? (string) $context['theme_candidates'][ $stylesheet ]['key'] : ''
 		);
 
 		if ( empty( $action['label'] ) || empty( $action['url'] ) ) {
@@ -914,9 +918,9 @@ class Admin {
 			$slug = (string) $candidate['slug'];
 
 			if ( 'plugin' === $type ) {
-				$context['plugin_candidates'][ $slug ] = true;
+				$context['plugin_candidates'][ $slug ] = $candidate;
 			} elseif ( 'theme' === $type ) {
-				$context['theme_candidates'][ $slug ] = true;
+				$context['theme_candidates'][ $slug ] = $candidate;
 			}
 		}
 
@@ -1232,9 +1236,10 @@ class Admin {
 	 * @param string $screen_id  Current screen identifier.
 	 * @return array
 	 */
-	protected function build_update_list_handoff_action( array $summary, $screen_id ) {
+	protected function build_update_list_handoff_action( array $summary, $screen_id, $target_key = '' ) {
 		$screen_id        = $this->normalize_update_screen_id( $screen_id );
 		$site_status_card = isset( $summary['site_status_card'] ) && is_array( $summary['site_status_card'] ) ? $summary['site_status_card'] : array();
+		$target_key       = $this->sanitize_update_target_key( $target_key );
 		$before_update_url = add_query_arg(
 			array(
 				'page' => self::UPDATE_PAGE_SLUG,
@@ -1247,7 +1252,7 @@ class Admin {
 		if ( empty( $site_status_card['latest_snapshot'] ) ) {
 			return array(
 				'label' => __( 'Sentinel: create checkpoint now', 'zignites-sentinel' ),
-				'url'   => $this->build_update_screen_snapshot_action_url( $screen_id ),
+				'url'   => $this->build_update_screen_snapshot_action_url( $screen_id, $target_key ),
 			);
 		}
 
@@ -1260,7 +1265,7 @@ class Admin {
 
 		return array(
 			'label' => __( 'Sentinel: create fresh checkpoint', 'zignites-sentinel' ),
-			'url'   => $this->build_update_screen_snapshot_action_url( $screen_id ),
+			'url'   => $this->build_update_screen_snapshot_action_url( $screen_id, $target_key ),
 		);
 	}
 
@@ -1270,17 +1275,35 @@ class Admin {
 	 * @param string $screen_id Current screen identifier.
 	 * @return string
 	 */
-	protected function build_update_screen_snapshot_action_url( $screen_id ) {
+	protected function build_update_screen_snapshot_action_url( $screen_id, $target_key = '' ) {
 		$screen_id = sanitize_key( (string) $screen_id );
+		$args      = array(
+			'action'             => 'znts_create_snapshot',
+			'znts_return_screen' => $screen_id,
+			'_wpnonce'           => wp_create_nonce( 'znts_create_snapshot_action' ),
+		);
+		$target_key = $this->sanitize_update_target_key( $target_key );
+
+		if ( '' !== $target_key ) {
+			$args['znts_update_target'] = $target_key;
+		}
 
 		return add_query_arg(
-			array(
-				'action'             => 'znts_create_snapshot',
-				'znts_return_screen' => $screen_id,
-				'_wpnonce'           => wp_create_nonce( 'znts_create_snapshot_action' ),
-			),
+			$args,
 			admin_url( 'admin-post.php' )
 		);
+	}
+
+	/**
+	 * Sanitize an update target key while preserving plugin file paths.
+	 *
+	 * @param string $target_key Raw target key.
+	 * @return string
+	 */
+	protected function sanitize_update_target_key( $target_key ) {
+		$target_key = sanitize_text_field( (string) $target_key );
+
+		return preg_match( '/^(plugin|theme|core):[A-Za-z0-9._\\/-]+$/', $target_key ) ? $target_key : '';
 	}
 
 	/**
@@ -1782,14 +1805,155 @@ class Admin {
 	public function handle_create_snapshot() {
 		$this->assert_admin_action_permissions( 'znts_create_snapshot_action' );
 		$return_screen = isset( $_REQUEST['znts_return_screen'] ) ? sanitize_key( wp_unslash( $_REQUEST['znts_return_screen'] ) ) : '';
+		$context       = $this->build_snapshot_creation_context_from_request( $return_screen );
 
-		$result = $this->snapshot_manager->create_manual_snapshot( get_current_user_id() );
+		$result = $this->snapshot_manager->create_manual_snapshot( get_current_user_id(), $context );
 
 		if ( false === $result ) {
 			$this->redirect_after_snapshot_creation( 'snapshot-failed', $return_screen );
 		}
 
 		$this->redirect_after_snapshot_creation( 'snapshot-created', $return_screen );
+	}
+
+	/**
+	 * Build contextual snapshot metadata from native update-screen requests.
+	 *
+	 * @param string $return_screen Requested update screen return target.
+	 * @return array
+	 */
+	protected function build_snapshot_creation_context_from_request( $return_screen ) {
+		$return_screen = sanitize_key( (string) $return_screen );
+		$screen_id     = $this->normalize_update_screen_id( $return_screen );
+
+		if ( ! in_array( $screen_id, array( 'plugins', 'themes', 'update-core' ), true ) ) {
+			return array();
+		}
+
+		$target_key = isset( $_REQUEST['znts_update_target'] ) ? $this->sanitize_update_target_key( wp_unslash( $_REQUEST['znts_update_target'] ) ) : '';
+		$targets    = array();
+
+		foreach ( $this->update_planner->get_candidates() as $candidate ) {
+			if ( ! is_array( $candidate ) || empty( $candidate['key'] ) || empty( $candidate['type'] ) ) {
+				continue;
+			}
+
+			$candidate_key = $this->sanitize_update_target_key( $candidate['key'] );
+			$type          = sanitize_key( (string) $candidate['type'] );
+
+			if ( '' === $candidate_key || ! in_array( $type, array( 'plugin', 'theme' ), true ) ) {
+				continue;
+			}
+
+			if ( '' !== $target_key && $candidate_key !== $target_key ) {
+				continue;
+			}
+
+			if ( '' === $target_key && ! $this->candidate_matches_snapshot_capture_screen( $candidate, $screen_id ) ) {
+				continue;
+			}
+
+			$targets[] = $this->sanitize_snapshot_capture_target( $candidate );
+		}
+
+		if ( empty( $targets ) ) {
+			return array();
+		}
+
+		return array(
+			'source'       => 'update_screen',
+			'return_screen'=> $return_screen,
+			'screen_id'    => $screen_id,
+			'capture_mode' => '' !== $target_key ? 'targeted' : 'screen',
+			'scope'        => $this->determine_snapshot_capture_scope( $targets ),
+			'target_count' => count( $targets ),
+			'targets'      => $targets,
+		);
+	}
+
+	/**
+	 * Determine whether an update candidate belongs to the current native screen.
+	 *
+	 * @param array  $candidate Candidate payload.
+	 * @param string $screen_id Normalized update screen ID.
+	 * @return bool
+	 */
+	protected function candidate_matches_snapshot_capture_screen( array $candidate, $screen_id ) {
+		$type      = isset( $candidate['type'] ) ? sanitize_key( (string) $candidate['type'] ) : '';
+		$screen_id = $this->normalize_update_screen_id( $screen_id );
+
+		if ( 'plugins' === $screen_id ) {
+			return 'plugin' === $type;
+		}
+
+		if ( 'themes' === $screen_id ) {
+			return 'theme' === $type;
+		}
+
+		if ( 'update-core' === $screen_id ) {
+			return in_array( $type, array( 'plugin', 'theme' ), true );
+		}
+
+		return false;
+	}
+
+	/**
+	 * Sanitize a snapshot capture target payload.
+	 *
+	 * @param array $candidate Raw candidate payload.
+	 * @return array
+	 */
+	protected function sanitize_snapshot_capture_target( array $candidate ) {
+		return array(
+			'key'             => isset( $candidate['key'] ) ? $this->sanitize_update_target_key( $candidate['key'] ) : '',
+			'type'            => isset( $candidate['type'] ) ? sanitize_key( (string) $candidate['type'] ) : '',
+			'slug'            => isset( $candidate['slug'] ) ? sanitize_text_field( (string) $candidate['slug'] ) : '',
+			'label'           => isset( $candidate['label'] ) ? sanitize_text_field( (string) $candidate['label'] ) : '',
+			'current_version' => isset( $candidate['current_version'] ) ? sanitize_text_field( (string) $candidate['current_version'] ) : '',
+			'new_version'     => isset( $candidate['new_version'] ) ? sanitize_text_field( (string) $candidate['new_version'] ) : '',
+		);
+	}
+
+	/**
+	 * Determine the snapshot capture scope for contextual checkpoint labels.
+	 *
+	 * @param array $targets Sanitized target rows.
+	 * @return string
+	 */
+	protected function determine_snapshot_capture_scope( array $targets ) {
+		if ( empty( $targets ) ) {
+			return 'manual';
+		}
+
+		$types = array();
+
+		foreach ( $targets as $target ) {
+			if ( empty( $target['type'] ) ) {
+				continue;
+			}
+
+			$types[ sanitize_key( (string) $target['type'] ) ] = true;
+		}
+
+		if ( 1 === count( $targets ) ) {
+			if ( isset( $types['plugin'] ) ) {
+				return 'plugin';
+			}
+
+			if ( isset( $types['theme'] ) ) {
+				return 'theme';
+			}
+		}
+
+		if ( isset( $types['plugin'] ) && ! isset( $types['theme'] ) ) {
+			return 'plugins';
+		}
+
+		if ( isset( $types['theme'] ) && ! isset( $types['plugin'] ) ) {
+			return 'themes';
+		}
+
+		return 'mixed';
 	}
 
 	/**
