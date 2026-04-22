@@ -78,9 +78,15 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 			<section class="znts-card znts-card-full znts-card-primary">
 				<h2><?php echo esc_html( isset( $first_run_notice['title'] ) ? $first_run_notice['title'] : '' ); ?></h2>
 				<p><?php echo esc_html( isset( $first_run_notice['description'] ) ? $first_run_notice['description'] : '' ); ?></p>
-				<div class="znts-flow-note">
-					<strong><?php echo esc_html__( 'Next step', 'zignites-sentinel' ); ?></strong>
-					<span><?php echo esc_html( isset( $first_run_notice['next_step'] ) ? $first_run_notice['next_step'] : '' ); ?></span>
+				<div class="znts-summary-strip znts-summary-strip-compact">
+					<div class="znts-summary-item">
+						<span><?php echo esc_html__( 'Next Step', 'zignites-sentinel' ); ?></span>
+						<p><?php echo esc_html( isset( $first_run_notice['next_step'] ) ? $first_run_notice['next_step'] : '' ); ?></p>
+					</div>
+					<div class="znts-summary-item">
+						<span><?php echo esc_html__( 'Best First Use', 'zignites-sentinel' ); ?></span>
+						<p><?php echo esc_html__( 'Create a checkpoint right before a plugin or theme update so the captured code layer matches the change window.', 'zignites-sentinel' ); ?></p>
+					</div>
 				</div>
 			</section>
 		<?php endif; ?>
@@ -131,6 +137,10 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 		<section class="znts-card znts-card-full znts-card-primary">
 			<h2><?php echo esc_html__( 'Create Checkpoint', 'zignites-sentinel' ); ?></h2>
 			<p><?php echo esc_html__( 'Use this before plugin or theme updates. Sentinel saves rollback artifacts for the active theme and active plugins.', 'zignites-sentinel' ); ?></p>
+			<div class="znts-flow-note">
+				<strong><?php echo esc_html__( 'Recommended moment', 'zignites-sentinel' ); ?></strong>
+				<span><?php echo esc_html__( 'Capture a checkpoint immediately before the update window you want covered, not hours or days earlier.', 'zignites-sentinel' ); ?></span>
+			</div>
 			<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
 				<input type="hidden" name="action" value="znts_create_snapshot" />
 				<?php wp_nonce_field( 'znts_create_snapshot_action' ); ?>
@@ -141,7 +151,10 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 		<section class="znts-card znts-card-full znts-card-flat">
 			<h2><?php echo esc_html__( 'Saved Checkpoints', 'zignites-sentinel' ); ?></h2>
 			<?php if ( empty( $recent_snapshot_rows ) ) : ?>
-				<p><?php echo esc_html( $snapshot_empty_message ); ?></p>
+				<div class="znts-empty-state">
+					<strong><?php echo esc_html__( 'No checkpoints are available yet.', 'zignites-sentinel' ); ?></strong>
+					<p><?php echo esc_html( $snapshot_empty_message ); ?></p>
+				</div>
 			<?php else : ?>
 				<table class="widefat striped">
 					<thead>
@@ -278,7 +291,11 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 		<?php if ( '' !== $snapshot_activity_url ) : ?>
 			<section class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Recent History', 'zignites-sentinel' ); ?></h2>
-				<p><a href="<?php echo esc_url( $snapshot_activity_url ); ?>"><?php echo esc_html__( 'Open Full History', 'zignites-sentinel' ); ?></a></p>
+				<div class="znts-empty-state znts-empty-state-compact">
+					<strong><?php echo esc_html__( 'Need the full audit trail?', 'zignites-sentinel' ); ?></strong>
+					<p><?php echo esc_html__( 'Open History to review checkpoint creation, validation, restore, and rollback events together.', 'zignites-sentinel' ); ?></p>
+					<p><a href="<?php echo esc_url( $snapshot_activity_url ); ?>"><?php echo esc_html__( 'Open Full History', 'zignites-sentinel' ); ?></a></p>
+				</div>
 			</section>
 		<?php endif; ?>
 	</div>

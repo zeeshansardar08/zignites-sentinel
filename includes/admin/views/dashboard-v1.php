@@ -39,7 +39,10 @@ $first_run_cta_url     = add_query_arg(
 		<?php if ( empty( $site_status_card ) ) : ?>
 			<h2 class="znts-hero-title"><?php echo esc_html__( 'Create Your First Checkpoint', 'zignites-sentinel' ); ?></h2>
 			<p class="znts-hero-subtitle"><?php echo esc_html__( 'Before updating your site, save a checkpoint of the active theme and plugins so you can restore that code layer if an update breaks it.', 'zignites-sentinel' ); ?></p>
-			<p><a class="button button-primary" href="<?php echo esc_url( $first_run_cta_url ); ?>"><?php echo esc_html__( 'Create Your First Checkpoint', 'zignites-sentinel' ); ?></a></p>
+			<div class="znts-quick-actions znts-dashboard-actions">
+				<p><a class="button button-primary" href="<?php echo esc_url( $first_run_cta_url ); ?>"><?php echo esc_html__( 'Create Your First Checkpoint', 'zignites-sentinel' ); ?></a></p>
+				<p><a class="button button-secondary" href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs' ), $admin_page_url ) ); ?>"><?php echo esc_html__( 'Open History', 'zignites-sentinel' ); ?></a></p>
+			</div>
 		<?php else : ?>
 			<div class="znts-readiness-row">
 				<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $site_status_card['badge'] ) ? $site_status_card['badge'] : 'info' ); ?>">
@@ -98,6 +101,7 @@ $first_run_cta_url     = add_query_arg(
 				<div class="znts-empty-state">
 					<strong><?php echo esc_html__( 'No checkpoints have been saved yet.', 'zignites-sentinel' ); ?></strong>
 					<p><?php echo esc_html__( 'Create a checkpoint before making risky plugin or theme updates.', 'zignites-sentinel' ); ?></p>
+					<p><a href="<?php echo esc_url( $first_run_cta_url ); ?>"><?php echo esc_html__( 'Open Before Update', 'zignites-sentinel' ); ?></a></p>
 				</div>
 			<?php else : ?>
 				<div class="znts-snapshot-overview">
@@ -133,6 +137,7 @@ $first_run_cta_url     = add_query_arg(
 				<div class="znts-empty-state">
 					<strong><?php echo esc_html__( 'No recent checkpoint or restore history yet.', 'zignites-sentinel' ); ?></strong>
 					<p><?php echo esc_html__( 'History will start filling in after you create checkpoints, run restores, or roll back the last restore.', 'zignites-sentinel' ); ?></p>
+					<p><a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs' ), $admin_page_url ) ); ?>"><?php echo esc_html__( 'Open Full History', 'zignites-sentinel' ); ?></a></p>
 				</div>
 			<?php else : ?>
 				<table class="widefat striped">
@@ -163,6 +168,7 @@ $first_run_cta_url     = add_query_arg(
 				<div class="znts-empty-state">
 					<strong><?php echo esc_html__( 'No saved checkpoints yet.', 'zignites-sentinel' ); ?></strong>
 					<p><?php echo esc_html__( 'Use Before Update to save a rollback checkpoint before plugin or theme updates.', 'zignites-sentinel' ); ?></p>
+					<p><a href="<?php echo esc_url( $first_run_cta_url ); ?>"><?php echo esc_html__( 'Create a Checkpoint', 'zignites-sentinel' ); ?></a></p>
 				</div>
 			<?php else : ?>
 				<table class="widefat striped">

@@ -733,3 +733,10 @@
 - Current branch live verification now further confirms:
   - the local `History` screen exposes both the export action and export form markers on `http://zee-dev.test/wp-admin/`
   - authenticated Event Logs export verification now passes against the on-page export control path, not only the local-auth fallback path
+- Current branch adds the final screenshot polish pass for:
+  - Dashboard first-run and empty-state cards now expose clearer next links into `Before Update` and `History`
+  - Before Update first-run guidance now carries more structured `Next Step`, `Best First Use`, and create-checkpoint timing copy for screenshots and demos
+  - History now separates filter controls from the export panel so the current-view CSV action reads more clearly in screenshots
+  - shared admin CSS now includes compact empty-state and toolbar-panel variants to keep those surfaces balanced on both desktop and narrower widths
+- Current branch live verification now also confirms:
+  - authenticated Sentinel admin smoke still passes on `http://zee-dev.test/wp-admin/` via `--local-user=1` with `Summary: 10 passed, 0 skipped, 0 failed.` after the screenshot polish pass
