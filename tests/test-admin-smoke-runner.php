@@ -402,3 +402,40 @@ function znts_test_admin_smoke_runner_summary_counts_can_be_tracked_separately()
 
 	znts_assert_same( 'Summary: 3 passed, 2 skipped, 1 failed.', $summary, 'Admin smoke runner output should be able to report pass/skip/fail totals in one compact line.' );
 }
+
+function znts_test_admin_smoke_runner_finds_first_existing_config_path() {
+	$runner      = new ZNTS_Admin_Smoke_Runner();
+	$config_path = tempnam( sys_get_temp_dir(), 'znts-smoke-config-' );
+
+	file_put_contents( $config_path, "<?php\nreturn array( 'base_url' => 'http://example.test/wp-admin/' );\n" );
+
+	$resolved = $runner->find_existing_config_path(
+		array(
+			$config_path . '.missing',
+			$config_path,
+		)
+	);
+
+	@unlink( $config_path );
+
+	znts_assert_same( $config_path, $resolved, 'Admin smoke runner should return the first existing config path from a candidate list.' );
+}
+
+function znts_test_admin_smoke_runner_reads_first_non_empty_environment_value() {
+	$runner = new ZNTS_Admin_Smoke_Runner();
+
+	putenv( 'ZNTS_SMOKE_BASE_URL=' );
+	putenv( 'ZNTS_SMOKE_COOKIE_HEADER=wordpress_logged_in_example=abc' );
+
+	$resolved = $runner->get_environment_value(
+		array(
+			'ZNTS_SMOKE_BASE_URL',
+			'ZNTS_SMOKE_COOKIE_HEADER',
+		)
+	);
+
+	putenv( 'ZNTS_SMOKE_BASE_URL' );
+	putenv( 'ZNTS_SMOKE_COOKIE_HEADER' );
+
+	znts_assert_same( 'wordpress_logged_in_example=abc', $resolved, 'Admin smoke runner should return the first non-empty environment override.' );
+}

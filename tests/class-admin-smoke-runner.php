@@ -421,6 +421,52 @@ class ZNTS_Admin_Smoke_Runner {
 	}
 
 	/**
+	 * Return the first existing config path from a candidate list.
+	 *
+	 * @param array $candidates Candidate config paths.
+	 * @return string
+	 */
+	public function find_existing_config_path( array $candidates ) {
+		foreach ( $candidates as $candidate ) {
+			$candidate = trim( (string) $candidate );
+
+			if ( '' !== $candidate && is_file( $candidate ) ) {
+				return $candidate;
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Read the first non-empty environment variable from a key list.
+	 *
+	 * @param array $keys Environment variable names.
+	 * @return string
+	 */
+	public function get_environment_value( array $keys ) {
+		foreach ( $keys as $key ) {
+			$key = trim( (string) $key );
+
+			if ( '' === $key ) {
+				continue;
+			}
+
+			$value = getenv( $key );
+
+			if ( false !== $value ) {
+				$value = trim( (string) $value );
+
+				if ( '' !== $value ) {
+					return $value;
+				}
+			}
+		}
+
+		return '';
+	}
+
+	/**
 	 * Fetch using curl when available.
 	 *
 	 * @param string $url           Full URL.

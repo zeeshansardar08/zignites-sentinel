@@ -2,7 +2,8 @@
 /**
  * Sample config for tests/export-event-logs-live.php.
  *
- * Copy this file outside version control or pass values directly with CLI flags.
+ * Copy this file to tests/event-log-export-config.php or
+ * tests/event-log-export-config.local.php, or pass values directly with CLI flags.
  * Do not commit real browser cookies.
  */
 

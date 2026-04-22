@@ -139,6 +139,13 @@ Optional live wp-admin smoke helper:
 php tests/smoke-admin-live.php --base-url=http://example.test/wp-admin/ --cookie="wordpress_logged_in_example=...; wordpress_sec_example=..."
 ```
 
+Local config alternative:
+
+```powershell
+Copy-Item tests/admin-smoke-config.sample.php tests/admin-smoke-config.php
+php tests/smoke-admin-live.php
+```
+
 Optional native update-surface smoke helper:
 
 ```powershell
@@ -150,7 +157,11 @@ Notes:
 - Use a real authenticated admin browser cookie header.
 - The page smoke helper is read-only and only performs GET requests.
 - A sample config is available at `tests/admin-smoke-config.sample.php`.
+- The default smoke helper now auto-loads `tests/admin-smoke-config.php` or `tests/admin-smoke-config.local.php` when present.
 - A separate sample config for native WordPress update surfaces is available at `tests/admin-smoke-update-surfaces.sample.php`.
+- Optional local update-surface config names are `tests/admin-smoke-update-surfaces.php` and `tests/admin-smoke-update-surfaces.local.php`.
+- The export verifier can also auto-load `tests/event-log-export-config.php` or `tests/event-log-export-config.local.php`.
+- Environment overrides are available for `ZNTS_SMOKE_BASE_URL`, `ZNTS_SMOKE_COOKIE_HEADER`, `ZNTS_SMOKE_TIMEOUT`, and `ZNTS_EVENT_LOG_EXPORT_PATH`.
 - That update-surface config also includes explicit network-admin checks for multisite verification.
 - The current smoke helper targets the simplified `Dashboard`, `Before Update`, `History`, selected-checkpoint, and widget surfaces.
 - PHP CLI may still emit the unrelated `pdo_snowflake` startup warning.
