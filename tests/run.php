@@ -38,6 +38,7 @@ require_once __DIR__ . '/test-admin-snapshot-capture-context.php';
 require_once __DIR__ . '/test-health-comparison.php';
 require_once __DIR__ . '/test-admin-smoke-runner.php';
 require_once __DIR__ . '/test-local-admin-auth-helper.php';
+require_once __DIR__ . '/test-release-package-install-verifier.php';
 require_once __DIR__ . '/test-resume-admin-presentation.php';
 require_once __DIR__ . '/test-status-presenter.php';
 require_once __DIR__ . '/test-update-aware-snapshot-context.php';

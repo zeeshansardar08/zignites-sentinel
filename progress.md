@@ -769,3 +769,10 @@
 - Current branch verification now further confirms:
   - `php tests/run.php` still passes after adding the new checkpoint-context UI state
   - `php -l` passes for `includes/admin/class-update-readiness-state-builder.php`, `includes/admin/views/before-update.php`, and the updated state-builder test coverage
+- Current branch adds the release package install-verification pass for:
+  - a new `scripts/verify-release-package.ps1` now installs the built zip into a temporary sibling plugin folder under the local WordPress `plugins` directory, deactivates the repo checkout plugin, activates the packaged copy through authenticated local wp-admin requests, optionally runs live smoke, then restores the repo checkout plugin
+  - a new `tests/verify-release-package-activation.php` helper now handles packaged-plugin activation and restoration through authenticated plugin-admin requests without requiring `wp-cli`
+  - release docs now include a concrete packaged-install verification command instead of leaving activation trust as a manual assumption
+  - focused regression coverage now includes the path/basename guards used by the package-install verifier helper
+- Tomorrow starting point:
+  - run the final release-prep pass: version sync, screenshot asset check, release summary draft, and any last WordPress.org copy cleanup before tagging or handoff

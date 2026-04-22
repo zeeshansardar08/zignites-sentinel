@@ -148,7 +148,17 @@ Default output:
 - Confirm the `tests/` directory is excluded from the release package unless there is a deliberate reason to ship it.
 - Confirm release packaging does not include transient test outputs or local secrets.
 - Confirm the generated zip still contains the expected runtime entry points such as `readme.txt`, `zignites-sentinel.php`, `includes/`, and `assets/`.
-- Confirm the plugin activates from a clean package on the target WordPress version if a packaging/install dry run is available.
+- Verify the package can be installed and activated outside the repo checkout when local install verification is available:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\verify-release-package.ps1 --BaseUrl=http://zee-dev.test/wp-admin/ --LocalUser=1
+```
+
+- Confirm the verification script:
+  - installs the built zip into a temporary sibling plugin folder
+  - deactivates the repo checkout plugin and activates the packaged plugin through authenticated wp-admin requests
+  - optionally runs the live Sentinel admin smoke pass against that packaged activation
+  - restores the original repo checkout plugin after verification
 
 ## 10. Release Handoff
 
