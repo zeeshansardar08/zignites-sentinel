@@ -559,27 +559,89 @@ class Admin {
 		add_filter( 'theme_action_links', array( $this, 'filter_theme_update_handoff_links' ), 10, 3 );
 		add_filter( 'theme_row_meta', array( $this, 'filter_theme_update_handoff_meta' ), 10, 4 );
 		add_action( 'wp_dashboard_setup', array( $this, 'register_dashboard_widget' ) );
-		add_action( 'admin_post_znts_run_preflight', array( $this, 'handle_run_preflight' ) );
-		add_action( 'admin_post_znts_export_event_logs', array( $this, 'handle_export_event_logs' ) );
-		add_action( 'admin_post_znts_create_snapshot', array( $this, 'handle_create_snapshot' ) );
-		add_action( 'admin_post_znts_download_settings_export', array( $this, 'handle_download_settings_export' ) );
-		add_action( 'admin_post_znts_import_settings', array( $this, 'handle_import_settings' ) );
-		add_action( 'admin_post_znts_save_settings', array( $this, 'handle_save_settings' ) );
-		add_action( 'admin_post_znts_build_update_plan', array( $this, 'handle_build_update_plan' ) );
-		add_action( 'admin_post_znts_check_restore_readiness', array( $this, 'handle_check_restore_readiness' ) );
-		add_action( 'admin_post_znts_run_restore_dry_run', array( $this, 'handle_run_restore_dry_run' ) );
-		add_action( 'admin_post_znts_run_restore_stage', array( $this, 'handle_run_restore_stage' ) );
-		add_action( 'admin_post_znts_build_restore_plan', array( $this, 'handle_build_restore_plan' ) );
-		add_action( 'admin_post_znts_refresh_restore_gates', array( $this, 'handle_refresh_restore_gates' ) );
-		add_action( 'admin_post_znts_execute_restore', array( $this, 'handle_execute_restore' ) );
-		add_action( 'admin_post_znts_resume_restore', array( $this, 'handle_resume_restore' ) );
-		add_action( 'admin_post_znts_discard_restore_execution_checkpoint', array( $this, 'handle_discard_restore_execution_checkpoint' ) );
-		add_action( 'admin_post_znts_capture_snapshot_health_baseline', array( $this, 'handle_capture_snapshot_health_baseline' ) );
-		add_action( 'admin_post_znts_download_snapshot_summary', array( $this, 'handle_download_snapshot_summary' ) );
-		add_action( 'admin_post_znts_download_snapshot_audit_report', array( $this, 'handle_download_snapshot_audit_report' ) );
-		add_action( 'admin_post_znts_verify_snapshot_audit_report', array( $this, 'handle_verify_snapshot_audit_report' ) );
-		add_action( 'admin_post_znts_rollback_restore', array( $this, 'handle_rollback_restore' ) );
-		add_action( 'admin_post_znts_resume_restore_rollback', array( $this, 'handle_resume_restore_rollback' ) );
+		$this->register_admin_post_actions();
+	}
+
+	/**
+	 * Register admin-post handlers exposed by the current admin UI.
+	 *
+	 * @return void
+	 */
+	protected function register_admin_post_actions() {
+		foreach ( $this->get_admin_post_action_handlers() as $action => $handler ) {
+			add_action( 'admin_post_' . $action, array( $this, $handler ) );
+		}
+	}
+
+	/**
+	 * Return admin-post action handlers for the current runtime.
+	 *
+	 * @return array
+	 */
+	protected function get_admin_post_action_handlers() {
+		$actions = self::get_default_admin_post_actions();
+
+		if ( $this->are_legacy_admin_actions_enabled() ) {
+			$actions = array_merge( $actions, self::get_legacy_admin_post_actions() );
+		}
+
+		return $actions;
+	}
+
+	/**
+	 * Return admin-post actions used by the simplified UI.
+	 *
+	 * @return array
+	 */
+	public static function get_default_admin_post_actions() {
+		return array(
+			'znts_export_event_logs'        => 'handle_export_event_logs',
+			'znts_create_snapshot'         => 'handle_create_snapshot',
+			'znts_check_restore_readiness' => 'handle_check_restore_readiness',
+			'znts_run_restore_dry_run'     => 'handle_run_restore_dry_run',
+			'znts_run_restore_stage'       => 'handle_run_restore_stage',
+			'znts_build_restore_plan'      => 'handle_build_restore_plan',
+			'znts_execute_restore'         => 'handle_execute_restore',
+			'znts_resume_restore'          => 'handle_resume_restore',
+			'znts_rollback_restore'        => 'handle_rollback_restore',
+			'znts_resume_restore_rollback' => 'handle_resume_restore_rollback',
+		);
+	}
+
+	/**
+	 * Return hidden legacy admin-post actions available only behind an explicit flag.
+	 *
+	 * @return array
+	 */
+	public static function get_legacy_admin_post_actions() {
+		return array(
+			'znts_run_preflight'                         => 'handle_run_preflight',
+			'znts_download_settings_export'              => 'handle_download_settings_export',
+			'znts_import_settings'                       => 'handle_import_settings',
+			'znts_save_settings'                         => 'handle_save_settings',
+			'znts_build_update_plan'                     => 'handle_build_update_plan',
+			'znts_refresh_restore_gates'                 => 'handle_refresh_restore_gates',
+			'znts_discard_restore_execution_checkpoint'  => 'handle_discard_restore_execution_checkpoint',
+			'znts_capture_snapshot_health_baseline'      => 'handle_capture_snapshot_health_baseline',
+			'znts_download_snapshot_summary'             => 'handle_download_snapshot_summary',
+			'znts_download_snapshot_audit_report'        => 'handle_download_snapshot_audit_report',
+			'znts_verify_snapshot_audit_report'          => 'handle_verify_snapshot_audit_report',
+		);
+	}
+
+	/**
+	 * Determine whether hidden legacy admin actions should be registered.
+	 *
+	 * @return bool
+	 */
+	protected function are_legacy_admin_actions_enabled() {
+		$enabled = defined( 'ZNTS_ENABLE_LEGACY_ADMIN_ACTIONS' ) && ZNTS_ENABLE_LEGACY_ADMIN_ACTIONS;
+
+		if ( function_exists( 'apply_filters' ) ) {
+			$enabled = (bool) apply_filters( 'znts_enable_legacy_admin_actions', $enabled );
+		}
+
+		return $enabled;
 	}
 
 	/**
@@ -992,7 +1054,7 @@ class Admin {
 			return array(
 				'type'        => 'info',
 				'title'       => __( 'Sentinel does not restore WordPress core updates.', 'zignites-sentinel' ),
-				'description' => __( 'Use Sentinel for plugin and theme rollback checkpoints. Use a full backup solution before changing WordPress core.', 'zignites-sentinel' ),
+				'description' => __( 'Use Sentinel for safe-update checkpoints on plugin and theme code changes. Use a full backup solution before changing WordPress core.', 'zignites-sentinel' ),
 				'actions'     => array(
 					array(
 						'label' => __( 'Open Before Update', 'zignites-sentinel' ),
@@ -1015,7 +1077,7 @@ class Admin {
 			$boundary_note = __( 'WordPress core updates are also pending. Sentinel covers the active theme and plugins, not core recovery.', 'zignites-sentinel' );
 
 			if ( 'update-core' === $screen_id && ( $plugin_count > 0 || $theme_count > 0 ) ) {
-				$boundary_note = __( 'WordPress core updates are also pending on this screen. Sentinel can help you prepare rollback checkpoints for the active theme and plugins, but not for core recovery.', 'zignites-sentinel' );
+				$boundary_note = __( 'WordPress core updates are also pending on this screen. Sentinel can help you prepare safe-update checkpoints for the active theme and plugins, but not for core recovery.', 'zignites-sentinel' );
 			}
 		}
 
@@ -1043,7 +1105,7 @@ class Admin {
 				'type'        => 'warning',
 				'title'       => sprintf(
 					/* translators: %s: update scope label */
-					__( 'Create a rollback checkpoint before updating %s.', 'zignites-sentinel' ),
+					__( 'Create a safe-update checkpoint before updating %s.', 'zignites-sentinel' ),
 					$scope_label
 				),
 				'description' => __( 'Sentinel has not recorded a recent checkpoint for the active theme and plugins. Create one now so you have a code-layer rollback point if the update breaks the site.', 'zignites-sentinel' ),

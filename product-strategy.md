@@ -2,7 +2,7 @@
 
 ## Product Promise
 
-Zignites Sentinel helps WordPress operators take a rollback checkpoint before risky plugin or theme updates, validate that checkpoint, and restore the active code layer if the update goes wrong.
+Zignites Sentinel provides Safe Update Checkpoints and Rollback for WordPress by helping operators capture plugin/theme code before risky updates, validate that checkpoint, and restore the active code layer if the update goes wrong.
 
 This is a narrow recovery tool, not a full backup system.
 
@@ -20,7 +20,7 @@ This is a narrow recovery tool, not a full backup system.
 ## Users We Should Not Optimize For First
 
 - Non-technical users expecting one-click full-site recovery
-- Site owners who mainly need database, media, or off-site backup protection
+- Site owners who mainly need database, media, WooCommerce order/payment, malware cleanup, or off-site backup protection
 - Hosts or enterprise teams needing transactional restore guarantees
 
 ## Core Pain Points
@@ -50,11 +50,11 @@ This is a narrow recovery tool, not a full backup system.
 
 ### Category
 
-Rollback checkpoint and guarded code-restore plugin for WordPress.
+Safe-update checkpoint and guarded code-restore plugin for WordPress.
 
 ### Positioning Statement
 
-For WordPress developers and technical maintainers who need a safer update workflow, Zignites Sentinel is a rollback checkpoint plugin that captures the active plugin and theme code state before updates, validates that checkpoint, and supports guarded restore and rollback review. Unlike full backup plugins, Sentinel focuses on fast pre-update recovery for the code layer instead of promising full-site disaster recovery.
+For WordPress agencies, freelancers, and production maintainers who need a safer update workflow, Zignites Sentinel provides Safe Update Checkpoints and Rollback for WordPress by capturing active plugin/theme code before updates, validating that checkpoint, and supporting guarded restore and rollback review. Unlike full backup plugins, Sentinel focuses on fast pre-update recovery for the code layer instead of promising full-site disaster recovery.
 
 ## Why Someone Should Use Sentinel
 
@@ -133,6 +133,6 @@ For WordPress developers and technical maintainers who need a safer update workf
 ## Product Guardrails
 
 - Do not market Sentinel as a full backup plugin
-- Do not imply database or media recovery
+- Do not imply database, media, WordPress core, WooCommerce order/payment, or malware cleanup recovery
 - Do not add broader destructive behavior before validation and rollback confidence improve
 - Do not optimize for beginner-first simplicity by hiding critical safety boundaries

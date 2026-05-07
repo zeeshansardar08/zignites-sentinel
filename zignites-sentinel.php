@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Zignites Sentinel
  * Plugin URI:  https://zignites.com/
- * Description: Create a rollback checkpoint of your active plugins and theme before updates, then restore it if an update breaks the code layer.
+ * Description: Safe Update Checkpoints and Rollback for WordPress plugin/theme code changes.
  * Version:     1.32.0
  * Author:      Zignites
  * Text Domain: zignites-sentinel

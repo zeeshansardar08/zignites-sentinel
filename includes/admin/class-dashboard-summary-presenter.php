@@ -91,7 +91,7 @@ class DashboardSummaryPresenter {
 				'title' => __( 'How to use this screen', 'zignites-sentinel' ),
 				'body'  => $has_snapshot
 					? __( 'Start with the latest checkpoint, then open Before Update when you need to validate, restore, or roll back it.', 'zignites-sentinel' )
-					: __( 'Create a checkpoint before updates so you have a rollback point for the active theme and plugins.', 'zignites-sentinel' ),
+					: __( 'Create a safe-update checkpoint before updates so you have a rollback point for the active theme and plugins.', 'zignites-sentinel' ),
 			),
 			array(
 				'title' => __( 'What this status means', 'zignites-sentinel' ),
@@ -119,7 +119,7 @@ class DashboardSummaryPresenter {
 
 		return array(
 			'hero' => array(
-				'title'       => __( 'Create your first rollback checkpoint.', 'zignites-sentinel' ),
+				'title'       => __( 'Create your first safe-update checkpoint.', 'zignites-sentinel' ),
 				'description' => __( 'Save the active theme and plugins before updates so you can restore that code layer later if needed.', 'zignites-sentinel' ),
 				'next_step'   => __( 'Open Before Update and create your first checkpoint.', 'zignites-sentinel' ),
 			),
@@ -161,7 +161,7 @@ class DashboardSummaryPresenter {
 	protected function build_positioning_note() {
 		return array(
 			'title' => __( 'What Sentinel is designed to do', 'zignites-sentinel' ),
-			'body'  => __( 'Sentinel is a plugin and theme rollback checkpoint tool. It helps you create a checkpoint before updates and restore it later if the code layer breaks.', 'zignites-sentinel' ),
+			'body'  => __( 'Sentinel provides Safe Update Checkpoints and Rollback for WordPress plugin/theme code changes. It helps you create a checkpoint before updates and restore it later if the code layer breaks, without claiming database, WooCommerce order/payment, core, or malware cleanup recovery.', 'zignites-sentinel' ),
 		);
 	}
 

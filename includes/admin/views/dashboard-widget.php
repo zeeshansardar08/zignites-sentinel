@@ -48,7 +48,7 @@ $health_rows          = ! empty( $restore_health_strip['rows'] ) && is_array( $r
 			</div>
 		<?php endif; ?>
 
-		<p class="description"><?php echo esc_html__( 'Theme and active plugins only. This is not a full-site restore tool.', 'zignites-sentinel' ); ?></p>
+		<p class="description"><?php echo esc_html__( 'Theme and active plugins only. Not a database, WooCommerce order/payment, core, or malware cleanup tool.', 'zignites-sentinel' ); ?></p>
 
 		<div class="znts-widget-links">
 			<?php if ( ! empty( $site_status_card['detail_url'] ) ) : ?>

@@ -42,7 +42,7 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 <div class="wrap znts-admin-page">
 	<div class="znts-page-header">
 		<h1><?php echo esc_html__( 'Before Update', 'zignites-sentinel' ); ?></h1>
-		<p class="znts-page-intro"><?php echo esc_html__( 'Create a rollback checkpoint of your active plugins and theme before updates, then restore it if an update breaks the code layer.', 'zignites-sentinel' ); ?></p>
+		<p class="znts-page-intro"><?php echo esc_html__( 'Safe Update Checkpoints and Rollback for WordPress plugin/theme code changes.', 'zignites-sentinel' ); ?></p>
 	</div>
 
 	<?php if ( ! empty( $notice ) ) : ?>
@@ -52,7 +52,7 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 	<?php endif; ?>
 
 	<section class="znts-summary-hero">
-		<span class="znts-eyebrow"><?php echo esc_html__( 'Checkpoint Workflow', 'zignites-sentinel' ); ?></span>
+		<span class="znts-eyebrow"><?php echo esc_html__( 'Safe Update Workflow', 'zignites-sentinel' ); ?></span>
 		<div class="znts-readiness-row">
 			<span class="znts-pill znts-pill-<?php echo esc_attr( $workspace_status_badge ); ?>">
 				<?php echo esc_html( $workspace_status_label ); ?>
@@ -66,11 +66,11 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 		</div>
 		<div class="znts-flow-note">
 			<strong><?php echo esc_html__( 'Restore boundary', 'zignites-sentinel' ); ?></strong>
-			<span><?php echo esc_html__( 'This plugin restores the active theme and active plugins only. It does not restore the database, uploads/media, or WordPress core. Use a full backup solution for full-site recovery.', 'zignites-sentinel' ); ?></span>
+			<span><?php echo esc_html__( 'This plugin restores the active theme and active plugins only. It does not restore the database, uploads/media, WordPress core, or WooCommerce order/payment state, and it does not perform malware cleanup. Use dedicated backup and security tools for those needs.', 'zignites-sentinel' ); ?></span>
 		</div>
 		<div class="znts-flow-note">
 			<strong><?php echo esc_html__( 'Best fit', 'zignites-sentinel' ); ?></strong>
-			<span><?php echo esc_html__( 'Use Sentinel when you want a rollback checkpoint for plugin and theme updates. Do not treat it as a full backup replacement.', 'zignites-sentinel' ); ?></span>
+			<span><?php echo esc_html__( 'Use Sentinel when you want a safe-update checkpoint for plugin and theme code changes. Do not treat it as a full backup replacement.', 'zignites-sentinel' ); ?></span>
 		</div>
 	</section>
 
@@ -141,6 +141,10 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 			<div class="znts-flow-note">
 				<strong><?php echo esc_html__( 'Recommended moment', 'zignites-sentinel' ); ?></strong>
 				<span><?php echo esc_html__( 'Capture a checkpoint immediately before the update window you want covered, not hours or days earlier.', 'zignites-sentinel' ); ?></span>
+			</div>
+			<div class="znts-flow-note">
+				<strong><?php echo esc_html__( 'Not covered', 'zignites-sentinel' ); ?></strong>
+				<span><?php echo esc_html__( 'This checkpoint covers active plugin/theme code only. It does not capture database changes, uploads/media, WooCommerce order/payment state, WordPress core, or malware cleanup state.', 'zignites-sentinel' ); ?></span>
 			</div>
 			<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
 				<input type="hidden" name="action" value="znts_create_snapshot" />
@@ -233,7 +237,7 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 
 			<section class="znts-card znts-card-full znts-card-primary">
 				<h2><?php echo esc_html__( 'Restore Checkpoint', 'zignites-sentinel' ); ?></h2>
-				<p class="description"><?php echo esc_html__( 'Use this only after validation. Sentinel writes the checkpoint payload into live plugin and theme paths. It is not a full-site restore.', 'zignites-sentinel' ); ?></p>
+				<p class="description"><?php echo esc_html__( 'Use this only after validation. Sentinel writes the checkpoint payload into live plugin and theme paths. It is not a full-site restore, database rollback, WooCommerce order/payment rollback, WordPress core restore, or malware cleanup.', 'zignites-sentinel' ); ?></p>
 				<?php if ( $can_execute_restore ) : ?>
 					<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
 						<input type="hidden" name="action" value="znts_execute_restore" />

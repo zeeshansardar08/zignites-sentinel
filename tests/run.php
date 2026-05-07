@@ -32,6 +32,7 @@ require_once __DIR__ . '/test-snapshot-summary-presenter.php';
 require_once __DIR__ . '/test-snapshot-summary-export.php';
 require_once __DIR__ . '/test-restore-impact-summary.php';
 require_once __DIR__ . '/test-dashboard-summary.php';
+require_once __DIR__ . '/test-admin-action-registration.php';
 require_once __DIR__ . '/test-admin-update-screen-notice.php';
 require_once __DIR__ . '/test-admin-update-row-handoff.php';
 require_once __DIR__ . '/test-admin-snapshot-capture-context.php';

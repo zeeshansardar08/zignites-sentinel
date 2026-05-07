@@ -1,6 +1,8 @@
 # Zignites Sentinel
 
-Zignites Sentinel is a rollback checkpoint plugin for technical WordPress users.
+Zignites Sentinel provides Safe Update Checkpoints and Rollback for WordPress.
+
+It is built for agencies, freelancers, and production site maintainers who need a safer plugin/theme update workflow.
 
 It helps you:
 
@@ -11,8 +13,8 @@ It helps you:
 
 ## Why Use Sentinel
 
-- It is built for plugin and theme update risk, not broad disaster recovery.
-- It gives developers and maintainers a faster rollback checkpoint workflow than full-site backup tools.
+- It is built for plugin and theme update operations, not full-site disaster recovery.
+- It gives developers and maintainers a focused safe-update checkpoint workflow alongside full-site backup tools.
 - It emphasizes validation before restore, not just checkpoint creation.
 - It keeps the operator focused on the next safe step instead of scattering recovery tasks across WordPress admin.
 
@@ -30,8 +32,10 @@ It does not restore:
 - the database
 - uploads or media
 - WordPress core
+- WooCommerce order/payment state
+- malware detection or cleanup
 
-Use a full backup solution for full-site recovery.
+Use a full backup solution for full-site recovery and a dedicated security cleanup tool for infected sites.
 
 ## Artifact Storage Protection
 
@@ -49,7 +53,7 @@ That reduces direct access on common hosts, but it is not absolute on every stac
 
 The narrowed v1 focuses on three user jobs:
 
-1. Save a rollback checkpoint before risky updates.
+1. Save a safe-update checkpoint before risky plugin/theme updates.
 2. Validate that checkpoint.
 3. Restore or roll back that code-layer checkpoint when needed.
 
@@ -60,6 +64,7 @@ Sentinel is a strong fit when:
 - you manage risky plugin or theme updates regularly
 - you need a rollback path for the active code layer
 - you already understand that database and media recovery need a different tool
+- you already understand that WooCommerce order/payment state needs database-aware recovery
 - you want a safety-focused workflow for technical operators
 
 Sentinel is a weak fit when:
@@ -67,6 +72,7 @@ Sentinel is a weak fit when:
 - you need full-site disaster recovery
 - you expect one-click transactional restore behavior
 - your main problem is backup retention, migration, or off-site storage
+- your main problem is malware detection, firewalling, or cleanup
 
 ## Core Workflow
 
@@ -84,7 +90,7 @@ Sentinel is a weak fit when:
 
 ## Notes
 
-- Sentinel is designed for technical WordPress users, developers, and agencies.
+- Sentinel is designed for agencies, freelancers, production maintainers, and technical WordPress teams.
 - It does not claim atomic restore behavior.
 - This phase intentionally narrows the product instead of adding new features.
 
