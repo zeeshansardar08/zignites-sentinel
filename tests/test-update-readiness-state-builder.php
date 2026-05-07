@@ -676,6 +676,8 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'Last known good', $state['last_known_good_card']['label'], 'Update Readiness state builder should expose the last-known-good snapshot card.' );
 	znts_assert_same( 'How to use this screen', $state['workspace_help_panels'][0]['title'], 'Update Readiness state builder should expose launch-ready workspace guidance panels.' );
 	znts_assert_same( 'What Sentinel is designed to do', $state['workspace_positioning_note']['title'], 'Update Readiness state builder should expose product-positioning guidance.' );
+	znts_assert_true( false !== strpos( $state['workspace_positioning_note']['body'], 'WooCommerce order/payment' ), 'Update Readiness state builder should keep WooCommerce rollback limits visible in positioning guidance.' );
+	znts_assert_true( false !== strpos( $state['workspace_positioning_note']['body'], 'malware cleanup' ), 'Update Readiness state builder should keep malware cleanup limits visible in positioning guidance.' );
 	znts_assert_same( 'The current workspace is not the recommended snapshot.', $state['snapshot_intelligence_warnings'][0], 'Update Readiness state builder should expose snapshot intelligence warnings.' );
 	znts_assert_same( 'Snapshot taken', $state['operator_timeline_rows'][0]['title'], 'Update Readiness state builder should expose condensed operator timeline rows.' );
 	znts_assert_same( 'Snapshot ready', $state['snapshot_summary_status_badges'][0]['label'], 'Update Readiness state builder should derive snapshot summary badge rows.' );

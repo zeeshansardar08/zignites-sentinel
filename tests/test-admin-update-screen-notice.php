@@ -45,7 +45,7 @@ function znts_test_update_screen_notice_warns_when_plugin_updates_have_no_checkp
 	);
 
 	znts_assert_same( 'warning', $payload['type'], 'Update-screen notice should warn when plugin updates exist but no checkpoint is available.' );
-	znts_assert_same( 'Create a rollback checkpoint before updating 2 plugins.', $payload['title'], 'Update-screen notice should explain the immediate pre-update action when no checkpoint exists.' );
+	znts_assert_same( 'Create a safe-update checkpoint before updating 2 plugins.', $payload['title'], 'Update-screen notice should explain the immediate pre-update action when no checkpoint exists.' );
 	znts_assert_same( 'Create Checkpoint Now', $payload['actions'][0]['label'], 'Update-screen notice should offer a one-click checkpoint action when no checkpoint exists.' );
 	znts_assert_true( false !== strpos( $payload['actions'][0]['url'], 'action=znts_create_snapshot' ), 'Update-screen notice should link to the snapshot action for fast checkpoint creation.' );
 	znts_assert_true( false !== strpos( $payload['actions'][0]['url'], 'znts_return_screen=plugins' ), 'Update-screen notice should keep the operator on the plugin update surface after snapshot capture.' );
@@ -130,7 +130,7 @@ function znts_test_update_screen_notice_explains_mixed_core_boundary_when_plugin
 
 	znts_assert_same( 'success', $payload['type'], 'Mixed update-core notice should still use the checkpoint status severity for plugin/theme updates.' );
 	znts_assert_same( 'Create Fresh Checkpoint', $payload['actions'][0]['label'], 'Mixed update-core notice should still prioritize fresh checkpoint capture for plugin/theme updates.' );
-	znts_assert_same( 'WordPress core updates are also pending on this screen. Sentinel can help you prepare rollback checkpoints for the active theme and plugins, but not for core recovery.', $payload['boundary'], 'Mixed update-core notice should explain that Sentinel only covers plugin and theme rollback preparation on the core updates screen.' );
+	znts_assert_same( 'WordPress core updates are also pending on this screen. Sentinel can help you prepare safe-update checkpoints for the active theme and plugins, but not for core recovery.', $payload['boundary'], 'Mixed update-core notice should explain that Sentinel only covers plugin and theme rollback preparation on the core updates screen.' );
 }
 
 function znts_test_update_screen_notice_skips_irrelevant_screens() {

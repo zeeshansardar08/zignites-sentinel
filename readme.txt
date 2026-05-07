@@ -8,11 +8,13 @@ Stable tag: 1.32.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Create a rollback checkpoint of your active plugins and theme before updates, then restore it if an update breaks the code layer.
+Safe Update Checkpoints and Rollback for WordPress plugin/theme code changes.
 
 == Description ==
 
-Zignites Sentinel is a rollback checkpoint plugin for technical WordPress users.
+Zignites Sentinel provides Safe Update Checkpoints and Rollback for WordPress.
+
+It is built for agencies, freelancers, and production site maintainers who need a safer plugin/theme update workflow.
 
 Use it to:
 
@@ -23,8 +25,8 @@ Use it to:
 
 = Why Use Sentinel =
 
-* It is built for plugin and theme update risk, not broad disaster recovery
-* It gives technical WordPress teams a faster rollback checkpoint workflow than full-site backup tools
+* It is built for plugin and theme update operations, not full-site disaster recovery
+* It gives technical WordPress teams a focused safe-update checkpoint workflow alongside full-site backup tools
 * It emphasizes validation before restore, not just checkpoint creation
 * It keeps the operator focused on the next safe step
 
@@ -38,8 +40,10 @@ Use it to:
 * Database
 * Uploads or media
 * WordPress core
+* WooCommerce order/payment state
+* Malware detection or cleanup
 
-Use a full backup solution for full-site recovery.
+Use a full backup solution for full-site recovery and a dedicated security cleanup tool for infected sites.
 
 = Who It Is For =
 
@@ -51,7 +55,7 @@ Use a full backup solution for full-site recovery.
 
 * Preparing for risky plugin or theme updates on client sites
 * Keeping a code-layer rollback path before maintenance windows
-* Giving technical operators a narrower recovery workflow than a full backup suite
+* Giving technical operators a narrower safe-update workflow than a full backup suite
 
 = What Sentinel Is Not =
 
@@ -59,6 +63,8 @@ Use a full backup solution for full-site recovery.
 * Not a disaster recovery system
 * Not an off-site backup service
 * Not an atomic restore engine
+* Not a malware scanner, firewall, or cleanup tool
+* Not a WooCommerce order/payment rollback system
 
 = Typical Workflow =
 
@@ -119,15 +125,19 @@ Yes. Sentinel is designed around validation before restore so you can confirm th
 
 = Is Sentinel a replacement for my backup plugin? =
 
-No. Sentinel is a narrow rollback checkpoint tool for active plugins and the active theme. Use a full backup solution for database, media, and full-site recovery.
+No. Sentinel is a narrow safe-update checkpoint and rollback tool for active plugins and the active theme. Use a full backup solution for database, media, WooCommerce order/payment state, and full-site recovery.
 
 = What does Sentinel restore? =
 
 Sentinel restores the active theme and active plugins captured in a checkpoint.
 
-= Does Sentinel restore the database or media library? =
+= Does Sentinel restore the database, media library, or WooCommerce orders? =
 
-No. Sentinel does not restore the database, uploads/media, or WordPress core.
+No. Sentinel does not restore the database, uploads/media, WordPress core, or WooCommerce order/payment state.
+
+= Does Sentinel detect or clean malware? =
+
+No. Sentinel is not a malware scanner, firewall, or cleanup tool.
 
 = Is Sentinel a full backup plugin? =
 
@@ -152,7 +162,7 @@ Open **Sentinel > History** to review the recorded events, then confirm the site
 
 = 1.32.0 =
 
-* Narrowed the product around pre-update rollback checkpoints for the active theme and active plugins.
+* Narrowed the product around Safe Update Checkpoints and Rollback for the active theme and active plugins.
 * Simplified the admin UI to Dashboard, Before Update, and History.
 * Added artifact directory guards for stored packages, exports, stage files, and restore backups under uploads.
 * Clarified public plugin-page copy around validation flow, artifact handling, and restore boundaries.
@@ -161,4 +171,4 @@ Open **Sentinel > History** to review the recorded events, then confirm the site
 
 = 1.32.0 =
 
-Sentinel now positions itself as a narrower rollback checkpoint tool for plugin and theme updates.
+Sentinel now positions itself around Safe Update Checkpoints and Rollback for plugin and theme updates.

@@ -683,7 +683,7 @@ class UpdateReadinessStateBuilder {
 	 */
 	protected function build_workspace_next_action( $snapshot_detail, array $selected_intelligence, array $recommended_snapshot, array $operator_checklist ) {
 		if ( ! is_array( $snapshot_detail ) || empty( $snapshot_detail['id'] ) ) {
-			return __( 'Create a checkpoint before updates, then validate it before you rely on it for restore.', 'zignites-sentinel' );
+			return __( 'Create a safe-update checkpoint before updates, then validate it before you rely on it for restore.', 'zignites-sentinel' );
 		}
 
 		if ( 'older' === ( isset( $selected_intelligence['relation'] ) ? (string) $selected_intelligence['relation'] : '' ) && ! empty( $recommended_snapshot['label'] ) ) {
@@ -792,7 +792,7 @@ class UpdateReadinessStateBuilder {
 
 		return array(
 			'title'       => __( 'Create a checkpoint before you update.', 'zignites-sentinel' ),
-			'description' => __( 'This workspace is for saving a rollback checkpoint, validating it, and restoring it later if a code update breaks the site.', 'zignites-sentinel' ),
+			'description' => __( 'This workspace is for saving a safe-update checkpoint, validating it, and restoring it later if a plugin/theme code update breaks the site.', 'zignites-sentinel' ),
 			'next_step'   => __( 'Create a checkpoint first, then validate it before relying on it for restore.', 'zignites-sentinel' ),
 		);
 	}
@@ -881,7 +881,7 @@ class UpdateReadinessStateBuilder {
 	protected function build_workspace_positioning_note() {
 		return array(
 			'title' => __( 'What Sentinel is designed to do', 'zignites-sentinel' ),
-			'body'  => __( 'Sentinel is a plugin and theme rollback checkpoint tool. It is not a full-site restore, database recovery, media restore, or WordPress core restore plugin.', 'zignites-sentinel' ),
+			'body'  => __( 'Sentinel provides Safe Update Checkpoints and Rollback for WordPress plugin/theme code changes. It is not a full-site restore, database recovery, media restore, WordPress core restore, WooCommerce order/payment rollback, or malware cleanup plugin.', 'zignites-sentinel' ),
 		);
 	}
 

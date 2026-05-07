@@ -14,7 +14,7 @@ $recent_logs           = isset( $view_data['recent_logs'] ) && is_array( $view_d
 $latest_snapshot       = ! empty( $recent_snapshots[0] ) ? $recent_snapshots[0] : array();
 $latest_snapshot_state = ( ! empty( $latest_snapshot['id'] ) && isset( $snapshot_status_index[ (int) $latest_snapshot['id'] ] ) ) ? $snapshot_status_index[ (int) $latest_snapshot['id'] ] : array();
 $primary_action        = isset( $site_status_card['primary_action'] ) && is_array( $site_status_card['primary_action'] ) ? $site_status_card['primary_action'] : array();
-$primary_action_title  = isset( $primary_action['title'] ) ? (string) $primary_action['title'] : __( 'Create a rollback checkpoint before updates.', 'zignites-sentinel' );
+$primary_action_title  = isset( $primary_action['title'] ) ? (string) $primary_action['title'] : __( 'Create a safe-update checkpoint before updates.', 'zignites-sentinel' );
 $primary_action_note   = isset( $primary_action['description'] ) ? (string) $primary_action['description'] : __( 'Capture a checkpoint of your active plugins and theme before updating anything.', 'zignites-sentinel' );
 $primary_action_label  = isset( $primary_action['button_label'] ) ? (string) $primary_action['button_label'] : __( 'Open Before Update', 'zignites-sentinel' );
 $primary_action_url    = isset( $primary_action['url'] ) ? (string) $primary_action['url'] : '';
@@ -31,7 +31,7 @@ $first_run_cta_url     = add_query_arg(
 <div class="wrap znts-admin-page">
 	<div class="znts-page-header">
 		<h1><?php echo esc_html__( 'Zignites Sentinel', 'zignites-sentinel' ); ?></h1>
-		<p class="znts-page-intro"><?php echo esc_html__( 'Create a rollback checkpoint of your active plugins and theme before updates, then restore it if an update breaks the code layer.', 'zignites-sentinel' ); ?></p>
+		<p class="znts-page-intro"><?php echo esc_html__( 'Safe Update Checkpoints and Rollback for WordPress plugin/theme code changes.', 'zignites-sentinel' ); ?></p>
 	</div>
 
 	<section class="znts-summary-hero">
@@ -65,11 +65,11 @@ $first_run_cta_url     = add_query_arg(
 		<?php endif; ?>
 		<div class="znts-flow-note">
 			<strong><?php echo esc_html__( 'Restore boundary', 'zignites-sentinel' ); ?></strong>
-			<span><?php echo esc_html__( 'Sentinel restores the active theme and active plugins only. It does not restore the database, uploads/media, or WordPress core. Use a full backup solution for full-site recovery.', 'zignites-sentinel' ); ?></span>
+			<span><?php echo esc_html__( 'Sentinel restores the active theme and active plugins only. It does not restore the database, uploads/media, WordPress core, or WooCommerce order/payment state, and it does not perform malware cleanup. Use dedicated backup and security tools for those needs.', 'zignites-sentinel' ); ?></span>
 		</div>
 		<div class="znts-flow-note">
 			<strong><?php echo esc_html__( 'Best fit', 'zignites-sentinel' ); ?></strong>
-			<span><?php echo esc_html__( 'Built for developers, agencies, and technical maintainers who want a rollback checkpoint before risky plugin or theme updates.', 'zignites-sentinel' ); ?></span>
+			<span><?php echo esc_html__( 'Built for agencies, freelancers, and production maintainers who want a safe-update checkpoint before risky plugin or theme updates.', 'zignites-sentinel' ); ?></span>
 		</div>
 	</section>
 
@@ -167,7 +167,7 @@ $first_run_cta_url     = add_query_arg(
 			<?php if ( empty( $recent_snapshots ) ) : ?>
 				<div class="znts-empty-state">
 					<strong><?php echo esc_html__( 'No saved checkpoints yet.', 'zignites-sentinel' ); ?></strong>
-					<p><?php echo esc_html__( 'Use Before Update to save a rollback checkpoint before plugin or theme updates.', 'zignites-sentinel' ); ?></p>
+					<p><?php echo esc_html__( 'Use Before Update to save a safe-update checkpoint before plugin or theme updates.', 'zignites-sentinel' ); ?></p>
 					<p><a href="<?php echo esc_url( $first_run_cta_url ); ?>"><?php echo esc_html__( 'Create a Checkpoint', 'zignites-sentinel' ); ?></a></p>
 				</div>
 			<?php else : ?>
