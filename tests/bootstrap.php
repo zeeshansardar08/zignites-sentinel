@@ -8,13 +8,19 @@ define( 'DAY_IN_SECONDS', 86400 );
 define( 'HOUR_IN_SECONDS', 3600 );
 define( 'MINUTE_IN_SECONDS', 60 );
 define( 'ZNTS_VERSION', '1.29.0-test' );
+define( 'ZNTS_MINIMUM_PHP_VERSION', '8.0' );
 define( 'ZNTS_OPTION_SETTINGS', 'znts_settings' );
+define( 'ZNTS_OPTION_OPERATION_LOCK', 'znts_operation_lock' );
 define( 'ZNTS_OPTION_LAST_SNAPSHOT_HEALTH_BASELINE', 'znts_last_snapshot_health_baseline' );
 define( 'ZNTS_OPTION_RESTORE_EXECUTION_CHECKPOINT', 'znts_restore_execution_checkpoint' );
 define( 'ZNTS_OPTION_RESTORE_ROLLBACK_CHECKPOINT', 'znts_restore_rollback_checkpoint' );
 
 if ( ! defined( 'WP_PLUGIN_DIR' ) ) {
 	define( 'WP_PLUGIN_DIR', 'D:/plugins' );
+}
+
+if ( ! defined( 'WP_CONTENT_DIR' ) ) {
+	define( 'WP_CONTENT_DIR', 'D:/content' );
 }
 
 $GLOBALS['znts_test_options'] = array();
@@ -108,6 +114,18 @@ if ( ! function_exists( 'get_option' ) ) {
 
 if ( ! function_exists( 'update_option' ) ) {
 	function update_option( $name, $value, $autoload = null ) {
+		$GLOBALS['znts_test_options'][ $name ] = $value;
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'add_option' ) ) {
+	function add_option( $name, $value = '', $deprecated = '', $autoload = 'yes' ) {
+		if ( array_key_exists( $name, $GLOBALS['znts_test_options'] ) ) {
+			return false;
+		}
+
 		$GLOBALS['znts_test_options'][ $name ] = $value;
 
 		return true;
@@ -245,6 +263,8 @@ if ( ! class_exists( 'Zignites\\Sentinel\\Snapshots\\RestoreExecutionPlanner' ) 
 }
 
 require_once __DIR__ . '/../includes/snapshots/class-artifact-storage-guard.php';
+require_once __DIR__ . '/../includes/core/class-operation-lock.php';
+require_once __DIR__ . '/../includes/core/class-disk-space-preflight.php';
 require_once __DIR__ . '/../includes/snapshots/class-component-manifest-builder.php';
 require_once __DIR__ . '/../includes/snapshots/class-restore-health-verifier.php';
 require_once __DIR__ . '/../includes/logging/class-log-repository.php';

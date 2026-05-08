@@ -49,6 +49,14 @@ It writes:
 
 That reduces direct access on common hosts, but it is not absolute on every stack. If a host serves uploads directly and ignores those rules, artifact files may still be reachable by URL. Stronger protection requires server-level deny rules or keeping those artifacts outside public uploads.
 
+## Reliability Controls
+
+Sentinel uses a shared operation lock for checkpoint, package, staging, restore, rollback, and cleanup workflows so overlapping heavy operations are blocked safely.
+
+Before checkpoint and restore work starts, Sentinel estimates the required disk space for packages, staging, live backups, and rollback payloads. Operations are blocked when available space is below the safe threshold.
+
+Retention settings cover event logs, snapshot records, package ZIPs, restore backups, and abandoned stage directories. Cleanup runs through the scheduled maintenance task while preserving active resume checkpoints.
+
 ## Product Scope
 
 The narrowed v1 focuses on three user jobs:

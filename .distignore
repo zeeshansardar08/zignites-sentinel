@@ -3,6 +3,7 @@
 .distignore
 build/
 README.md
+implementation-plan.md
 manual-smoke-checklist.md
 product-strategy.md
 progress.md

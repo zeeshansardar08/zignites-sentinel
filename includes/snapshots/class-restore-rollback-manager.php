@@ -7,6 +7,7 @@
 
 namespace Zignites\Sentinel\Snapshots;
 
+use Zignites\Sentinel\Core\DiskSpacePreflight;
 use Zignites\Sentinel\Logging\Logger;
 
 defined( 'ABSPATH' ) || exit;
@@ -49,16 +50,24 @@ class RestoreRollbackManager {
 	protected $storage_guard;
 
 	/**
+	 * Disk capacity checker.
+	 *
+	 * @var DiskSpacePreflight
+	 */
+	protected $disk_preflight;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Logger|null                 $logger           Logger.
 	 * @param RestoreJournalRecorder|null $journal_recorder Journal recorder.
 	 */
-	public function __construct( Logger $logger = null, RestoreJournalRecorder $journal_recorder = null, RestoreCheckpointStore $checkpoint_store = null, ArtifactStorageGuard $storage_guard = null ) {
+	public function __construct( Logger $logger = null, RestoreJournalRecorder $journal_recorder = null, RestoreCheckpointStore $checkpoint_store = null, ArtifactStorageGuard $storage_guard = null, DiskSpacePreflight $disk_preflight = null ) {
 		$this->logger           = $logger;
 		$this->journal_recorder = $journal_recorder;
 		$this->checkpoint_store = $checkpoint_store;
 		$this->storage_guard    = $storage_guard ? $storage_guard : new ArtifactStorageGuard();
+		$this->disk_preflight   = $disk_preflight ? $disk_preflight : new DiskSpacePreflight();
 	}
 
 	/**
@@ -132,6 +141,20 @@ class RestoreRollbackManager {
 		$resume_state = $this->get_resume_state( $snapshot_id, $run_id, $rollback_checkpoint );
 		$item_results = array();
 		$items        = $this->get_rollback_items( $restore_execution );
+		$disk_check   = $this->build_disk_space_check(
+			$this->disk_preflight->check_rollback_capacity( $items ),
+			__( 'Rollback disk capacity', 'zignites-sentinel' )
+		);
+		$checks[]     = $disk_check;
+		$journal[]    = $this->build_journal_entry( 'gate', 'disk_capacity', 'completed', $disk_check['status'], $disk_check['message'] );
+
+		if ( 'fail' === $disk_check['status'] ) {
+			$this->persist_journal_entries( $snapshot_id, $run_id, array( $journal[ count( $journal ) - 1 ] ) );
+			$result = $this->finalize_result( $snapshot, $checks, array(), true, $journal, $run_id );
+			$this->append_run_completion_entry( $journal, $snapshot_id, $run_id, $result );
+			$result['journal'] = $journal;
+			return $result;
+		}
 
 		foreach ( $items as $item ) {
 			$item_result = $this->rollback_item( $snapshot, $run_id, $item, $resume_state );
@@ -212,6 +235,25 @@ class RestoreRollbackManager {
 			'label'   => __( 'Rollback source context', 'zignites-sentinel' ),
 			'status'  => 'pass',
 			'message' => __( 'Restore execution backup context is available for rollback.', 'zignites-sentinel' ),
+		);
+	}
+
+	/**
+	 * Convert a disk preflight result to a rollback check row.
+	 *
+	 * @param array  $result Disk preflight result.
+	 * @param string $label  Check label.
+	 * @return array
+	 */
+	protected function build_disk_space_check( array $result, $label ) {
+		return array(
+			'label'   => $label,
+			'status'  => isset( $result['status'] ) ? sanitize_key( (string) $result['status'] ) : 'warning',
+			'message' => isset( $result['message'] ) ? (string) $result['message'] : __( 'Disk capacity could not be evaluated.', 'zignites-sentinel' ),
+			'details' => array(
+				'required_bytes'  => isset( $result['required_bytes'] ) ? (int) $result['required_bytes'] : 0,
+				'available_bytes' => array_key_exists( 'available_bytes', $result ) ? $result['available_bytes'] : null,
+			),
 		);
 	}
 

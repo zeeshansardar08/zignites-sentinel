@@ -124,8 +124,13 @@ class Installer {
 		$defaults = array(
 			'delete_data_on_uninstall' => 1,
 			'logging_enabled'          => 1,
+			'log_retention_days'       => 90,
 			'snapshot_retention_days'  => 30,
+			'package_retention_days'   => 30,
+			'restore_backup_retention_days' => 14,
+			'failed_stage_retention_days' => 7,
 			'auto_snapshot_on_plan'    => 1,
+			'restore_checkpoint_max_age_hours' => 24,
 		);
 
 		if ( false === get_option( ZNTS_OPTION_SETTINGS ) ) {

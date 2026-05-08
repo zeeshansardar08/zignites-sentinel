@@ -25,6 +25,10 @@
   - JSON export of Sentinel preferences
   - JSON import of Sentinel preferences
   - import sanitization against supported keys only
+- Core reliability controls:
+  - shared operation locking for heavy checkpoint, package, staging, restore, rollback, and cleanup workflows
+  - disk-capacity preflight checks before checkpoint, staging, restore, and rollback work
+  - retention controls for logs, snapshots, package ZIPs, restore backups, and abandoned stage directories
 
 ### 2. Snapshot System
 - Manual snapshot metadata creation

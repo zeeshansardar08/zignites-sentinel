@@ -7,9 +7,27 @@
 
 namespace Zignites\Sentinel\Updates;
 
+use Zignites\Sentinel\Core\DiskSpacePreflight;
+
 defined( 'ABSPATH' ) || exit;
 
 class PreflightChecker {
+
+	/**
+	 * Disk capacity checker.
+	 *
+	 * @var DiskSpacePreflight
+	 */
+	protected $disk_preflight;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param DiskSpacePreflight|null $disk_preflight Disk capacity checker.
+	 */
+	public function __construct( DiskSpacePreflight $disk_preflight = null ) {
+		$this->disk_preflight = $disk_preflight ? $disk_preflight : new DiskSpacePreflight();
+	}
 
 	/**
 	 * Run preflight checks.
@@ -23,6 +41,7 @@ class PreflightChecker {
 			$this->check_update_queue(),
 			$this->check_component_load(),
 			$this->check_runtime_versions(),
+			$this->check_disk_capacity(),
 			$this->check_maintenance_state(),
 		);
 
@@ -189,14 +208,21 @@ class PreflightChecker {
 	 * @return array
 	 */
 	protected function check_runtime_versions() {
-		if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
+		$minimum_php = defined( 'ZNTS_MINIMUM_PHP_VERSION' ) ? ZNTS_MINIMUM_PHP_VERSION : '8.0';
+
+		if ( version_compare( PHP_VERSION, $minimum_php, '<' ) ) {
 			return array(
 				'key'     => 'runtime_versions',
 				'label'   => __( 'Runtime versions', 'zignites-sentinel' ),
 				'status'  => 'fail',
-				'message' => __( 'PHP is below the advisory baseline for safer update handling.', 'zignites-sentinel' ),
+				'message' => sprintf(
+					/* translators: %s = minimum PHP version */
+					__( 'PHP is below Sentinel\'s required %s runtime baseline.', 'zignites-sentinel' ),
+					$minimum_php
+				),
 				'details' => array(
 					'php_version' => PHP_VERSION,
+					'minimum_php' => $minimum_php,
 					'wordpress'   => get_bloginfo( 'version' ),
 				),
 			);
@@ -209,7 +235,29 @@ class PreflightChecker {
 			'message' => __( 'WordPress and PHP versions meet the current advisory baseline for this plugin.', 'zignites-sentinel' ),
 			'details' => array(
 				'php_version' => PHP_VERSION,
+				'minimum_php' => $minimum_php,
 				'wordpress'   => get_bloginfo( 'version' ),
+			),
+		);
+	}
+
+	/**
+	 * Check disk capacity for checkpoint creation.
+	 *
+	 * @return array
+	 */
+	protected function check_disk_capacity() {
+		$result = $this->disk_preflight->check_snapshot_capacity();
+
+		return array(
+			'key'     => 'disk_capacity',
+			'label'   => __( 'Disk capacity', 'zignites-sentinel' ),
+			'status'  => isset( $result['status'] ) ? sanitize_key( (string) $result['status'] ) : 'warning',
+			'message' => isset( $result['message'] ) ? (string) $result['message'] : __( 'Disk capacity could not be evaluated.', 'zignites-sentinel' ),
+			'details' => array(
+				'required_bytes'  => isset( $result['required_bytes'] ) ? (int) $result['required_bytes'] : 0,
+				'available_bytes' => array_key_exists( 'available_bytes', $result ) ? $result['available_bytes'] : null,
+				'operation'       => isset( $result['operation'] ) ? sanitize_key( (string) $result['operation'] ) : 'snapshot',
 			),
 		);
 	}

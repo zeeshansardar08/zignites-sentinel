@@ -2090,7 +2090,11 @@ class UpdateReadinessStateBuilder {
 			'logging_enabled'                  => array_key_exists( 'logging_enabled', $settings ) ? ! empty( $settings['logging_enabled'] ) : true,
 			'delete_data_on_uninstall'         => array_key_exists( 'delete_data_on_uninstall', $settings ) ? ! empty( $settings['delete_data_on_uninstall'] ) : true,
 			'auto_snapshot_on_plan'            => array_key_exists( 'auto_snapshot_on_plan', $settings ) ? ! empty( $settings['auto_snapshot_on_plan'] ) : true,
+			'log_retention_days'               => isset( $settings['log_retention_days'] ) ? (string) max( 1, (int) $settings['log_retention_days'] ) : '90',
 			'snapshot_retention_days'          => isset( $settings['snapshot_retention_days'] ) ? (string) max( 1, (int) $settings['snapshot_retention_days'] ) : '30',
+			'package_retention_days'           => isset( $settings['package_retention_days'] ) ? (string) max( 1, (int) $settings['package_retention_days'] ) : '30',
+			'restore_backup_retention_days'    => isset( $settings['restore_backup_retention_days'] ) ? (string) max( 1, (int) $settings['restore_backup_retention_days'] ) : '14',
+			'failed_stage_retention_days'      => isset( $settings['failed_stage_retention_days'] ) ? (string) max( 1, (int) $settings['failed_stage_retention_days'] ) : '7',
 			'restore_checkpoint_max_age_hours' => isset( $settings['restore_checkpoint_max_age_hours'] ) ? (string) max( 1, (int) $settings['restore_checkpoint_max_age_hours'] ) : '24',
 		);
 	}

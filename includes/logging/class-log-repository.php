@@ -246,6 +246,25 @@ class LogRepository {
 	}
 
 	/**
+	 * Delete logs older than the provided cutoff.
+	 *
+	 * @param string $cutoff Cutoff datetime in UTC mysql format.
+	 * @return int|false
+	 */
+	public function delete_older_than( $cutoff ) {
+		global $wpdb;
+
+		$table = Installer::get_logs_table_name();
+
+		return $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$table} WHERE created_at < %s",
+				$cutoff
+			)
+		);
+	}
+
+	/**
 	 * Fetch restore journal rows for a given source and snapshot.
 	 *
 	 * @param string $source      Journal source.
