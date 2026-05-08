@@ -59,6 +59,7 @@ class UpdateReadinessStateBuilder {
 			'audit_report_verification' => $this->array_value( $state, 'audit_report_verification' ),
 			'snapshot_activity'       => $this->array_value( $state, 'snapshot_activity' ),
 			'snapshot_activity_url'   => isset( $state['snapshot_activity_url'] ) ? (string) $state['snapshot_activity_url'] : '',
+			'async_jobs'              => $this->array_value( $state, 'async_jobs' ),
 			'system_health'           => $this->array_value( $state, 'system_health' ),
 			'snapshot_intelligence'   => $this->array_value( $state, 'snapshot_intelligence' ),
 			'operator_timeline'       => $this->array_value( $state, 'operator_timeline' ),

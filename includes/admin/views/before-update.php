@@ -10,6 +10,7 @@ defined( 'ABSPATH' ) || exit;
 $admin_page_url        = \Zignites\Sentinel\Admin\znts_admin_url( 'admin.php' );
 $admin_post_url        = \Zignites\Sentinel\Admin\znts_admin_url( 'admin-post.php' );
 $notice                = isset( $view_data['notice'] ) && is_array( $view_data['notice'] ) ? $view_data['notice'] : array();
+$async_jobs            = isset( $view_data['async_jobs'] ) && is_array( $view_data['async_jobs'] ) ? $view_data['async_jobs'] : array();
 $recent_snapshot_rows  = isset( $view_data['recent_snapshot_rows'] ) && is_array( $view_data['recent_snapshot_rows'] ) ? $view_data['recent_snapshot_rows'] : array();
 $snapshot_empty_message = isset( $view_data['snapshot_empty_message'] ) ? (string) $view_data['snapshot_empty_message'] : '';
 $restore_form_state    = isset( $view_data['restore_form_state'] ) && is_array( $view_data['restore_form_state'] ) ? $view_data['restore_form_state'] : array();
@@ -48,6 +49,26 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 	<?php if ( ! empty( $notice ) ) : ?>
 		<div class="notice notice-<?php echo esc_attr( isset( $notice['type'] ) ? $notice['type'] : 'info' ); ?> is-dismissible">
 			<p><?php echo esc_html( isset( $notice['message'] ) ? $notice['message'] : '' ); ?></p>
+		</div>
+	<?php endif; ?>
+
+	<?php if ( ! empty( $async_jobs ) ) : ?>
+		<div class="notice notice-info">
+			<p>
+				<?php
+				$latest_job = reset( $async_jobs );
+				$progress   = isset( $latest_job['progress'] ) && is_array( $latest_job['progress'] ) ? $latest_job['progress'] : array();
+				echo esc_html(
+					sprintf(
+						/* translators: 1: job type, 2: job status, 3: progress message */
+						__( 'Latest background job: %1$s is %2$s. %3$s', 'zignites-sentinel' ),
+						isset( $latest_job['type'] ) ? str_replace( '_', ' ', $latest_job['type'] ) : __( 'Job', 'zignites-sentinel' ),
+						isset( $latest_job['status'] ) ? $latest_job['status'] : __( 'pending', 'zignites-sentinel' ),
+						isset( $latest_job['error'] ) && '' !== $latest_job['error'] ? $latest_job['error'] : ( isset( $progress['message'] ) ? $progress['message'] : '' )
+					)
+				);
+				?>
+			</p>
 		</div>
 	<?php endif; ?>
 

@@ -46,6 +46,7 @@ require_once __DIR__ . '/test-release-package-install-verifier.php';
 require_once __DIR__ . '/test-resume-admin-presentation.php';
 require_once __DIR__ . '/test-status-presenter.php';
 require_once __DIR__ . '/test-update-aware-snapshot-context.php';
+require_once __DIR__ . '/test-async-jobs.php';
 
 $tests = array_filter(
 	get_defined_functions()['user'],

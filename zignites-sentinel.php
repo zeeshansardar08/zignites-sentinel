@@ -109,6 +109,14 @@ if ( ! defined( 'ZNTS_OPTION_OPERATION_LOCK' ) ) {
 	define( 'ZNTS_OPTION_OPERATION_LOCK', 'znts_operation_lock' );
 }
 
+if ( ! defined( 'ZNTS_OPTION_ASYNC_JOBS' ) ) {
+	define( 'ZNTS_OPTION_ASYNC_JOBS', 'znts_async_jobs' );
+}
+
+if ( ! defined( 'ZNTS_CRON_ASYNC_JOBS' ) ) {
+	define( 'ZNTS_CRON_ASYNC_JOBS', 'znts_process_async_jobs' );
+}
+
 require_once ZNTS_PLUGIN_DIR . 'includes/class-autoloader.php';
 
 \Zignites\Sentinel\Autoloader::register();

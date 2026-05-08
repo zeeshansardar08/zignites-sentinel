@@ -14,6 +14,8 @@ use Zignites\Sentinel\Diagnostics\Monitor;
 use Zignites\Sentinel\Core\Installer;
 use Zignites\Sentinel\Core\DiskSpacePreflight;
 use Zignites\Sentinel\Core\OperationLock;
+use Zignites\Sentinel\Jobs\JobRunner;
+use Zignites\Sentinel\Jobs\JobStore;
 use Zignites\Sentinel\Logging\Logger;
 use Zignites\Sentinel\Logging\LogRepository;
 use Zignites\Sentinel\Snapshots\RestoreReadinessChecker;
@@ -66,6 +68,13 @@ class Plugin {
 	protected $snapshot_maintenance;
 
 	/**
+	 * Async job runner.
+	 *
+	 * @var JobRunner
+	 */
+	protected $job_runner;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -98,6 +107,8 @@ class Plugin {
 		$restore_checker     = new RestoreReadinessChecker( $snapshot_comparator, $source_validator );
 		$preflight_checker   = new PreflightChecker( $disk_preflight );
 		$update_planner      = new UpdatePlanner( $snapshot_manager, $source_validator, $logger );
+		$job_store           = new JobStore();
+		$job_runner          = new JobRunner( $job_store, $snapshot_manager, $snapshot_repository, $artifact_repository, $restore_staging, $restore_planner, $checkpoint_store, $operation_lock, $logger );
 
 		$this->monitor = new Monitor( $logger, $conflict_repository );
 		$this->snapshot_maintenance = $snapshot_maintenance;
@@ -123,8 +134,11 @@ class Plugin {
 			$journal_recorder,
 			$checkpoint_store,
 			$operation_lock,
-			$exposure_scanner
+			$exposure_scanner,
+			$job_store,
+			$job_runner
 		);
+		$this->job_runner = $job_runner;
 	}
 
 	/**
@@ -137,6 +151,7 @@ class Plugin {
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 		$this->monitor->register_hooks();
 		$this->snapshot_maintenance->register_hooks();
+		$this->job_runner->register_hooks();
 
 		if ( is_admin() ) {
 			$this->admin->register_hooks();
