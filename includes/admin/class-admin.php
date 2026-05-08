@@ -11,6 +11,8 @@ use Zignites\Sentinel\Diagnostics\ConflictRepository;
 use Zignites\Sentinel\Diagnostics\HealthScore;
 use Zignites\Sentinel\Core\Installer;
 use Zignites\Sentinel\Core\OperationLock;
+use Zignites\Sentinel\Jobs\JobRunner;
+use Zignites\Sentinel\Jobs\JobStore;
 use Zignites\Sentinel\Logging\Logger;
 use Zignites\Sentinel\Logging\LogRepository;
 use Zignites\Sentinel\Snapshots\RestoreReadinessChecker;
@@ -338,6 +340,20 @@ class Admin {
 	protected $artifact_exposure_scanner;
 
 	/**
+	 * Async job store.
+	 *
+	 * @var JobStore
+	 */
+	protected $job_store;
+
+	/**
+	 * Async job runner.
+	 *
+	 * @var JobRunner
+	 */
+	protected $job_runner;
+
+	/**
 	 * Shared snapshot status resolver.
 	 *
 	 * @var SnapshotStatusResolver
@@ -495,6 +511,8 @@ class Admin {
 	 * @param RestoreCheckpointStore    $restore_checkpoint_store Restore checkpoint store.
 	 * @param OperationLock|null        $operation_lock           Operation lock.
 	 * @param ArtifactExposureScanner|null $artifact_exposure_scanner Artifact exposure scanner.
+	 * @param JobStore|null             $job_store                Async job store.
+	 * @param JobRunner|null            $job_runner               Async job runner.
 	 */
 	public function __construct(
 		Logger $logger,
@@ -518,7 +536,9 @@ class Admin {
 		RestoreJournalRecorder $restore_journal_recorder,
 		RestoreCheckpointStore $restore_checkpoint_store,
 		OperationLock $operation_lock = null,
-		ArtifactExposureScanner $artifact_exposure_scanner = null
+		ArtifactExposureScanner $artifact_exposure_scanner = null,
+		JobStore $job_store = null,
+		JobRunner $job_runner = null
 	) {
 		$this->logger            = $logger;
 		$this->logs              = $logs;
@@ -542,6 +562,8 @@ class Admin {
 		$this->restore_checkpoint_store = $restore_checkpoint_store;
 		$this->operation_lock           = $operation_lock ? $operation_lock : new OperationLock();
 		$this->artifact_exposure_scanner = $artifact_exposure_scanner ? $artifact_exposure_scanner : new ArtifactExposureScanner();
+		$this->job_store                = $job_store ? $job_store : new JobStore();
+		$this->job_runner               = $job_runner;
 		$this->settings_portability     = new SettingsPortability();
 		$this->audit_report_verifier    = new AuditReportVerifier();
 		$this->restore_operator_checklist_evaluator = new RestoreOperatorChecklistEvaluator();
@@ -1141,6 +1163,29 @@ class Admin {
 			);
 		}
 
+		if ( 'snapshot-queued' === $notice_key ) {
+			return array(
+				'type'        => 'info',
+				'title'       => sprintf(
+					/* translators: %s: update scope label */
+					__( 'Sentinel queued a checkpoint before updating %s.', 'zignites-sentinel' ),
+					$scope_label
+				),
+				'description' => __( 'Checkpoint capture is running in the background. Wait for it to complete before starting the update.', 'zignites-sentinel' ),
+				'boundary'    => $boundary_note,
+				'actions'     => array(
+					array(
+						'label' => __( 'Open Before Update', 'zignites-sentinel' ),
+						'url'   => $before_update_url,
+					),
+					array(
+						'label' => __( 'Open History', 'zignites-sentinel' ),
+						'url'   => $history_url,
+					),
+				),
+			);
+		}
+
 		if ( empty( $latest_snapshot ) ) {
 			return array(
 				'type'        => 'warning',
@@ -1457,6 +1502,7 @@ class Admin {
 				'recent_logs'      => $this->logs->get_recent( 8 ),
 				'recent_conflicts' => $this->conflicts->get_recent_open( 6 ),
 				'artifact_storage' => $this->artifact_exposure_scanner->scan(),
+				'async_jobs'       => $this->job_store->get_recent( 5 ),
 			)
 		);
 		$view_data = $this->apply_dashboard_capture_state( $this->normalize_admin_links_in_value( $view_data ) );
@@ -1602,6 +1648,7 @@ class Admin {
 				'audit_report_verification' => $this->get_audit_report_verification( $snapshot_detail ),
 				'snapshot_activity'       => $this->get_snapshot_activity( $snapshot_detail ),
 				'snapshot_activity_url'   => $this->get_snapshot_activity_url( is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) ? (int) $snapshot_detail['id'] : 0 ),
+				'async_jobs'              => $this->job_store->get_recent( 5 ),
 				'system_health'          => $system_health,
 				'snapshot_intelligence'  => $snapshot_intelligence,
 				'operator_timeline'      => $operator_timeline,
@@ -1910,6 +1957,22 @@ class Admin {
 		$this->assert_admin_action_permissions( 'znts_create_snapshot_action' );
 		$return_screen = isset( $_REQUEST['znts_return_screen'] ) ? sanitize_key( wp_unslash( $_REQUEST['znts_return_screen'] ) ) : '';
 		$context       = $this->build_snapshot_creation_context_from_request( $return_screen );
+
+		if ( $this->job_runner ) {
+			$job = $this->job_runner->enqueue(
+				JobRunner::TYPE_SNAPSHOT_CREATE,
+				array(
+					'user_id' => get_current_user_id(),
+					'context' => $context,
+				),
+				array(
+					'created_by' => get_current_user_id(),
+					'message'    => __( 'Checkpoint creation queued.', 'zignites-sentinel' ),
+				)
+			);
+
+			$this->redirect_after_snapshot_creation( 'snapshot-queued', $return_screen, $job['id'] );
+		}
 
 		$result = $this->snapshot_manager->create_manual_snapshot( get_current_user_id(), $context );
 
@@ -2287,6 +2350,21 @@ class Admin {
 			$this->redirect_with_notice( 'restore-stage-missing' );
 		}
 
+		if ( $this->job_runner ) {
+			$job = $this->job_runner->enqueue(
+				JobRunner::TYPE_RESTORE_STAGE,
+				array(
+					'snapshot_id' => $snapshot_id,
+				),
+				array(
+					'created_by' => get_current_user_id(),
+					'message'    => __( 'Staged restore validation queued.', 'zignites-sentinel' ),
+				)
+			);
+
+			$this->redirect_with_snapshot_notice( 'restore-stage-queued', $snapshot_id, 'znts-restore-stage', $job['id'] );
+		}
+
 		$snapshot['active_plugins_decoded'] = $this->decode_json_field( $snapshot['active_plugins'] );
 		$snapshot['metadata_decoded']       = $this->decode_json_field( $snapshot['metadata'] );
 		$artifacts                          = $this->artifacts->get_by_snapshot_id( $snapshot_id );
@@ -2325,6 +2403,21 @@ class Admin {
 
 		if ( ! is_array( $snapshot ) ) {
 			$this->redirect_with_notice( 'restore-plan-missing' );
+		}
+
+		if ( $this->job_runner ) {
+			$job = $this->job_runner->enqueue(
+				JobRunner::TYPE_RESTORE_PLAN,
+				array(
+					'snapshot_id' => $snapshot_id,
+				),
+				array(
+					'created_by' => get_current_user_id(),
+					'message'    => __( 'Restore plan generation queued.', 'zignites-sentinel' ),
+				)
+			);
+
+			$this->redirect_with_snapshot_notice( 'restore-plan-queued', $snapshot_id, 'znts-restore-plan', $job['id'] );
 		}
 
 		$snapshot['active_plugins_decoded'] = $this->decode_json_field( $snapshot['active_plugins'] );
@@ -3017,7 +3110,7 @@ class Admin {
 	 * @param string $fragment    Optional page fragment.
 	 * @return void
 	 */
-	protected function redirect_with_snapshot_notice( $notice, $snapshot_id = 0, $fragment = '' ) {
+	protected function redirect_with_snapshot_notice( $notice, $snapshot_id = 0, $fragment = '', $job_id = '' ) {
 		$args = array(
 			'page'        => self::UPDATE_PAGE_SLUG,
 			'znts_notice' => sanitize_key( $notice ),
@@ -3025,6 +3118,10 @@ class Admin {
 
 		if ( $snapshot_id > 0 ) {
 			$args['snapshot_id'] = absint( $snapshot_id );
+		}
+
+		if ( '' !== (string) $job_id ) {
+			$args['znts_job_id'] = sanitize_text_field( (string) $job_id );
 		}
 
 		$url = add_query_arg( $args, admin_url( 'admin.php' ) );
@@ -3044,20 +3141,35 @@ class Admin {
 	 * @param string $return_screen Optional native WordPress update screen.
 	 * @return void
 	 */
-	protected function redirect_after_snapshot_creation( $notice, $return_screen = '' ) {
+	protected function redirect_after_snapshot_creation( $notice, $return_screen = '', $job_id = '' ) {
 		$return_screen = sanitize_key( (string) $return_screen );
 		$return_url    = $this->get_allowed_update_screen_url( $return_screen );
 
 		if ( '' === $return_url ) {
-			$this->redirect_with_notice( $notice );
+			$url = add_query_arg(
+				array_filter(
+					array(
+						'page'        => self::UPDATE_PAGE_SLUG,
+						'znts_notice' => sanitize_key( $notice ),
+						'znts_job_id' => '' !== (string) $job_id ? sanitize_text_field( (string) $job_id ) : '',
+					)
+				),
+				admin_url( 'admin.php' )
+			);
+
+			wp_safe_redirect( $url );
+			exit;
 		}
 
-		$url = add_query_arg(
-			array(
-				'znts_notice' => sanitize_key( $notice ),
-			),
-			$return_url
+		$args = array(
+			'znts_notice' => sanitize_key( $notice ),
 		);
+
+		if ( '' !== (string) $job_id ) {
+			$args['znts_job_id'] = sanitize_text_field( (string) $job_id );
+		}
+
+		$url = add_query_arg( $args, $return_url );
 
 		wp_safe_redirect( $url );
 		exit;
@@ -3116,6 +3228,10 @@ class Admin {
 				'type'    => 'success',
 				'message' => __( 'Snapshot metadata was created successfully.', 'zignites-sentinel' ),
 			),
+			'snapshot-queued' => array(
+				'type'    => 'info',
+				'message' => __( 'Checkpoint creation was queued and will continue in the background.', 'zignites-sentinel' ),
+			),
 			'snapshot-failed' => array(
 				'type'    => 'error',
 				'message' => __( 'Snapshot metadata could not be created.', 'zignites-sentinel' ),
@@ -3160,6 +3276,10 @@ class Admin {
 				'type'    => 'success',
 				'message' => __( 'Staged restore validation completed.', 'zignites-sentinel' ),
 			),
+			'restore-stage-queued' => array(
+				'type'    => 'info',
+				'message' => __( 'Staged restore validation was queued and will continue in the background.', 'zignites-sentinel' ),
+			),
 			'restore-stage-missing' => array(
 				'type'    => 'error',
 				'message' => __( 'The selected snapshot could not be found for staged restore validation.', 'zignites-sentinel' ),
@@ -3167,6 +3287,10 @@ class Admin {
 			'restore-plan-complete' => array(
 				'type'    => 'success',
 				'message' => __( 'Restore execution plan created.', 'zignites-sentinel' ),
+			),
+			'restore-plan-queued' => array(
+				'type'    => 'info',
+				'message' => __( 'Restore plan generation was queued and will continue in the background.', 'zignites-sentinel' ),
 			),
 			'restore-plan-missing' => array(
 				'type'    => 'error',

@@ -11,6 +11,7 @@ $site_status_card      = isset( $view_data['site_status_card'] ) && is_array( $v
 $snapshot_status_index = isset( $view_data['snapshot_status_index'] ) && is_array( $view_data['snapshot_status_index'] ) ? $view_data['snapshot_status_index'] : array();
 $recent_snapshots      = isset( $view_data['recent_snapshots'] ) && is_array( $view_data['recent_snapshots'] ) ? $view_data['recent_snapshots'] : array();
 $recent_logs           = isset( $view_data['recent_logs'] ) && is_array( $view_data['recent_logs'] ) ? $view_data['recent_logs'] : array();
+$async_jobs            = isset( $view_data['async_jobs'] ) && is_array( $view_data['async_jobs'] ) ? $view_data['async_jobs'] : array();
 $artifact_storage      = isset( $view_data['artifact_storage'] ) && is_array( $view_data['artifact_storage'] ) ? $view_data['artifact_storage'] : array();
 $latest_snapshot       = ! empty( $recent_snapshots[0] ) ? $recent_snapshots[0] : array();
 $latest_snapshot_state = ( ! empty( $latest_snapshot['id'] ) && isset( $snapshot_status_index[ (int) $latest_snapshot['id'] ] ) ) ? $snapshot_status_index[ (int) $latest_snapshot['id'] ] : array();
@@ -93,6 +94,37 @@ $first_run_cta_url     = add_query_arg(
 			<section class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html( isset( $positioning_note['title'] ) ? $positioning_note['title'] : __( 'What Sentinel is designed to do', 'zignites-sentinel' ) ); ?></h2>
 				<p><?php echo esc_html( isset( $positioning_note['body'] ) ? $positioning_note['body'] : '' ); ?></p>
+			</section>
+		<?php endif; ?>
+
+		<?php if ( ! empty( $async_jobs ) ) : ?>
+			<section class="znts-card znts-card-full znts-card-flat">
+				<h2><?php echo esc_html__( 'Background Jobs', 'zignites-sentinel' ); ?></h2>
+				<table class="widefat striped">
+					<thead>
+						<tr>
+							<th><?php echo esc_html__( 'Job', 'zignites-sentinel' ); ?></th>
+							<th><?php echo esc_html__( 'Status', 'zignites-sentinel' ); ?></th>
+							<th><?php echo esc_html__( 'Progress', 'zignites-sentinel' ); ?></th>
+							<th><?php echo esc_html__( 'Updated', 'zignites-sentinel' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( array_slice( $async_jobs, 0, 5 ) as $job ) : ?>
+							<?php $progress = isset( $job['progress'] ) && is_array( $job['progress'] ) ? $job['progress'] : array(); ?>
+							<tr>
+								<td><?php echo esc_html( isset( $job['type'] ) ? str_replace( '_', ' ', $job['type'] ) : '' ); ?></td>
+								<td>
+									<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $job['status'] ) && 'failed' === $job['status'] ? 'error' : ( isset( $job['status'] ) && 'completed' === $job['status'] ? 'success' : 'info' ) ); ?>">
+										<?php echo esc_html( isset( $job['status'] ) ? ucfirst( (string) $job['status'] ) : '' ); ?>
+									</span>
+								</td>
+								<td><?php echo esc_html( isset( $job['error'] ) && '' !== $job['error'] ? $job['error'] : ( isset( $progress['message'] ) ? $progress['message'] : '' ) ); ?></td>
+								<td><?php echo esc_html( isset( $job['updated_at'] ) ? $job['updated_at'] : '' ); ?></td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
 			</section>
 		<?php endif; ?>
 

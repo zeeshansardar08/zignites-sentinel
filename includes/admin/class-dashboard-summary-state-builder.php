@@ -170,6 +170,7 @@ class DashboardSummaryStateBuilder {
 			'artifact_storage'      => isset( $context['artifact_storage'] ) && is_array( $context['artifact_storage'] ) ? $context['artifact_storage'] : array(),
 			'recent_logs'           => isset( $context['recent_logs'] ) && is_array( $context['recent_logs'] ) ? $context['recent_logs'] : array(),
 			'recent_conflicts'      => isset( $context['recent_conflicts'] ) && is_array( $context['recent_conflicts'] ) ? $context['recent_conflicts'] : array(),
+			'async_jobs'            => isset( $context['async_jobs'] ) && is_array( $context['async_jobs'] ) ? $context['async_jobs'] : array(),
 			'recent_snapshots'      => isset( $summary['recent_snapshots'] ) && is_array( $summary['recent_snapshots'] ) ? $summary['recent_snapshots'] : array(),
 			'health_score'          => isset( $summary['health_score'] ) && is_array( $summary['health_score'] ) ? $summary['health_score'] : array(),
 			'restore_health_strip'  => isset( $summary['restore_health_strip'] ) && is_array( $summary['restore_health_strip'] ) ? $summary['restore_health_strip'] : array(),

@@ -14,6 +14,12 @@ define( 'ZNTS_OPTION_OPERATION_LOCK', 'znts_operation_lock' );
 define( 'ZNTS_OPTION_LAST_SNAPSHOT_HEALTH_BASELINE', 'znts_last_snapshot_health_baseline' );
 define( 'ZNTS_OPTION_RESTORE_EXECUTION_CHECKPOINT', 'znts_restore_execution_checkpoint' );
 define( 'ZNTS_OPTION_RESTORE_ROLLBACK_CHECKPOINT', 'znts_restore_rollback_checkpoint' );
+define( 'ZNTS_OPTION_LAST_RESTORE_STAGE', 'znts_last_restore_stage' );
+define( 'ZNTS_OPTION_LAST_RESTORE_PLAN', 'znts_last_restore_plan' );
+define( 'ZNTS_OPTION_RESTORE_STAGE_CHECKPOINT', 'znts_restore_stage_checkpoint' );
+define( 'ZNTS_OPTION_RESTORE_PLAN_CHECKPOINT', 'znts_restore_plan_checkpoint' );
+define( 'ZNTS_OPTION_ASYNC_JOBS', 'znts_async_jobs' );
+define( 'ZNTS_CRON_ASYNC_JOBS', 'znts_process_async_jobs' );
 
 if ( ! defined( 'WP_PLUGIN_DIR' ) ) {
 	define( 'WP_PLUGIN_DIR', 'D:/plugins' );
@@ -24,6 +30,7 @@ if ( ! defined( 'WP_CONTENT_DIR' ) ) {
 }
 
 $GLOBALS['znts_test_options'] = array();
+$GLOBALS['znts_test_scheduled_events'] = array();
 
 if ( ! function_exists( '__' ) ) {
 	function __( $text, $domain = '' ) {
@@ -252,6 +259,20 @@ if ( ! function_exists( 'wp_create_nonce' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_next_scheduled' ) ) {
+	function wp_next_scheduled( $hook ) {
+		return isset( $GLOBALS['znts_test_scheduled_events'][ $hook ] ) ? $GLOBALS['znts_test_scheduled_events'][ $hook ] : false;
+	}
+}
+
+if ( ! function_exists( 'wp_schedule_single_event' ) ) {
+	function wp_schedule_single_event( $timestamp, $hook, $args = array() ) {
+		$GLOBALS['znts_test_scheduled_events'][ $hook ] = (int) $timestamp;
+
+		return true;
+	}
+}
+
 if ( ! function_exists( 'get_theme_root' ) ) {
 	function get_theme_root() {
 		return 'D:/themes';
@@ -318,6 +339,8 @@ require_once __DIR__ . '/../includes/snapshots/class-local-artifact-storage-back
 require_once __DIR__ . '/../includes/snapshots/class-artifact-exposure-scanner.php';
 require_once __DIR__ . '/../includes/core/class-operation-lock.php';
 require_once __DIR__ . '/../includes/core/class-disk-space-preflight.php';
+require_once __DIR__ . '/../includes/jobs/class-job-store.php';
+require_once __DIR__ . '/../includes/jobs/class-job-runner.php';
 require_once __DIR__ . '/../includes/snapshots/class-component-manifest-builder.php';
 require_once __DIR__ . '/../includes/snapshots/class-restore-health-verifier.php';
 require_once __DIR__ . '/../includes/logging/class-log-repository.php';
