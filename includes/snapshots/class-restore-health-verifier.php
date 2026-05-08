@@ -98,7 +98,7 @@ class RestoreHealthVerifier {
 		$request_args = array(
 			'timeout'     => 10,
 			'redirection' => 3,
-			'user-agent'  => 'ZignitesSentinel/1.21.0',
+			'user-agent'  => 'ZignitesSentinel/' . ( defined( 'ZNTS_VERSION' ) ? ZNTS_VERSION : 'unknown' ),
 		);
 
 		if ( ! empty( $endpoint['requires_auth'] ) ) {

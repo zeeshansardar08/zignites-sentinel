@@ -12,6 +12,8 @@ use Zignites\Sentinel\Diagnostics\ConflictRepository;
 use Zignites\Sentinel\Diagnostics\HealthScore;
 use Zignites\Sentinel\Diagnostics\Monitor;
 use Zignites\Sentinel\Core\Installer;
+use Zignites\Sentinel\Core\DiskSpacePreflight;
+use Zignites\Sentinel\Core\OperationLock;
 use Zignites\Sentinel\Logging\Logger;
 use Zignites\Sentinel\Logging\LogRepository;
 use Zignites\Sentinel\Snapshots\RestoreReadinessChecker;
@@ -70,6 +72,8 @@ class Plugin {
 		$snapshot_repository = new SnapshotRepository();
 		$artifact_repository = new SnapshotArtifactRepository();
 		$logger              = new Logger( $log_repository );
+		$operation_lock      = new OperationLock();
+		$disk_preflight      = new DiskSpacePreflight();
 		$journal_recorder    = new RestoreJournalRecorder( $logger, $log_repository );
 		$health_score        = new HealthScore( $conflict_repository, $log_repository );
 		$snapshot_comparator = new SnapshotComparator();
@@ -77,18 +81,18 @@ class Plugin {
 		$export_manager      = new SnapshotExportManager( $storage_guard );
 		$package_manager     = new SnapshotPackageManager( $storage_guard );
 		$restore_dry_run     = new RestoreDryRunChecker( $package_manager );
-		$restore_staging     = new RestoreStagingManager( $package_manager, $storage_guard );
+		$restore_staging     = new RestoreStagingManager( $package_manager, $storage_guard, $disk_preflight );
 		$restore_planner     = new RestoreExecutionPlanner( $restore_staging );
 		$checkpoint_store    = new RestoreCheckpointStore();
 		$restore_verifier    = new RestoreHealthVerifier();
-		$restore_executor    = new RestoreExecutor( $restore_staging, $restore_planner, $restore_verifier, $logger, $journal_recorder, $checkpoint_store, $storage_guard );
-		$restore_rollback    = new RestoreRollbackManager( $logger, $journal_recorder, $checkpoint_store, $storage_guard );
+		$restore_executor    = new RestoreExecutor( $restore_staging, $restore_planner, $restore_verifier, $logger, $journal_recorder, $checkpoint_store, $storage_guard, $disk_preflight );
+		$restore_rollback    = new RestoreRollbackManager( $logger, $journal_recorder, $checkpoint_store, $storage_guard, $disk_preflight );
 		$artifact_inspector  = new SnapshotArtifactInspector( $export_manager, $package_manager );
 		$source_validator    = new SourceValidator( $artifact_repository, $export_manager, $package_manager );
-		$snapshot_manager    = new SnapshotManager( $snapshot_repository, $artifact_repository, null, $export_manager, $package_manager, $logger );
-		$snapshot_maintenance = new SnapshotMaintenance( $snapshot_repository, $artifact_repository, $export_manager, $package_manager, $restore_staging, $checkpoint_store, $logger );
+		$snapshot_manager    = new SnapshotManager( $snapshot_repository, $artifact_repository, null, $export_manager, $package_manager, $logger, $operation_lock, $disk_preflight );
+		$snapshot_maintenance = new SnapshotMaintenance( $snapshot_repository, $artifact_repository, $export_manager, $package_manager, $restore_staging, $checkpoint_store, $logger, $operation_lock, $log_repository );
 		$restore_checker     = new RestoreReadinessChecker( $snapshot_comparator, $source_validator );
-		$preflight_checker   = new PreflightChecker();
+		$preflight_checker   = new PreflightChecker( $disk_preflight );
 		$update_planner      = new UpdatePlanner( $snapshot_manager, $source_validator, $logger );
 
 		$this->monitor = new Monitor( $logger, $conflict_repository );
@@ -113,7 +117,8 @@ class Plugin {
 			$restore_verifier,
 			$restore_rollback,
 			$journal_recorder,
-			$checkpoint_store
+			$checkpoint_store,
+			$operation_lock
 		);
 	}
 

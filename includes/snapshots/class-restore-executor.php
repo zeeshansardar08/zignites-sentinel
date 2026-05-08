@@ -7,6 +7,7 @@
 
 namespace Zignites\Sentinel\Snapshots;
 
+use Zignites\Sentinel\Core\DiskSpacePreflight;
 use Zignites\Sentinel\Logging\Logger;
 
 defined( 'ABSPATH' ) || exit;
@@ -77,6 +78,13 @@ class RestoreExecutor {
 	protected $storage_guard;
 
 	/**
+	 * Disk capacity checker.
+	 *
+	 * @var DiskSpacePreflight
+	 */
+	protected $disk_preflight;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param RestoreStagingManager       $staging_manager  Staging manager.
@@ -86,7 +94,7 @@ class RestoreExecutor {
 	 * @param RestoreJournalRecorder|null $journal_recorder Journal recorder.
 	 * @param RestoreCheckpointStore|null $checkpoint_store Checkpoint store.
 	 */
-	public function __construct( RestoreStagingManager $staging_manager, RestoreExecutionPlanner $planner, RestoreHealthVerifier $health_verifier, Logger $logger = null, RestoreJournalRecorder $journal_recorder = null, RestoreCheckpointStore $checkpoint_store = null, ArtifactStorageGuard $storage_guard = null ) {
+	public function __construct( RestoreStagingManager $staging_manager, RestoreExecutionPlanner $planner, RestoreHealthVerifier $health_verifier, Logger $logger = null, RestoreJournalRecorder $journal_recorder = null, RestoreCheckpointStore $checkpoint_store = null, ArtifactStorageGuard $storage_guard = null, DiskSpacePreflight $disk_preflight = null ) {
 		$this->staging_manager  = $staging_manager;
 		$this->planner          = $planner;
 		$this->health_verifier  = $health_verifier;
@@ -94,6 +102,7 @@ class RestoreExecutor {
 		$this->journal_recorder = $journal_recorder;
 		$this->checkpoint_store = $checkpoint_store;
 		$this->storage_guard    = $storage_guard ? $storage_guard : new ArtifactStorageGuard();
+		$this->disk_preflight   = $disk_preflight ? $disk_preflight : new DiskSpacePreflight();
 	}
 
 	/**
@@ -199,6 +208,29 @@ class RestoreExecutor {
 		);
 
 		if ( isset( $plan['status'] ) && 'blocked' === $plan['status'] ) {
+			$this->staging_manager->cleanup_stage_directory( $stage['stage_path'] );
+			if ( $this->checkpoint_store ) {
+				$this->checkpoint_store->clear_execution_checkpoint( $snapshot_id, $run_id );
+			}
+			$result = $this->finalize_result( $snapshot, $checks, array(), '', '', true, array(), $journal, $run_id, ! empty( $resume_state['entries'] ) );
+			$this->append_run_completion_entry( $journal, $snapshot_id, $run_id, $result );
+			$result['journal'] = $journal;
+			return $result;
+		}
+
+		$disk_check = $this->build_disk_space_check(
+			$this->disk_preflight->check_restore_capacity( $snapshot, $artifacts, isset( $plan['items'] ) && is_array( $plan['items'] ) ? $plan['items'] : array() ),
+			__( 'Restore disk capacity', 'zignites-sentinel' )
+		);
+		$checks[] = $disk_check;
+		$this->append_journal_entry(
+			$journal,
+			$snapshot_id,
+			$run_id,
+			$this->build_journal_entry( 'gate', 'disk_capacity', 'completed', $disk_check['status'], $disk_check['message'] )
+		);
+
+		if ( 'fail' === $disk_check['status'] ) {
 			$this->staging_manager->cleanup_stage_directory( $stage['stage_path'] );
 			if ( $this->checkpoint_store ) {
 				$this->checkpoint_store->clear_execution_checkpoint( $snapshot_id, $run_id );
@@ -396,6 +428,25 @@ class RestoreExecutor {
 			'label'   => __( 'Restore plan gate', 'zignites-sentinel' ),
 			'status'  => 'pass',
 			'message' => __( 'A current restore plan exists for this snapshot.', 'zignites-sentinel' ),
+		);
+	}
+
+	/**
+	 * Convert a disk preflight result to an execution check row.
+	 *
+	 * @param array  $result Disk preflight result.
+	 * @param string $label  Check label.
+	 * @return array
+	 */
+	protected function build_disk_space_check( array $result, $label ) {
+		return array(
+			'label'   => $label,
+			'status'  => isset( $result['status'] ) ? sanitize_key( (string) $result['status'] ) : 'warning',
+			'message' => isset( $result['message'] ) ? (string) $result['message'] : __( 'Disk capacity could not be evaluated.', 'zignites-sentinel' ),
+			'details' => array(
+				'required_bytes'  => isset( $result['required_bytes'] ) ? (int) $result['required_bytes'] : 0,
+				'available_bytes' => array_key_exists( 'available_bytes', $result ) ? $result['available_bytes'] : null,
+			),
 		);
 	}
 

@@ -78,7 +78,11 @@ class SettingsPortability {
 		$normalized['logging_enabled']                 = ! empty( $settings['logging_enabled'] ) ? 1 : 0;
 		$normalized['delete_data_on_uninstall']        = ! empty( $settings['delete_data_on_uninstall'] ) ? 1 : 0;
 		$normalized['auto_snapshot_on_plan']           = ! empty( $settings['auto_snapshot_on_plan'] ) ? 1 : 0;
+		$normalized['log_retention_days']              = isset( $settings['log_retention_days'] ) ? max( 1, (int) $settings['log_retention_days'] ) : (int) $defaults['log_retention_days'];
 		$normalized['snapshot_retention_days']         = isset( $settings['snapshot_retention_days'] ) ? max( 1, (int) $settings['snapshot_retention_days'] ) : (int) $defaults['snapshot_retention_days'];
+		$normalized['package_retention_days']          = isset( $settings['package_retention_days'] ) ? max( 1, (int) $settings['package_retention_days'] ) : (int) $defaults['package_retention_days'];
+		$normalized['restore_backup_retention_days']   = isset( $settings['restore_backup_retention_days'] ) ? max( 1, (int) $settings['restore_backup_retention_days'] ) : (int) $defaults['restore_backup_retention_days'];
+		$normalized['failed_stage_retention_days']     = isset( $settings['failed_stage_retention_days'] ) ? max( 1, (int) $settings['failed_stage_retention_days'] ) : (int) $defaults['failed_stage_retention_days'];
 		$normalized['restore_checkpoint_max_age_hours'] = isset( $settings['restore_checkpoint_max_age_hours'] ) ? max( 1, (int) $settings['restore_checkpoint_max_age_hours'] ) : (int) $defaults['restore_checkpoint_max_age_hours'];
 
 		return $normalized;
@@ -93,7 +97,11 @@ class SettingsPortability {
 		return array(
 			'delete_data_on_uninstall'         => 1,
 			'logging_enabled'                  => 1,
+			'log_retention_days'               => 90,
 			'snapshot_retention_days'          => 30,
+			'package_retention_days'           => 30,
+			'restore_backup_retention_days'    => 14,
+			'failed_stage_retention_days'      => 7,
 			'auto_snapshot_on_plan'            => 1,
 			'restore_checkpoint_max_age_hours' => 24,
 		);

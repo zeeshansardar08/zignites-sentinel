@@ -115,6 +115,39 @@ class SnapshotArtifactRepository {
 	}
 
 	/**
+	 * Fetch artifacts of a type older than the provided cutoff.
+	 *
+	 * @param string $artifact_type Artifact type.
+	 * @param string $cutoff        Cutoff datetime in UTC mysql format.
+	 * @return array
+	 */
+	public function get_by_type_older_than( $artifact_type, $cutoff ) {
+		global $wpdb;
+
+		$artifact_type = sanitize_key( (string) $artifact_type );
+
+		if ( '' === $artifact_type ) {
+			return array();
+		}
+
+		$table = Installer::get_snapshot_artifacts_table_name();
+		$rows  = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, snapshot_id, artifact_type, artifact_key, label, version, source_path, created_at, metadata
+				FROM {$table}
+				WHERE artifact_type = %s
+					AND created_at < %s
+				ORDER BY created_at ASC, id ASC",
+				$artifact_type,
+				$cutoff
+			),
+			ARRAY_A
+		);
+
+		return is_array( $rows ) ? $rows : array();
+	}
+
+	/**
 	 * Delete artifacts for one or more snapshots.
 	 *
 	 * @param array $snapshot_ids Snapshot IDs.
@@ -134,6 +167,31 @@ class SnapshotArtifactRepository {
 		$query        = $wpdb->prepare(
 			"DELETE FROM {$table} WHERE snapshot_id IN ({$placeholders})",
 			$snapshot_ids
+		);
+
+		return $wpdb->query( $query );
+	}
+
+	/**
+	 * Delete artifacts by artifact IDs.
+	 *
+	 * @param array $artifact_ids Artifact IDs.
+	 * @return int|false
+	 */
+	public function delete_by_ids( array $artifact_ids ) {
+		global $wpdb;
+
+		$artifact_ids = array_filter( array_map( 'absint', $artifact_ids ) );
+
+		if ( empty( $artifact_ids ) ) {
+			return 0;
+		}
+
+		$table        = Installer::get_snapshot_artifacts_table_name();
+		$placeholders = implode( ',', array_fill( 0, count( $artifact_ids ), '%d' ) );
+		$query        = $wpdb->prepare(
+			"DELETE FROM {$table} WHERE id IN ({$placeholders})",
+			$artifact_ids
 		);
 
 		return $wpdb->query( $query );

@@ -102,6 +102,14 @@ This reduces direct web access and directory listing on common hosting setups, b
 
 If your host serves uploads directly without honoring `.htaccess` or `web.config`, sensitive artifact files may still be reachable by URL. For stronger protection, use server-level deny rules or a hosting setup that does not expose these uploads paths publicly.
 
+= Reliability Controls =
+
+Sentinel uses a shared operation lock for checkpoint, package, staging, restore, rollback, and cleanup workflows so overlapping heavy operations are blocked safely.
+
+Before checkpoint and restore work starts, Sentinel estimates required disk space for packages, staging, live backups, and rollback payloads. Operations are blocked when available space is below the safe threshold.
+
+Retention settings cover event logs, snapshot records, package ZIPs, restore backups, and abandoned stage directories. Cleanup runs through scheduled maintenance while preserving active resume checkpoints.
+
 == Installation ==
 
 1. Upload the plugin to `/wp-content/plugins/` or install it through the WordPress admin.

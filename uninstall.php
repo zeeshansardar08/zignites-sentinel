@@ -41,6 +41,7 @@ if ( empty( $settings['delete_data_on_uninstall'] ) ) {
 	delete_option( 'znts_last_snapshot_health_baseline' );
 	delete_option( 'znts_last_audit_report_verification' );
 	delete_option( 'znts_restore_checkpoint_expiry_log' );
+	delete_option( 'znts_operation_lock' );
 	return;
 }
 
@@ -61,6 +62,7 @@ delete_option( 'znts_restore_rollback_checkpoint' );
 delete_option( 'znts_last_snapshot_health_baseline' );
 delete_option( 'znts_last_audit_report_verification' );
 delete_option( 'znts_restore_checkpoint_expiry_log' );
+delete_option( 'znts_operation_lock' );
 
 $tables = array(
 	$wpdb->prefix . 'znts_logs',
@@ -81,5 +83,6 @@ $package_manager->delete_package_directory();
 $staging_manager = new \Zignites\Sentinel\Snapshots\RestoreStagingManager( $package_manager );
 $staging_manager->delete_stage_directory_root();
 $restore_planner = new \Zignites\Sentinel\Snapshots\RestoreExecutionPlanner( $staging_manager );
-$restore_executor = new \Zignites\Sentinel\Snapshots\RestoreExecutor( $staging_manager, $restore_planner );
+$restore_verifier = new \Zignites\Sentinel\Snapshots\RestoreHealthVerifier();
+$restore_executor = new \Zignites\Sentinel\Snapshots\RestoreExecutor( $staging_manager, $restore_planner, $restore_verifier );
 $restore_executor->delete_backup_directory_root();

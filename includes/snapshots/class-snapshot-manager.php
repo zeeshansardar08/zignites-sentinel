@@ -7,6 +7,8 @@
 
 namespace Zignites\Sentinel\Snapshots;
 
+use Zignites\Sentinel\Core\DiskSpacePreflight;
+use Zignites\Sentinel\Core\OperationLock;
 use Zignites\Sentinel\Logging\Logger;
 
 defined( 'ABSPATH' ) || exit;
@@ -56,6 +58,27 @@ class SnapshotManager {
 	protected $logger;
 
 	/**
+	 * Operation lock.
+	 *
+	 * @var OperationLock
+	 */
+	protected $operation_lock;
+
+	/**
+	 * Disk capacity checker.
+	 *
+	 * @var DiskSpacePreflight
+	 */
+	protected $disk_preflight;
+
+	/**
+	 * Last failure reason for admin presentation.
+	 *
+	 * @var string
+	 */
+	protected $last_failure_reason = '';
+
+	/**
 	 * Constructor.
 	 *
 	 * @param SnapshotRepository $repository Snapshot repository.
@@ -66,7 +89,9 @@ class SnapshotManager {
 		ComponentManifestBuilder $manifest_builder = null,
 		SnapshotExportManager $export_manager = null,
 		SnapshotPackageManager $package_manager = null,
-		Logger $logger = null
+		Logger $logger = null,
+		OperationLock $operation_lock = null,
+		DiskSpacePreflight $disk_preflight = null
 	) {
 		$this->repository          = $repository;
 		$this->artifact_repository = $artifact_repository;
@@ -74,6 +99,8 @@ class SnapshotManager {
 		$this->export_manager      = $export_manager ? $export_manager : new SnapshotExportManager();
 		$this->package_manager     = $package_manager ? $package_manager : new SnapshotPackageManager();
 		$this->logger              = $logger;
+		$this->operation_lock      = $operation_lock ? $operation_lock : new OperationLock();
+		$this->disk_preflight      = $disk_preflight ? $disk_preflight : new DiskSpacePreflight();
 	}
 
 	/**
@@ -84,6 +111,59 @@ class SnapshotManager {
 	 * @return int|false
 	 */
 	public function create_manual_snapshot( $user_id, array $context = array() ) {
+		$this->last_failure_reason = '';
+		$lock = $this->operation_lock->acquire( 'snapshot', $this->get_operation_owner( $user_id ) );
+
+		if ( empty( $lock['acquired'] ) ) {
+			$this->last_failure_reason = 'operation_locked';
+			$this->log_snapshot_event(
+				'snapshot_locked',
+				'warning',
+				__( 'Snapshot creation was blocked because another Sentinel operation is active.', 'zignites-sentinel' ),
+				array(
+					'user_id' => absint( $user_id ),
+					'lock'    => isset( $lock['lock'] ) ? $lock['lock'] : array(),
+				)
+			);
+
+			return false;
+		}
+
+		try {
+			return $this->create_manual_snapshot_without_lock( $user_id, $context );
+		} finally {
+			if ( ! empty( $lock['lock'] ) ) {
+				$this->operation_lock->release( $lock['lock'] );
+			}
+		}
+	}
+
+	/**
+	 * Create a manual metadata snapshot while the operation lock is held.
+	 *
+	 * @param int   $user_id Current user ID.
+	 * @param array $context Optional capture context.
+	 * @return int|false
+	 */
+	protected function create_manual_snapshot_without_lock( $user_id, array $context = array() ) {
+		$disk_check = $this->disk_preflight->check_snapshot_capacity();
+
+		if ( 'fail' === ( isset( $disk_check['status'] ) ? $disk_check['status'] : 'warning' ) ) {
+			$this->last_failure_reason = 'disk_space';
+			$this->log_snapshot_event(
+				'snapshot_disk_preflight_failed',
+				'warning',
+				__( 'Snapshot creation was blocked because available disk space is below the safe threshold.', 'zignites-sentinel' ),
+				array(
+					'user_id'       => absint( $user_id ),
+					'required_bytes'=> isset( $disk_check['required_bytes'] ) ? (int) $disk_check['required_bytes'] : 0,
+					'available_bytes' => isset( $disk_check['available_bytes'] ) ? $disk_check['available_bytes'] : null,
+				)
+			);
+
+			return false;
+		}
+
 		$state         = $this->collect_site_state();
 		$snapshot_data = $this->build_manual_snapshot_record_data( $state, $user_id, $context );
 		$inserted      = $this->repository->insert( $snapshot_data );
@@ -180,6 +260,25 @@ class SnapshotManager {
 		$this->artifact_repository->replace_for_snapshot( $inserted, $artifacts );
 
 		return $inserted;
+	}
+
+	/**
+	 * Return the last snapshot failure reason.
+	 *
+	 * @return string
+	 */
+	public function get_last_failure_reason() {
+		return $this->last_failure_reason;
+	}
+
+	/**
+	 * Build an owner label for lock observability.
+	 *
+	 * @param int $user_id Current user ID.
+	 * @return string
+	 */
+	protected function get_operation_owner( $user_id ) {
+		return 'user:' . absint( $user_id );
 	}
 
 	/**

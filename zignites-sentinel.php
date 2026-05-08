@@ -17,6 +17,10 @@ if ( ! defined( 'ZNTS_VERSION' ) ) {
 	define( 'ZNTS_VERSION', '1.32.0' );
 }
 
+if ( ! defined( 'ZNTS_MINIMUM_PHP_VERSION' ) ) {
+	define( 'ZNTS_MINIMUM_PHP_VERSION', '8.0' );
+}
+
 if ( ! defined( 'ZNTS_DB_VERSION' ) ) {
 	define( 'ZNTS_DB_VERSION', '1.4.0' );
 }
@@ -99,6 +103,10 @@ if ( ! defined( 'ZNTS_OPTION_LAST_AUDIT_REPORT_VERIFICATION' ) ) {
 
 if ( ! defined( 'ZNTS_OPTION_RESTORE_CHECKPOINT_EXPIRY_LOG' ) ) {
 	define( 'ZNTS_OPTION_RESTORE_CHECKPOINT_EXPIRY_LOG', 'znts_restore_checkpoint_expiry_log' );
+}
+
+if ( ! defined( 'ZNTS_OPTION_OPERATION_LOCK' ) ) {
+	define( 'ZNTS_OPTION_OPERATION_LOCK', 'znts_operation_lock' );
 }
 
 require_once ZNTS_PLUGIN_DIR . 'includes/class-autoloader.php';

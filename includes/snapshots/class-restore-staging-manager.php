@@ -7,6 +7,8 @@
 
 namespace Zignites\Sentinel\Snapshots;
 
+use Zignites\Sentinel\Core\DiskSpacePreflight;
+
 defined( 'ABSPATH' ) || exit;
 
 class RestoreStagingManager {
@@ -33,13 +35,21 @@ class RestoreStagingManager {
 	protected $storage_guard;
 
 	/**
+	 * Disk capacity checker.
+	 *
+	 * @var DiskSpacePreflight
+	 */
+	protected $disk_preflight;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param SnapshotPackageManager $package_manager Package manager.
 	 */
-	public function __construct( SnapshotPackageManager $package_manager, ArtifactStorageGuard $storage_guard = null ) {
+	public function __construct( SnapshotPackageManager $package_manager, ArtifactStorageGuard $storage_guard = null, DiskSpacePreflight $disk_preflight = null ) {
 		$this->package_manager = $package_manager;
 		$this->storage_guard   = $storage_guard ? $storage_guard : new ArtifactStorageGuard();
+		$this->disk_preflight  = $disk_preflight ? $disk_preflight : new DiskSpacePreflight();
 	}
 
 	/**
@@ -82,6 +92,10 @@ class RestoreStagingManager {
 		}
 
 		$stage = $this->extract_package_to_stage( $snapshot, $artifacts, $inspection );
+
+		if ( isset( $stage['disk_check'] ) ) {
+			$checks[] = $stage['disk_check'];
+		}
 
 		$checks[] = $stage['stage_check'];
 
@@ -181,6 +195,24 @@ class RestoreStagingManager {
 			);
 		}
 
+		$disk_check = $this->disk_preflight->check_staging_capacity( $package_artifact, $inspection );
+		$disk_check = $this->build_disk_space_check( $disk_check, __( 'Stage disk capacity', 'zignites-sentinel' ) );
+
+		if ( 'fail' === $disk_check['status'] ) {
+			return array(
+				'success'       => false,
+				'stage_created' => false,
+				'stage_path'    => '',
+				'manifest'      => array(),
+				'disk_check'    => $disk_check,
+				'stage_check'   => array(
+					'label'   => __( 'Stage directory', 'zignites-sentinel' ),
+					'status'  => 'fail',
+					'message' => __( 'A temporary stage directory was not created because disk capacity is below the safe threshold.', 'zignites-sentinel' ),
+				),
+			);
+		}
+
 		$stage_path = $this->create_stage_directory( isset( $snapshot['id'] ) ? (int) $snapshot['id'] : 0 );
 
 		if ( '' === $stage_path ) {
@@ -247,6 +279,7 @@ class RestoreStagingManager {
 			'stage_created' => true,
 			'stage_path'    => $stage_path,
 			'manifest'      => $manifest,
+			'disk_check'    => $disk_check,
 			'stage_check'   => array(
 				'label'   => __( 'Stage directory', 'zignites-sentinel' ),
 				'status'  => 'pass',
@@ -258,6 +291,25 @@ class RestoreStagingManager {
 				'message' => $extracted
 					? __( 'The snapshot package was extracted into the temporary stage.', 'zignites-sentinel' )
 					: __( 'The snapshot package could not be extracted into the temporary stage.', 'zignites-sentinel' ),
+			),
+		);
+	}
+
+	/**
+	 * Convert a disk preflight result to a restore check row.
+	 *
+	 * @param array  $result Disk preflight result.
+	 * @param string $label  Check label.
+	 * @return array
+	 */
+	protected function build_disk_space_check( array $result, $label ) {
+		return array(
+			'label'   => $label,
+			'status'  => isset( $result['status'] ) ? sanitize_key( (string) $result['status'] ) : 'warning',
+			'message' => isset( $result['message'] ) ? (string) $result['message'] : __( 'Disk capacity could not be evaluated.', 'zignites-sentinel' ),
+			'details' => array(
+				'required_bytes'  => isset( $result['required_bytes'] ) ? (int) $result['required_bytes'] : 0,
+				'available_bytes' => array_key_exists( 'available_bytes', $result ) ? $result['available_bytes'] : null,
 			),
 		);
 	}
@@ -280,10 +332,13 @@ class RestoreStagingManager {
 	 * Delete preserved stage directories except for explicitly preserved paths.
 	 *
 	 * @param array $preserve_paths Absolute paths to preserve.
+	 * @param int   $min_age_seconds Minimum age in seconds before deletion.
 	 * @return array
 	 */
-	public function cleanup_abandoned_stage_directories( array $preserve_paths = array() ) {
+	public function cleanup_abandoned_stage_directories( array $preserve_paths = array(), $min_age_seconds = 0 ) {
 		$root = $this->get_stage_root();
+		$min_age_seconds = max( 0, absint( $min_age_seconds ) );
+		$cutoff          = time() - $min_age_seconds;
 
 		if ( '' === $root || ! is_dir( $root ) ) {
 			return array(
@@ -322,6 +377,14 @@ class RestoreStagingManager {
 
 			if ( isset( $preserve_map[ rtrim( $entry, '/' ) ] ) ) {
 				continue;
+			}
+
+			if ( $min_age_seconds > 0 ) {
+				$modified_at = filemtime( $entry );
+
+				if ( false !== $modified_at && $modified_at > $cutoff ) {
+					continue;
+				}
 			}
 
 			if ( $this->delete_directory_recursive( $entry ) ) {

@@ -10,6 +10,7 @@ namespace Zignites\Sentinel\Admin;
 use Zignites\Sentinel\Diagnostics\ConflictRepository;
 use Zignites\Sentinel\Diagnostics\HealthScore;
 use Zignites\Sentinel\Core\Installer;
+use Zignites\Sentinel\Core\OperationLock;
 use Zignites\Sentinel\Logging\Logger;
 use Zignites\Sentinel\Logging\LogRepository;
 use Zignites\Sentinel\Snapshots\RestoreReadinessChecker;
@@ -322,6 +323,13 @@ class Admin {
 	protected $restore_checkpoint_store;
 
 	/**
+	 * Operation lock.
+	 *
+	 * @var OperationLock
+	 */
+	protected $operation_lock;
+
+	/**
 	 * Shared snapshot status resolver.
 	 *
 	 * @var SnapshotStatusResolver
@@ -498,7 +506,8 @@ class Admin {
 		RestoreHealthVerifier $restore_health_verifier,
 		RestoreRollbackManager $restore_rollback_manager,
 		RestoreJournalRecorder $restore_journal_recorder,
-		RestoreCheckpointStore $restore_checkpoint_store
+		RestoreCheckpointStore $restore_checkpoint_store,
+		OperationLock $operation_lock = null
 	) {
 		$this->logger            = $logger;
 		$this->logs              = $logs;
@@ -520,6 +529,7 @@ class Admin {
 		$this->restore_rollback_manager = $restore_rollback_manager;
 		$this->restore_journal_recorder = $restore_journal_recorder;
 		$this->restore_checkpoint_store = $restore_checkpoint_store;
+		$this->operation_lock           = $operation_lock ? $operation_lock : new OperationLock();
 		$this->settings_portability     = new SettingsPortability();
 		$this->audit_report_verifier    = new AuditReportVerifier();
 		$this->restore_operator_checklist_evaluator = new RestoreOperatorChecklistEvaluator();
@@ -1090,6 +1100,25 @@ class Admin {
 					$scope_label
 				),
 				'description' => __( 'Open Before Update and review storage or package issues before relying on Sentinel for this change window.', 'zignites-sentinel' ),
+				'boundary'    => $boundary_note,
+				'actions'     => array(
+					array(
+						'label' => __( 'Open Before Update', 'zignites-sentinel' ),
+						'url'   => $before_update_url,
+					),
+				),
+			);
+		}
+
+		if ( 'operation-locked' === $notice_key || 'disk-space-blocked' === $notice_key ) {
+			return array(
+				'type'        => 'error',
+				'title'       => 'operation-locked' === $notice_key
+					? __( 'Sentinel is already running another operation.', 'zignites-sentinel' )
+					: __( 'Sentinel blocked checkpoint creation because disk space is unsafe.', 'zignites-sentinel' ),
+				'description' => 'operation-locked' === $notice_key
+					? __( 'Wait for the active operation to finish before starting another checkpoint or restore workflow.', 'zignites-sentinel' )
+					: __( 'Free disk space or adjust retention before relying on Sentinel for this update window.', 'zignites-sentinel' ),
 				'boundary'    => $boundary_note,
 				'actions'     => array(
 					array(
@@ -1872,6 +1901,16 @@ class Admin {
 		$result = $this->snapshot_manager->create_manual_snapshot( get_current_user_id(), $context );
 
 		if ( false === $result ) {
+			$failure_reason = method_exists( $this->snapshot_manager, 'get_last_failure_reason' ) ? $this->snapshot_manager->get_last_failure_reason() : '';
+
+			if ( 'operation_locked' === $failure_reason ) {
+				$this->redirect_after_snapshot_creation( 'operation-locked', $return_screen );
+			}
+
+			if ( 'disk_space' === $failure_reason ) {
+				$this->redirect_after_snapshot_creation( 'disk-space-blocked', $return_screen );
+			}
+
 			$this->redirect_after_snapshot_creation( 'snapshot-failed', $return_screen );
 		}
 
@@ -2185,21 +2224,27 @@ class Admin {
 		$snapshot['active_plugins_decoded'] = $this->decode_json_field( $snapshot['active_plugins'] );
 		$snapshot['metadata_decoded']       = $this->decode_json_field( $snapshot['metadata'] );
 		$artifacts                          = $this->artifacts->get_by_snapshot_id( $snapshot_id );
-		$dry_run                            = $this->restore_dry_run_checker->run( $snapshot, $artifacts );
-		$dry_run['snapshot_id']             = $snapshot_id;
+		$lock                               = $this->acquire_operation_lock_or_redirect( 'package', $snapshot_id, 'znts-restore-dry-run' );
 
-		update_option( ZNTS_OPTION_LAST_RESTORE_DRY_RUN, $dry_run, false );
-		$this->logger->log(
-			'restore_dry_run_completed',
-			$this->map_assessment_status_to_severity( $dry_run['status'] ),
-			'restore-dry-run',
-			__( 'Restore dry-run validation completed.', 'zignites-sentinel' ),
-			array(
-				'snapshot_id' => $snapshot_id,
-				'status'      => $dry_run['status'],
-				'summary'     => isset( $dry_run['summary'] ) ? $dry_run['summary'] : array(),
-			)
-		);
+		try {
+			$dry_run                = $this->restore_dry_run_checker->run( $snapshot, $artifacts );
+			$dry_run['snapshot_id'] = $snapshot_id;
+
+			update_option( ZNTS_OPTION_LAST_RESTORE_DRY_RUN, $dry_run, false );
+			$this->logger->log(
+				'restore_dry_run_completed',
+				$this->map_assessment_status_to_severity( $dry_run['status'] ),
+				'restore-dry-run',
+				__( 'Restore dry-run validation completed.', 'zignites-sentinel' ),
+				array(
+					'snapshot_id' => $snapshot_id,
+					'status'      => $dry_run['status'],
+					'summary'     => isset( $dry_run['summary'] ) ? $dry_run['summary'] : array(),
+				)
+			);
+		} finally {
+			$this->release_operation_lock( $lock );
+		}
 
 		$url = add_query_arg(
 			array(
@@ -2232,8 +2277,14 @@ class Admin {
 		$snapshot['active_plugins_decoded'] = $this->decode_json_field( $snapshot['active_plugins'] );
 		$snapshot['metadata_decoded']       = $this->decode_json_field( $snapshot['metadata'] );
 		$artifacts                          = $this->artifacts->get_by_snapshot_id( $snapshot_id );
-		$stage_run                          = $this->run_restore_stage_for_snapshot( $snapshot, $artifacts );
-		$stage_run['snapshot_id']           = $snapshot_id;
+		$lock                               = $this->acquire_operation_lock_or_redirect( 'stage', $snapshot_id, 'znts-restore-stage' );
+
+		try {
+			$stage_run                = $this->run_restore_stage_for_snapshot( $snapshot, $artifacts );
+			$stage_run['snapshot_id'] = $snapshot_id;
+		} finally {
+			$this->release_operation_lock( $lock );
+		}
 
 		$url = add_query_arg(
 			array(
@@ -2266,7 +2317,13 @@ class Admin {
 		$snapshot['active_plugins_decoded'] = $this->decode_json_field( $snapshot['active_plugins'] );
 		$snapshot['metadata_decoded']       = $this->decode_json_field( $snapshot['metadata'] );
 		$artifacts                          = $this->artifacts->get_by_snapshot_id( $snapshot_id );
-		$plan                               = $this->run_restore_plan_for_snapshot( $snapshot, $artifacts );
+		$lock                               = $this->acquire_operation_lock_or_redirect( 'stage', $snapshot_id, 'znts-restore-plan' );
+
+		try {
+			$plan = $this->run_restore_plan_for_snapshot( $snapshot, $artifacts );
+		} finally {
+			$this->release_operation_lock( $lock );
+		}
 
 		$url = add_query_arg(
 			array(
@@ -2299,8 +2356,14 @@ class Admin {
 		$snapshot['active_plugins_decoded'] = $this->decode_json_field( $snapshot['active_plugins'] );
 		$snapshot['metadata_decoded']       = $this->decode_json_field( $snapshot['metadata'] );
 		$artifacts                          = $this->artifacts->get_by_snapshot_id( $snapshot_id );
-		$stage_run                          = $this->run_restore_stage_for_snapshot( $snapshot, $artifacts );
-		$plan                               = $this->run_restore_plan_for_snapshot( $snapshot, $artifacts );
+		$lock                               = $this->acquire_operation_lock_or_redirect( 'stage', $snapshot_id );
+
+		try {
+			$stage_run = $this->run_restore_stage_for_snapshot( $snapshot, $artifacts );
+			$plan      = $this->run_restore_plan_for_snapshot( $snapshot, $artifacts );
+		} finally {
+			$this->release_operation_lock( $lock );
+		}
 
 		$this->logger->log(
 			'restore_gates_refreshed',
@@ -2373,20 +2436,26 @@ class Admin {
 			$this->redirect_with_notice( 'restore-precheck-blocked' );
 		}
 
-		$result                             = $this->restore_executor->execute( $snapshot, $artifacts, is_array( $last_stage ) ? $last_stage : array(), is_array( $last_plan ) ? $last_plan : array(), $confirmation_phrase );
+		$lock = $this->acquire_operation_lock_or_redirect( 'restore', $snapshot_id );
 
-		update_option( ZNTS_OPTION_LAST_RESTORE_EXECUTION, $result, false );
-		$this->logger->log(
-			'restore_execution_recorded',
-			$this->map_assessment_status_to_severity( $result['status'] ),
-			'restore-execution',
-			__( 'Restore execution result recorded.', 'zignites-sentinel' ),
-			array(
-				'snapshot_id' => $snapshot_id,
-				'status'      => $result['status'],
-				'summary'     => isset( $result['summary'] ) ? $result['summary'] : array(),
-			)
-		);
+		try {
+			$result = $this->restore_executor->execute( $snapshot, $artifacts, is_array( $last_stage ) ? $last_stage : array(), is_array( $last_plan ) ? $last_plan : array(), $confirmation_phrase );
+
+			update_option( ZNTS_OPTION_LAST_RESTORE_EXECUTION, $result, false );
+			$this->logger->log(
+				'restore_execution_recorded',
+				$this->map_assessment_status_to_severity( $result['status'] ),
+				'restore-execution',
+				__( 'Restore execution result recorded.', 'zignites-sentinel' ),
+				array(
+					'snapshot_id' => $snapshot_id,
+					'status'      => $result['status'],
+					'summary'     => isset( $result['summary'] ) ? $result['summary'] : array(),
+				)
+			);
+		} finally {
+			$this->release_operation_lock( $lock );
+		}
 
 		$url = add_query_arg(
 			array(
@@ -2445,29 +2514,35 @@ class Admin {
 			$this->redirect_with_notice( 'restore-operator-gate-blocked' );
 		}
 
-		$result = $this->restore_executor->resume(
-			$snapshot,
-			$artifacts,
-			is_array( $last_stage ) ? $last_stage : array(),
-			is_array( $last_plan ) ? $last_plan : array(),
-			$confirmation_phrase,
-			$resume_context
-		);
+		$lock = $this->acquire_operation_lock_or_redirect( 'restore', $snapshot_id );
 
-		update_option( ZNTS_OPTION_LAST_RESTORE_EXECUTION, $result, false );
-		$this->logger->log(
-			'restore_execution_resumed',
-			$this->map_assessment_status_to_severity( $result['status'] ),
-			'restore-execution',
-			__( 'Restore execution resume recorded.', 'zignites-sentinel' ),
-			array(
-				'snapshot_id' => $snapshot_id,
-				'status'      => $result['status'],
-				'run_id'      => isset( $result['run_id'] ) ? $result['run_id'] : '',
-				'previous_status' => is_array( $last_execution ) && isset( $last_execution['status'] ) ? $last_execution['status'] : '',
-				'summary'     => isset( $result['summary'] ) ? $result['summary'] : array(),
-			)
-		);
+		try {
+			$result = $this->restore_executor->resume(
+				$snapshot,
+				$artifacts,
+				is_array( $last_stage ) ? $last_stage : array(),
+				is_array( $last_plan ) ? $last_plan : array(),
+				$confirmation_phrase,
+				$resume_context
+			);
+
+			update_option( ZNTS_OPTION_LAST_RESTORE_EXECUTION, $result, false );
+			$this->logger->log(
+				'restore_execution_resumed',
+				$this->map_assessment_status_to_severity( $result['status'] ),
+				'restore-execution',
+				__( 'Restore execution resume recorded.', 'zignites-sentinel' ),
+				array(
+					'snapshot_id'     => $snapshot_id,
+					'status'          => $result['status'],
+					'run_id'          => isset( $result['run_id'] ) ? $result['run_id'] : '',
+					'previous_status' => is_array( $last_execution ) && isset( $last_execution['status'] ) ? $last_execution['status'] : '',
+					'summary'         => isset( $result['summary'] ) ? $result['summary'] : array(),
+				)
+			);
+		} finally {
+			$this->release_operation_lock( $lock );
+		}
 
 		$url = add_query_arg(
 			array(
@@ -2738,21 +2813,27 @@ class Admin {
 		$snapshot['metadata_decoded']       = $this->decode_json_field( $snapshot['metadata'] );
 		$execution                          = $this->get_last_restore_execution( $snapshot );
 		$confirmation_phrase                = isset( $_POST['rollback_confirmation_phrase'] ) ? sanitize_text_field( wp_unslash( $_POST['rollback_confirmation_phrase'] ) ) : '';
-		$result                             = $this->restore_rollback_manager->rollback( $snapshot, is_array( $execution ) ? $execution : array(), $confirmation_phrase );
-		$result                             = $this->attach_health_verification_to_result( $snapshot, $result );
+		$lock                               = $this->acquire_operation_lock_or_redirect( 'rollback', $snapshot_id );
 
-		update_option( ZNTS_OPTION_LAST_RESTORE_ROLLBACK, $result, false );
-		$this->logger->log(
-			'restore_rollback_recorded',
-			$this->map_assessment_status_to_severity( $result['status'] ),
-			'restore-rollback',
-			__( 'Restore rollback result recorded.', 'zignites-sentinel' ),
-			array(
-				'snapshot_id' => $snapshot_id,
-				'status'      => $result['status'],
-				'summary'     => isset( $result['summary'] ) ? $result['summary'] : array(),
-			)
-		);
+		try {
+			$result = $this->restore_rollback_manager->rollback( $snapshot, is_array( $execution ) ? $execution : array(), $confirmation_phrase );
+			$result = $this->attach_health_verification_to_result( $snapshot, $result );
+
+			update_option( ZNTS_OPTION_LAST_RESTORE_ROLLBACK, $result, false );
+			$this->logger->log(
+				'restore_rollback_recorded',
+				$this->map_assessment_status_to_severity( $result['status'] ),
+				'restore-rollback',
+				__( 'Restore rollback result recorded.', 'zignites-sentinel' ),
+				array(
+					'snapshot_id' => $snapshot_id,
+					'status'      => $result['status'],
+					'summary'     => isset( $result['summary'] ) ? $result['summary'] : array(),
+				)
+			);
+		} finally {
+			$this->release_operation_lock( $lock );
+		}
 
 		$url = add_query_arg(
 			array(
@@ -2792,27 +2873,33 @@ class Admin {
 			$this->redirect_with_notice( 'restore-rollback-resume-missing' );
 		}
 
-		$result = $this->restore_rollback_manager->resume(
-			$snapshot,
-			is_array( $execution ) ? $execution : array(),
-			$confirmation_phrase,
-			$resume_context
-		);
-		$result = $this->attach_health_verification_to_result( $snapshot, $result );
+		$lock = $this->acquire_operation_lock_or_redirect( 'rollback', $snapshot_id );
 
-		update_option( ZNTS_OPTION_LAST_RESTORE_ROLLBACK, $result, false );
-		$this->logger->log(
-			'restore_rollback_resumed',
-			$this->map_assessment_status_to_severity( $result['status'] ),
-			'restore-rollback',
-			__( 'Restore rollback resume recorded.', 'zignites-sentinel' ),
-			array(
-				'snapshot_id' => $snapshot_id,
-				'status'      => $result['status'],
-				'run_id'      => isset( $result['run_id'] ) ? $result['run_id'] : '',
-				'summary'     => isset( $result['summary'] ) ? $result['summary'] : array(),
-			)
-		);
+		try {
+			$result = $this->restore_rollback_manager->resume(
+				$snapshot,
+				is_array( $execution ) ? $execution : array(),
+				$confirmation_phrase,
+				$resume_context
+			);
+			$result = $this->attach_health_verification_to_result( $snapshot, $result );
+
+			update_option( ZNTS_OPTION_LAST_RESTORE_ROLLBACK, $result, false );
+			$this->logger->log(
+				'restore_rollback_resumed',
+				$this->map_assessment_status_to_severity( $result['status'] ),
+				'restore-rollback',
+				__( 'Restore rollback resume recorded.', 'zignites-sentinel' ),
+				array(
+					'snapshot_id' => $snapshot_id,
+					'status'      => $result['status'],
+					'run_id'      => isset( $result['run_id'] ) ? $result['run_id'] : '',
+					'summary'     => isset( $result['summary'] ) ? $result['summary'] : array(),
+				)
+			);
+		} finally {
+			$this->release_operation_lock( $lock );
+		}
 
 		$url = add_query_arg(
 			array(
@@ -2842,6 +2929,55 @@ class Admin {
 	}
 
 	/**
+	 * Acquire the shared operation lock or redirect with a safe notice.
+	 *
+	 * @param string $operation   Operation key.
+	 * @param int    $snapshot_id Optional snapshot ID for redirects.
+	 * @param string $fragment    Optional page fragment.
+	 * @return array
+	 */
+	protected function acquire_operation_lock_or_redirect( $operation, $snapshot_id = 0, $fragment = '' ) {
+		$lock = $this->operation_lock->acquire( $operation, $this->get_admin_operation_owner() );
+
+		if ( ! empty( $lock['acquired'] ) && ! empty( $lock['lock'] ) ) {
+			return $lock['lock'];
+		}
+
+		$this->logger->log(
+			'operation_lock_blocked',
+			'warning',
+			'operation-lock',
+			__( 'A heavy Sentinel operation was blocked because another operation is active.', 'zignites-sentinel' ),
+			array(
+				'operation'   => sanitize_key( (string) $operation ),
+				'snapshot_id' => absint( $snapshot_id ),
+				'lock'        => isset( $lock['lock'] ) ? $lock['lock'] : array(),
+			)
+		);
+
+		$this->redirect_with_snapshot_notice( 'operation-locked', $snapshot_id, $fragment );
+	}
+
+	/**
+	 * Release an operation lock.
+	 *
+	 * @param array $lock Lock payload.
+	 * @return void
+	 */
+	protected function release_operation_lock( array $lock ) {
+		$this->operation_lock->release( $lock );
+	}
+
+	/**
+	 * Build an owner label for admin-triggered locks.
+	 *
+	 * @return string
+	 */
+	protected function get_admin_operation_owner() {
+		return 'user:' . ( function_exists( 'get_current_user_id' ) ? absint( get_current_user_id() ) : 0 );
+	}
+
+	/**
 	 * Redirect back to the update readiness screen with a notice.
 	 *
 	 * @param string $notice Notice key.
@@ -2855,6 +2991,34 @@ class Admin {
 			),
 			admin_url( 'admin.php' )
 		);
+
+		wp_safe_redirect( $url );
+		exit;
+	}
+
+	/**
+	 * Redirect to a selected snapshot with a notice.
+	 *
+	 * @param string $notice      Notice key.
+	 * @param int    $snapshot_id Snapshot ID.
+	 * @param string $fragment    Optional page fragment.
+	 * @return void
+	 */
+	protected function redirect_with_snapshot_notice( $notice, $snapshot_id = 0, $fragment = '' ) {
+		$args = array(
+			'page'        => self::UPDATE_PAGE_SLUG,
+			'znts_notice' => sanitize_key( $notice ),
+		);
+
+		if ( $snapshot_id > 0 ) {
+			$args['snapshot_id'] = absint( $snapshot_id );
+		}
+
+		$url = add_query_arg( $args, admin_url( 'admin.php' ) );
+
+		if ( '' !== (string) $fragment ) {
+			$url .= '#' . ltrim( sanitize_key( (string) $fragment ), '#' );
+		}
 
 		wp_safe_redirect( $url );
 		exit;
@@ -2942,6 +3106,14 @@ class Admin {
 			'snapshot-failed' => array(
 				'type'    => 'error',
 				'message' => __( 'Snapshot metadata could not be created.', 'zignites-sentinel' ),
+			),
+			'operation-locked' => array(
+				'type'    => 'error',
+				'message' => __( 'Another Sentinel operation is already running. Wait for it to finish or for the lock timeout to expire before starting a new heavy operation.', 'zignites-sentinel' ),
+			),
+			'disk-space-blocked' => array(
+				'type'    => 'error',
+				'message' => __( 'Sentinel blocked the operation because available disk space is below the safe threshold.', 'zignites-sentinel' ),
 			),
 			'settings-saved' => array(
 				'type'    => 'success',
@@ -3107,7 +3279,11 @@ class Admin {
 				'logging_enabled'                  => isset( $raw_input['logging_enabled'] ) ? 1 : 0,
 				'delete_data_on_uninstall'         => isset( $raw_input['delete_data_on_uninstall'] ) ? 1 : 0,
 				'auto_snapshot_on_plan'            => isset( $raw_input['auto_snapshot_on_plan'] ) ? 1 : 0,
+				'log_retention_days'               => isset( $raw_input['log_retention_days'] ) ? $raw_input['log_retention_days'] : null,
 				'snapshot_retention_days'          => isset( $raw_input['snapshot_retention_days'] ) ? $raw_input['snapshot_retention_days'] : null,
+				'package_retention_days'           => isset( $raw_input['package_retention_days'] ) ? $raw_input['package_retention_days'] : null,
+				'restore_backup_retention_days'    => isset( $raw_input['restore_backup_retention_days'] ) ? $raw_input['restore_backup_retention_days'] : null,
+				'failed_stage_retention_days'      => isset( $raw_input['failed_stage_retention_days'] ) ? $raw_input['failed_stage_retention_days'] : null,
 				'restore_checkpoint_max_age_hours' => isset( $raw_input['restore_checkpoint_max_age_hours'] ) ? $raw_input['restore_checkpoint_max_age_hours'] : null,
 			),
 			$this->settings_portability->get_default_settings()
