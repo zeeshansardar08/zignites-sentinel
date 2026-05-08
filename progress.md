@@ -29,6 +29,11 @@
   - shared operation locking for heavy checkpoint, package, staging, restore, rollback, and cleanup workflows
   - disk-capacity preflight checks before checkpoint, staging, restore, and rollback work
   - retention controls for logs, snapshots, package ZIPs, restore backups, and abandoned stage directories
+- Secure artifact handling:
+  - uploads-backed artifact directories are guarded and checked with a temporary HTTP exposure probe
+  - Dashboard reports whether artifact storage appears guarded, publicly readable, or inconclusive
+  - checkpoint and CSV export surfaces warn that packages/logs can include sensitive source, paths, tokens, and operational metadata
+  - artifact storage now has a local backend contract so future encrypted/offsite storage can be added behind a defined boundary
 
 ### 2. Snapshot System
 - Manual snapshot metadata creation

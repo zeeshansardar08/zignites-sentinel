@@ -146,6 +146,10 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 				<strong><?php echo esc_html__( 'Not covered', 'zignites-sentinel' ); ?></strong>
 				<span><?php echo esc_html__( 'This checkpoint covers active plugin/theme code only. It does not capture database changes, uploads/media, WooCommerce order/payment state, WordPress core, or malware cleanup state.', 'zignites-sentinel' ); ?></span>
 			</div>
+			<div class="znts-flow-note">
+				<strong><?php echo esc_html__( 'Sensitive artifacts', 'zignites-sentinel' ); ?></strong>
+				<span><?php echo esc_html__( 'Checkpoint packages can contain plugin and theme source code, configuration files, license keys, API tokens, or other secrets stored inside that code. Keep generated artifacts private and verify server-level access rules.', 'zignites-sentinel' ); ?></span>
+			</div>
 			<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
 				<input type="hidden" name="action" value="znts_create_snapshot" />
 				<?php wp_nonce_field( 'znts_create_snapshot_action' ); ?>

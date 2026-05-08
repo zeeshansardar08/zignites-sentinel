@@ -93,6 +93,7 @@ class EventLogPresenter {
 			'method'       => 'post',
 			'submit_label' => __( 'Export CSV', 'zignites-sentinel' ),
 			'description'  => __( 'Download the current filtered History view as CSV.', 'zignites-sentinel' ),
+			'warning'      => __( 'Event logs can include filesystem paths, package metadata, run IDs, and operational context. Share exported CSV files only with trusted operators.', 'zignites-sentinel' ),
 			'fields'       => array(
 				'action'      => 'znts_export_event_logs',
 				'_wpnonce'    => $nonce,

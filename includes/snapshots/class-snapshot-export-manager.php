@@ -19,12 +19,21 @@ class SnapshotExportManager {
 	protected $storage_guard;
 
 	/**
+	 * Artifact storage backend.
+	 *
+	 * @var ArtifactStorageBackend
+	 */
+	protected $storage_backend;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param ArtifactStorageGuard|null $storage_guard Artifact storage guard.
+	 * @param ArtifactStorageGuard|null   $storage_guard   Artifact storage guard.
+	 * @param ArtifactStorageBackend|null $storage_backend Artifact storage backend.
 	 */
-	public function __construct( ArtifactStorageGuard $storage_guard = null ) {
-		$this->storage_guard = $storage_guard ? $storage_guard : new ArtifactStorageGuard();
+	public function __construct( ArtifactStorageGuard $storage_guard = null, ArtifactStorageBackend $storage_backend = null ) {
+		$this->storage_guard   = $storage_guard ? $storage_guard : new ArtifactStorageGuard();
+		$this->storage_backend = $storage_backend ? $storage_backend : new LocalArtifactStorageBackend( $this->storage_guard );
 	}
 
 	/**
@@ -103,7 +112,7 @@ class SnapshotExportManager {
 	 * @return string
 	 */
 	public function resolve_export_path( $relative_path ) {
-		return $this->storage_guard->resolve_storage_path( $relative_path, self::EXPORT_DIRECTORY );
+		return $this->storage_backend->resolve_path( $relative_path, self::EXPORT_DIRECTORY );
 	}
 
 	/**
@@ -223,21 +232,7 @@ class SnapshotExportManager {
 	 * @return string
 	 */
 	protected function ensure_export_directory() {
-		$base_dir = $this->get_export_directory();
-
-		if ( empty( $base_dir ) ) {
-			return '';
-		}
-
-		if ( is_dir( $base_dir ) && $this->storage_guard->protect_directory( $base_dir ) ) {
-			return $base_dir;
-		}
-
-		if ( $this->storage_guard->protect_directory( $base_dir ) ) {
-			return $base_dir;
-		}
-
-		return '';
+		return $this->storage_backend->ensure_directory( self::EXPORT_DIRECTORY );
 	}
 
 	/**
@@ -246,12 +241,6 @@ class SnapshotExportManager {
 	 * @return string
 	 */
 	protected function get_export_directory() {
-		$uploads = wp_upload_dir();
-
-		if ( ! empty( $uploads['error'] ) || empty( $uploads['basedir'] ) ) {
-			return '';
-		}
-
-		return trailingslashit( wp_normalize_path( $uploads['basedir'] ) ) . self::EXPORT_DIRECTORY;
+		return $this->storage_backend->resolve_path( self::EXPORT_DIRECTORY );
 	}
 }

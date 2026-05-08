@@ -81,6 +81,12 @@ $admin_page_url     = \Zignites\Sentinel\Admin\znts_admin_url( 'admin.php' );
 						<span class="znts-eyebrow"><?php echo esc_html__( 'Current View', 'zignites-sentinel' ); ?></span>
 						<h3><?php echo esc_html__( 'Export the filtered log list.', 'zignites-sentinel' ); ?></h3>
 						<p class="znts-inline-note"><?php echo esc_html( isset( $export_form['description'] ) ? $export_form['description'] : '' ); ?></p>
+						<?php if ( ! empty( $export_form['warning'] ) ) : ?>
+							<div class="znts-flow-note">
+								<strong><?php echo esc_html__( 'Sensitive export', 'zignites-sentinel' ); ?></strong>
+								<span><?php echo esc_html( $export_form['warning'] ); ?></span>
+							</div>
+						<?php endif; ?>
 						<p class="znts-export-actions">
 							<?php submit_button( isset( $export_form['submit_label'] ) ? $export_form['submit_label'] : __( 'Export CSV', 'zignites-sentinel' ), 'secondary', '', false ); ?>
 						</p>

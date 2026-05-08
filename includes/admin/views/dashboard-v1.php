@@ -11,6 +11,7 @@ $site_status_card      = isset( $view_data['site_status_card'] ) && is_array( $v
 $snapshot_status_index = isset( $view_data['snapshot_status_index'] ) && is_array( $view_data['snapshot_status_index'] ) ? $view_data['snapshot_status_index'] : array();
 $recent_snapshots      = isset( $view_data['recent_snapshots'] ) && is_array( $view_data['recent_snapshots'] ) ? $view_data['recent_snapshots'] : array();
 $recent_logs           = isset( $view_data['recent_logs'] ) && is_array( $view_data['recent_logs'] ) ? $view_data['recent_logs'] : array();
+$artifact_storage      = isset( $view_data['artifact_storage'] ) && is_array( $view_data['artifact_storage'] ) ? $view_data['artifact_storage'] : array();
 $latest_snapshot       = ! empty( $recent_snapshots[0] ) ? $recent_snapshots[0] : array();
 $latest_snapshot_state = ( ! empty( $latest_snapshot['id'] ) && isset( $snapshot_status_index[ (int) $latest_snapshot['id'] ] ) ) ? $snapshot_status_index[ (int) $latest_snapshot['id'] ] : array();
 $primary_action        = isset( $site_status_card['primary_action'] ) && is_array( $site_status_card['primary_action'] ) ? $site_status_card['primary_action'] : array();
@@ -92,6 +93,24 @@ $first_run_cta_url     = add_query_arg(
 			<section class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html( isset( $positioning_note['title'] ) ? $positioning_note['title'] : __( 'What Sentinel is designed to do', 'zignites-sentinel' ) ); ?></h2>
 				<p><?php echo esc_html( isset( $positioning_note['body'] ) ? $positioning_note['body'] : '' ); ?></p>
+			</section>
+		<?php endif; ?>
+
+		<?php if ( ! empty( $artifact_storage ) ) : ?>
+			<section class="znts-card znts-card-full znts-card-flat">
+				<div class="znts-readiness-row">
+					<span class="znts-pill znts-pill-<?php echo esc_attr( isset( $artifact_storage['badge'] ) ? $artifact_storage['badge'] : 'warning' ); ?>">
+						<?php echo esc_html( isset( $artifact_storage['label'] ) ? $artifact_storage['label'] : __( 'Needs host review', 'zignites-sentinel' ) ); ?>
+					</span>
+				</div>
+				<h2><?php echo esc_html__( 'Artifact Storage Exposure', 'zignites-sentinel' ); ?></h2>
+				<p><?php echo esc_html( isset( $artifact_storage['message'] ) ? $artifact_storage['message'] : '' ); ?></p>
+				<?php if ( ! empty( $artifact_storage['warning'] ) ) : ?>
+					<div class="znts-flow-note">
+						<strong><?php echo esc_html__( 'Sensitive artifacts', 'zignites-sentinel' ); ?></strong>
+						<span><?php echo esc_html( $artifact_storage['warning'] ); ?></span>
+					</div>
+				<?php endif; ?>
 			</section>
 		<?php endif; ?>
 

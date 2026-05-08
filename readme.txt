@@ -102,6 +102,10 @@ This reduces direct web access and directory listing on common hosting setups, b
 
 If your host serves uploads directly without honoring `.htaccess` or `web.config`, sensitive artifact files may still be reachable by URL. For stronger protection, use server-level deny rules or a hosting setup that does not expose these uploads paths publicly.
 
+The Dashboard also runs an artifact exposure probe against a temporary token file and reports whether the uploads-backed artifact path appears blocked, publicly readable, or inconclusive. Inconclusive results should be reviewed at the host, Nginx, CDN, or object-storage layer.
+
+Checkpoint packages and exports can contain plugin/theme source code, configuration files, license keys, API tokens, or other secrets stored inside the active code layer. Treat generated artifacts and exported logs as sensitive operational data.
+
 = Reliability Controls =
 
 Sentinel uses a shared operation lock for checkpoint, package, staging, restore, rollback, and cleanup workflows so overlapping heavy operations are blocked safely.
@@ -173,6 +177,7 @@ Open **Sentinel > History** to review the recorded events, then confirm the site
 * Narrowed the product around Safe Update Checkpoints and Rollback for the active theme and active plugins.
 * Simplified the admin UI to Dashboard, Before Update, and History.
 * Added artifact directory guards for stored packages, exports, stage files, and restore backups under uploads.
+* Added artifact exposure reporting and stronger sensitive-artifact warnings for checkpoint and export workflows.
 * Clarified public plugin-page copy around validation flow, artifact handling, and restore boundaries.
 
 == Upgrade Notice ==

@@ -271,6 +271,10 @@ function znts_test_dashboard_summary_state_builder_normalizes_dashboard_screen_s
 			'wordpress'       => '6.8.1',
 			'php'             => '8.1.10',
 			'site_url'        => 'http://example.test',
+			'artifact_storage' => array(
+				'status' => 'pass',
+				'label'  => 'Guarded',
+			),
 			'recent_logs'     => array(
 				array( 'message' => 'Latest log' ),
 			),
@@ -282,6 +286,7 @@ function znts_test_dashboard_summary_state_builder_normalizes_dashboard_screen_s
 
 	znts_assert_same( '1.32.0', $state['plugin_version'], 'Dashboard screen state builder should preserve plugin version metadata.' );
 	znts_assert_same( 'wp_znts_logs', $state['logs_table'], 'Dashboard screen state builder should preserve logs table metadata.' );
+	znts_assert_same( 'pass', $state['artifact_storage']['status'], 'Dashboard screen state builder should preserve artifact storage exposure state.' );
 	znts_assert_same( 'Latest log', $state['recent_logs'][0]['message'], 'Dashboard screen state builder should preserve recent logs.' );
 	znts_assert_same( 'Latest conflict', $state['recent_conflicts'][0]['summary'], 'Dashboard screen state builder should preserve recent conflicts.' );
 	znts_assert_same( 98, $state['health_score']['score'], 'Dashboard screen state builder should preserve the summary health score payload.' );
