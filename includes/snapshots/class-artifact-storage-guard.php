@@ -66,6 +66,42 @@ class ArtifactStorageGuard {
 	}
 
 	/**
+	 * Return the uploads storage root URL.
+	 *
+	 * @return string
+	 */
+	public function get_storage_root_url() {
+		$uploads = wp_upload_dir();
+
+		if ( ! empty( $uploads['error'] ) || empty( $uploads['baseurl'] ) ) {
+			return '';
+		}
+
+		return trailingslashit( (string) $uploads['baseurl'] ) . self::STORAGE_ROOT;
+	}
+
+	/**
+	 * Build a public URL candidate for a relative storage path.
+	 *
+	 * @param string $relative_path Relative path under uploads.
+	 * @return string
+	 */
+	public function build_storage_url( $relative_path ) {
+		$relative_path = ltrim( wp_normalize_path( (string) $relative_path ), '/' );
+		$uploads       = wp_upload_dir();
+
+		if ( '' === $relative_path || ! $this->is_safe_relative_path( $relative_path ) ) {
+			return '';
+		}
+
+		if ( ! empty( $uploads['error'] ) || empty( $uploads['baseurl'] ) ) {
+			return '';
+		}
+
+		return trailingslashit( (string) $uploads['baseurl'] ) . $relative_path;
+	}
+
+	/**
 	 * Resolve a relative uploads artifact path and ensure it stays inside the expected storage prefix.
 	 *
 	 * @param string $relative_path   Relative path under uploads.
@@ -128,6 +164,22 @@ class ArtifactStorageGuard {
 		}
 
 		return ! preg_match( '#(^|/)\.\.(/|$)#', $relative_path );
+	}
+
+	/**
+	 * Return whether the standard guard files exist in a directory.
+	 *
+	 * @param string $directory Absolute directory path.
+	 * @return array
+	 */
+	public function get_guard_file_status( $directory ) {
+		$directory = rtrim( wp_normalize_path( (string) $directory ), '/' );
+
+		return array(
+			'index_php'  => '' !== $directory && file_exists( trailingslashit( $directory ) . 'index.php' ),
+			'htaccess'   => '' !== $directory && file_exists( trailingslashit( $directory ) . '.htaccess' ),
+			'web_config' => '' !== $directory && file_exists( trailingslashit( $directory ) . 'web.config' ),
+		);
 	}
 
 	/**

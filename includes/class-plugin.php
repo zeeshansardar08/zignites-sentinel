@@ -18,7 +18,9 @@ use Zignites\Sentinel\Logging\Logger;
 use Zignites\Sentinel\Logging\LogRepository;
 use Zignites\Sentinel\Snapshots\RestoreReadinessChecker;
 use Zignites\Sentinel\Snapshots\RestoreDryRunChecker;
+use Zignites\Sentinel\Snapshots\ArtifactExposureScanner;
 use Zignites\Sentinel\Snapshots\ArtifactStorageGuard;
+use Zignites\Sentinel\Snapshots\LocalArtifactStorageBackend;
 use Zignites\Sentinel\Snapshots\RestoreExecutionPlanner;
 use Zignites\Sentinel\Snapshots\RestoreCheckpointStore;
 use Zignites\Sentinel\Snapshots\RestoreExecutor;
@@ -78,8 +80,10 @@ class Plugin {
 		$health_score        = new HealthScore( $conflict_repository, $log_repository );
 		$snapshot_comparator = new SnapshotComparator();
 		$storage_guard       = new ArtifactStorageGuard();
-		$export_manager      = new SnapshotExportManager( $storage_guard );
-		$package_manager     = new SnapshotPackageManager( $storage_guard );
+		$storage_backend     = new LocalArtifactStorageBackend( $storage_guard );
+		$exposure_scanner    = new ArtifactExposureScanner( $storage_backend, $storage_guard );
+		$export_manager      = new SnapshotExportManager( $storage_guard, $storage_backend );
+		$package_manager     = new SnapshotPackageManager( $storage_guard, $storage_backend );
 		$restore_dry_run     = new RestoreDryRunChecker( $package_manager );
 		$restore_staging     = new RestoreStagingManager( $package_manager, $storage_guard, $disk_preflight );
 		$restore_planner     = new RestoreExecutionPlanner( $restore_staging );
@@ -118,7 +122,8 @@ class Plugin {
 			$restore_rollback,
 			$journal_recorder,
 			$checkpoint_store,
-			$operation_lock
+			$operation_lock,
+			$exposure_scanner
 		);
 	}
 

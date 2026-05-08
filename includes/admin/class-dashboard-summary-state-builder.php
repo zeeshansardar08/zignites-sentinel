@@ -167,6 +167,7 @@ class DashboardSummaryStateBuilder {
 			'wordpress'             => isset( $context['wordpress'] ) ? (string) $context['wordpress'] : '',
 			'php'                   => isset( $context['php'] ) ? (string) $context['php'] : '',
 			'site_url'              => isset( $context['site_url'] ) ? (string) $context['site_url'] : '',
+			'artifact_storage'      => isset( $context['artifact_storage'] ) && is_array( $context['artifact_storage'] ) ? $context['artifact_storage'] : array(),
 			'recent_logs'           => isset( $context['recent_logs'] ) && is_array( $context['recent_logs'] ) ? $context['recent_logs'] : array(),
 			'recent_conflicts'      => isset( $context['recent_conflicts'] ) && is_array( $context['recent_conflicts'] ) ? $context['recent_conflicts'] : array(),
 			'recent_snapshots'      => isset( $summary['recent_snapshots'] ) && is_array( $summary['recent_snapshots'] ) ? $summary['recent_snapshots'] : array(),

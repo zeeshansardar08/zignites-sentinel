@@ -160,11 +160,61 @@ if ( ! function_exists( 'wp_normalize_path' ) ) {
 
 if ( ! function_exists( 'wp_upload_dir' ) ) {
 	function wp_upload_dir() {
+		if ( ! empty( $GLOBALS['znts_test_upload_dir'] ) && is_array( $GLOBALS['znts_test_upload_dir'] ) ) {
+			return array_merge(
+				array(
+					'basedir' => 'D:/uploads',
+					'baseurl' => 'http://example.test/uploads',
+					'error'   => false,
+				),
+				$GLOBALS['znts_test_upload_dir']
+			);
+		}
+
 		return array(
 			'basedir' => 'D:/uploads',
 			'baseurl' => 'http://example.test/uploads',
 			'error'   => false,
 		);
+	}
+}
+
+if ( ! function_exists( 'wp_generate_password' ) ) {
+	function wp_generate_password( $length = 12, $special_chars = true, $extra_special_chars = false ) {
+		return substr( str_repeat( 'a1b2c3d4', 8 ), 0, max( 1, (int) $length ) );
+	}
+}
+
+if ( ! function_exists( 'wp_remote_get' ) ) {
+	function wp_remote_get( $url, $args = array() ) {
+		if ( isset( $GLOBALS['znts_test_http_response'] ) ) {
+			return $GLOBALS['znts_test_http_response'];
+		}
+
+		return array(
+			'response' => array(
+				'code' => 403,
+			),
+			'body'     => '',
+		);
+	}
+}
+
+if ( ! function_exists( 'is_wp_error' ) ) {
+	function is_wp_error( $thing ) {
+		return false;
+	}
+}
+
+if ( ! function_exists( 'wp_remote_retrieve_response_code' ) ) {
+	function wp_remote_retrieve_response_code( $response ) {
+		return isset( $response['response']['code'] ) ? (int) $response['response']['code'] : 0;
+	}
+}
+
+if ( ! function_exists( 'wp_remote_retrieve_body' ) ) {
+	function wp_remote_retrieve_body( $response ) {
+		return isset( $response['body'] ) ? (string) $response['body'] : '';
 	}
 }
 
@@ -263,6 +313,9 @@ if ( ! class_exists( 'Zignites\\Sentinel\\Snapshots\\RestoreExecutionPlanner' ) 
 }
 
 require_once __DIR__ . '/../includes/snapshots/class-artifact-storage-guard.php';
+require_once __DIR__ . '/../includes/snapshots/class-artifact-storage-backend.php';
+require_once __DIR__ . '/../includes/snapshots/class-local-artifact-storage-backend.php';
+require_once __DIR__ . '/../includes/snapshots/class-artifact-exposure-scanner.php';
 require_once __DIR__ . '/../includes/core/class-operation-lock.php';
 require_once __DIR__ . '/../includes/core/class-disk-space-preflight.php';
 require_once __DIR__ . '/../includes/snapshots/class-component-manifest-builder.php';

@@ -15,6 +15,7 @@ use Zignites\Sentinel\Logging\Logger;
 use Zignites\Sentinel\Logging\LogRepository;
 use Zignites\Sentinel\Snapshots\RestoreReadinessChecker;
 use Zignites\Sentinel\Snapshots\RestoreDryRunChecker;
+use Zignites\Sentinel\Snapshots\ArtifactExposureScanner;
 use Zignites\Sentinel\Snapshots\RestoreCheckpointStore;
 use Zignites\Sentinel\Snapshots\RestoreExecutionPlanner;
 use Zignites\Sentinel\Snapshots\RestoreExecutor;
@@ -330,6 +331,13 @@ class Admin {
 	protected $operation_lock;
 
 	/**
+	 * Artifact exposure scanner.
+	 *
+	 * @var ArtifactExposureScanner
+	 */
+	protected $artifact_exposure_scanner;
+
+	/**
 	 * Shared snapshot status resolver.
 	 *
 	 * @var SnapshotStatusResolver
@@ -485,6 +493,8 @@ class Admin {
 	 * @param RestoreRollbackManager    $restore_rollback_manager Restore rollback manager.
 	 * @param RestoreJournalRecorder    $restore_journal_recorder Restore journal recorder.
 	 * @param RestoreCheckpointStore    $restore_checkpoint_store Restore checkpoint store.
+	 * @param OperationLock|null        $operation_lock           Operation lock.
+	 * @param ArtifactExposureScanner|null $artifact_exposure_scanner Artifact exposure scanner.
 	 */
 	public function __construct(
 		Logger $logger,
@@ -507,7 +517,8 @@ class Admin {
 		RestoreRollbackManager $restore_rollback_manager,
 		RestoreJournalRecorder $restore_journal_recorder,
 		RestoreCheckpointStore $restore_checkpoint_store,
-		OperationLock $operation_lock = null
+		OperationLock $operation_lock = null,
+		ArtifactExposureScanner $artifact_exposure_scanner = null
 	) {
 		$this->logger            = $logger;
 		$this->logs              = $logs;
@@ -530,6 +541,7 @@ class Admin {
 		$this->restore_journal_recorder = $restore_journal_recorder;
 		$this->restore_checkpoint_store = $restore_checkpoint_store;
 		$this->operation_lock           = $operation_lock ? $operation_lock : new OperationLock();
+		$this->artifact_exposure_scanner = $artifact_exposure_scanner ? $artifact_exposure_scanner : new ArtifactExposureScanner();
 		$this->settings_portability     = new SettingsPortability();
 		$this->audit_report_verifier    = new AuditReportVerifier();
 		$this->restore_operator_checklist_evaluator = new RestoreOperatorChecklistEvaluator();
@@ -1444,6 +1456,7 @@ class Admin {
 				'site_url'         => home_url(),
 				'recent_logs'      => $this->logs->get_recent( 8 ),
 				'recent_conflicts' => $this->conflicts->get_recent_open( 6 ),
+				'artifact_storage' => $this->artifact_exposure_scanner->scan(),
 			)
 		);
 		$view_data = $this->apply_dashboard_capture_state( $this->normalize_admin_links_in_value( $view_data ) );

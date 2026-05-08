@@ -49,6 +49,10 @@ It writes:
 
 That reduces direct access on common hosts, but it is not absolute on every stack. If a host serves uploads directly and ignores those rules, artifact files may still be reachable by URL. Stronger protection requires server-level deny rules or keeping those artifacts outside public uploads.
 
+The Dashboard also runs an artifact exposure probe against a temporary token file and reports whether the uploads-backed artifact path appears blocked, publicly readable, or inconclusive. Inconclusive results should be reviewed at the host, Nginx, CDN, or object-storage layer.
+
+Checkpoint packages and exports can contain plugin/theme source code, configuration files, license keys, API tokens, or other secrets stored inside the active code layer. Treat generated artifacts and exported logs as sensitive operational data.
+
 ## Reliability Controls
 
 Sentinel uses a shared operation lock for checkpoint, package, staging, restore, rollback, and cleanup workflows so overlapping heavy operations are blocked safely.
