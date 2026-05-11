@@ -11,6 +11,7 @@ use Zignites\Sentinel\Diagnostics\ConflictRepository;
 use Zignites\Sentinel\Diagnostics\HealthScore;
 use Zignites\Sentinel\Core\Installer;
 use Zignites\Sentinel\Core\OperationLock;
+use Zignites\Sentinel\Integrations\AlertNotifier;
 use Zignites\Sentinel\Jobs\JobRunner;
 use Zignites\Sentinel\Jobs\JobStore;
 use Zignites\Sentinel\Logging\Logger;
@@ -487,6 +488,13 @@ class Admin {
 	protected $update_readiness_state_builder;
 
 	/**
+	 * Alert notifier.
+	 *
+	 * @var AlertNotifier
+	 */
+	protected $alert_notifier;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Logger                   $logger              Structured logger.
@@ -513,6 +521,7 @@ class Admin {
 	 * @param ArtifactExposureScanner|null $artifact_exposure_scanner Artifact exposure scanner.
 	 * @param JobStore|null             $job_store                Async job store.
 	 * @param JobRunner|null            $job_runner               Async job runner.
+	 * @param AlertNotifier|null        $alert_notifier           Alert notifier.
 	 */
 	public function __construct(
 		Logger $logger,
@@ -538,7 +547,8 @@ class Admin {
 		OperationLock $operation_lock = null,
 		ArtifactExposureScanner $artifact_exposure_scanner = null,
 		JobStore $job_store = null,
-		JobRunner $job_runner = null
+		JobRunner $job_runner = null,
+		AlertNotifier $alert_notifier = null
 	) {
 		$this->logger            = $logger;
 		$this->logs              = $logs;
@@ -564,6 +574,7 @@ class Admin {
 		$this->artifact_exposure_scanner = $artifact_exposure_scanner ? $artifact_exposure_scanner : new ArtifactExposureScanner();
 		$this->job_store                = $job_store ? $job_store : new JobStore();
 		$this->job_runner               = $job_runner;
+		$this->alert_notifier           = $alert_notifier ? $alert_notifier : new AlertNotifier();
 		$this->settings_portability     = new SettingsPortability();
 		$this->audit_report_verifier    = new AuditReportVerifier();
 		$this->restore_operator_checklist_evaluator = new RestoreOperatorChecklistEvaluator();
@@ -649,6 +660,8 @@ class Admin {
 			'znts_run_update_window_health' => 'handle_run_update_window_health',
 			'znts_confirm_update_window_success' => 'handle_confirm_update_window_success',
 			'znts_download_update_window_report' => 'handle_download_update_window_report',
+			'znts_save_alert_integrations' => 'handle_save_alert_integrations',
+			'znts_send_test_alert'         => 'handle_send_test_alert',
 			'znts_execute_restore'         => 'handle_execute_restore',
 			'znts_resume_restore'          => 'handle_resume_restore',
 			'znts_rollback_restore'        => 'handle_rollback_restore',
@@ -1509,6 +1522,8 @@ class Admin {
 				'async_jobs'       => $this->job_store->get_recent( 5 ),
 			)
 		);
+		$view_data['notice']             = $this->get_notice_message();
+		$view_data['alert_integrations'] = $this->get_alert_integrations_state();
 		$view_data = $this->apply_dashboard_capture_state( $this->normalize_admin_links_in_value( $view_data ) );
 
 		require ZNTS_PLUGIN_DIR . 'includes/admin/views/dashboard-v1.php';
@@ -1994,6 +2009,14 @@ class Admin {
 
 			$this->redirect_after_snapshot_creation( 'snapshot-failed', $return_screen );
 		}
+
+		$this->notify_alert_event(
+			'checkpoint_created',
+			array(
+				'snapshot_id' => absint( $result ),
+				'message'     => __( 'Checkpoint artifacts were created successfully.', 'zignites-sentinel' ),
+			)
+		);
 
 		$this->redirect_after_snapshot_creation( 'snapshot-created', $return_screen );
 	}
@@ -2510,7 +2533,74 @@ class Admin {
 			)
 		);
 
+		if ( in_array( $window['status'], array( 'unhealthy', 'degraded' ), true ) ) {
+			$this->notify_alert_event(
+				'health_check_failed',
+				array(
+					'snapshot_id' => $snapshot_id,
+					'status'      => $window['status'],
+					'summary'     => isset( $health['summary'] ) ? $health['summary'] : array(),
+					'message'     => __( 'Safe Update Window health checks need attention.', 'zignites-sentinel' ),
+				)
+			);
+		}
+
 		$this->redirect_with_snapshot_notice( 'safe-update-window-health-complete', $snapshot_id, 'znts-safe-update-window' );
+	}
+
+	/**
+	 * Save alert and integration settings.
+	 *
+	 * @return void
+	 */
+	public function handle_save_alert_integrations() {
+		$this->assert_admin_action_permissions( 'znts_save_alert_integrations_action' );
+
+		$settings = $this->sanitize_alert_integrations_input( wp_unslash( $_POST ) );
+		update_option( ZNTS_OPTION_ALERT_INTEGRATIONS, $settings, false );
+		$summary = $this->alert_notifier->build_settings_summary( $settings );
+
+		$this->logger->log(
+			'alert_integrations_saved',
+			'info',
+			'integrations',
+			__( 'Alert integration settings were saved.', 'zignites-sentinel' ),
+			array(
+				'channel_count' => isset( $summary['channel_count'] ) ? (int) $summary['channel_count'] : 0,
+			)
+		);
+
+		$this->redirect_dashboard_with_notice( 'alert-integrations-saved', 'znts-alert-integrations' );
+	}
+
+	/**
+	 * Send a test alert to configured channels.
+	 *
+	 * @return void
+	 */
+	public function handle_send_test_alert() {
+		$this->assert_admin_action_permissions( 'znts_send_test_alert_action' );
+
+		$settings = $this->get_alert_integrations_settings();
+		$result   = $this->alert_notifier->send_test( $settings );
+
+		$settings['last_test_result'] = $result;
+		update_option( ZNTS_OPTION_ALERT_INTEGRATIONS, $settings, false );
+
+		$this->logger->log(
+			'alert_test_sent',
+			empty( $result['failed'] ) && ! empty( $result['sent'] ) ? 'info' : 'warning',
+			'integrations',
+			__( 'Alert integration test completed.', 'zignites-sentinel' ),
+			array(
+				'sent'     => isset( $result['sent'] ) ? (int) $result['sent'] : 0,
+				'failed'   => isset( $result['failed'] ) ? (int) $result['failed'] : 0,
+				'skipped'  => ! empty( $result['skipped'] ),
+				'channels' => isset( $result['channels'] ) ? $result['channels'] : array(),
+			)
+		);
+
+		$this->redirect_dashboard_with_notice( empty( $result['sent'] ) || ! empty( $result['failed'] ) ? 'alert-test-warning' : 'alert-test-sent', 'znts-alert-integrations' );
 	}
 
 	/**
@@ -2670,6 +2760,13 @@ class Admin {
 		$lock = $this->acquire_operation_lock_or_redirect( 'restore', $snapshot_id );
 
 		try {
+			$this->notify_alert_event(
+				'restore_started',
+				array(
+					'snapshot_id' => $snapshot_id,
+					'message'     => __( 'A guarded live restore was started.', 'zignites-sentinel' ),
+				)
+			);
 			$result = $this->restore_executor->execute( $snapshot, $artifacts, is_array( $last_stage ) ? $last_stage : array(), is_array( $last_plan ) ? $last_plan : array(), $confirmation_phrase );
 
 			update_option( ZNTS_OPTION_LAST_RESTORE_EXECUTION, $result, false );
@@ -2684,6 +2781,7 @@ class Admin {
 					'summary'     => isset( $result['summary'] ) ? $result['summary'] : array(),
 				)
 			);
+			$this->maybe_notify_restore_failed( $snapshot_id, $result );
 		} finally {
 			$this->release_operation_lock( $lock );
 		}
@@ -2748,6 +2846,14 @@ class Admin {
 		$lock = $this->acquire_operation_lock_or_redirect( 'restore', $snapshot_id );
 
 		try {
+			$this->notify_alert_event(
+				'restore_started',
+				array(
+					'snapshot_id' => $snapshot_id,
+					'run_id'      => isset( $resume_context['run_id'] ) ? $resume_context['run_id'] : '',
+					'message'     => __( 'A guarded live restore resume was started.', 'zignites-sentinel' ),
+				)
+			);
 			$result = $this->restore_executor->resume(
 				$snapshot,
 				$artifacts,
@@ -2771,6 +2877,7 @@ class Admin {
 					'summary'         => isset( $result['summary'] ) ? $result['summary'] : array(),
 				)
 			);
+			$this->maybe_notify_restore_failed( $snapshot_id, $result );
 		} finally {
 			$this->release_operation_lock( $lock );
 		}
@@ -3062,6 +3169,15 @@ class Admin {
 					'summary'     => isset( $result['summary'] ) ? $result['summary'] : array(),
 				)
 			);
+			$this->notify_alert_event(
+				'rollback_completed',
+				array(
+					'snapshot_id' => $snapshot_id,
+					'status'      => isset( $result['status'] ) ? $result['status'] : '',
+					'summary'     => isset( $result['summary'] ) ? $result['summary'] : array(),
+					'message'     => __( 'Restore rollback completed.', 'zignites-sentinel' ),
+				)
+			);
 		} finally {
 			$this->release_operation_lock( $lock );
 		}
@@ -3126,6 +3242,16 @@ class Admin {
 					'status'      => $result['status'],
 					'run_id'      => isset( $result['run_id'] ) ? $result['run_id'] : '',
 					'summary'     => isset( $result['summary'] ) ? $result['summary'] : array(),
+				)
+			);
+			$this->notify_alert_event(
+				'rollback_completed',
+				array(
+					'snapshot_id' => $snapshot_id,
+					'run_id'      => isset( $result['run_id'] ) ? $result['run_id'] : '',
+					'status'      => isset( $result['status'] ) ? $result['status'] : '',
+					'summary'     => isset( $result['summary'] ) ? $result['summary'] : array(),
+					'message'     => __( 'Restore rollback resume completed.', 'zignites-sentinel' ),
 				)
 			);
 		} finally {
@@ -3222,6 +3348,30 @@ class Admin {
 			),
 			admin_url( 'admin.php' )
 		);
+
+		wp_safe_redirect( $url );
+		exit;
+	}
+
+	/**
+	 * Redirect to the dashboard with a notice.
+	 *
+	 * @param string $notice   Notice key.
+	 * @param string $fragment Optional fragment.
+	 * @return void
+	 */
+	protected function redirect_dashboard_with_notice( $notice, $fragment = '' ) {
+		$url = add_query_arg(
+			array(
+				'page'        => self::MENU_SLUG,
+				'znts_notice' => sanitize_key( $notice ),
+			),
+			admin_url( 'admin.php' )
+		);
+
+		if ( '' !== (string) $fragment ) {
+			$url .= '#' . ltrim( sanitize_key( (string) $fragment ), '#' );
+		}
 
 		wp_safe_redirect( $url );
 		exit;
@@ -3433,6 +3583,18 @@ class Admin {
 				'type'    => 'error',
 				'message' => __( 'The selected checkpoint could not be found for the Safe Update Window workflow.', 'zignites-sentinel' ),
 			),
+			'alert-integrations-saved' => array(
+				'type'    => 'success',
+				'message' => __( 'Alert integration settings were saved.', 'zignites-sentinel' ),
+			),
+			'alert-test-sent' => array(
+				'type'    => 'success',
+				'message' => __( 'Test alert sent to configured channels.', 'zignites-sentinel' ),
+			),
+			'alert-test-warning' => array(
+				'type'    => 'warning',
+				'message' => __( 'Test alert finished with warnings. Review the alert integration status.', 'zignites-sentinel' ),
+			),
 			'restore-plan-missing' => array(
 				'type'    => 'error',
 				'message' => __( 'The selected snapshot could not be found for restore planning.', 'zignites-sentinel' ),
@@ -3606,6 +3768,111 @@ class Admin {
 			'check_homepage' => ! array_key_exists( 'check_homepage', $settings ) || ! empty( $settings['check_homepage'] ),
 			'check_admin'    => ! array_key_exists( 'check_admin', $settings ) || ! empty( $settings['check_admin'] ),
 			'custom_urls'    => isset( $settings['custom_urls'] ) && is_array( $settings['custom_urls'] ) ? $settings['custom_urls'] : array(),
+		);
+	}
+
+	/**
+	 * Return normalized alert integration settings.
+	 *
+	 * @return array
+	 */
+	protected function get_alert_integrations_settings() {
+		$settings = get_option( ZNTS_OPTION_ALERT_INTEGRATIONS, array() );
+
+		return $this->alert_notifier->normalize_settings( is_array( $settings ) ? $settings : array() );
+	}
+
+	/**
+	 * Build alert integration dashboard state.
+	 *
+	 * @return array
+	 */
+	protected function get_alert_integrations_state() {
+		$settings = $this->get_alert_integrations_settings();
+
+		return array(
+			'settings' => $settings,
+			'summary'  => $this->alert_notifier->build_settings_summary( $settings ),
+		);
+	}
+
+	/**
+	 * Sanitize alert integration form input.
+	 *
+	 * @param array $raw_input Posted data.
+	 * @return array
+	 */
+	protected function sanitize_alert_integrations_input( array $raw_input ) {
+		$current = $this->get_alert_integrations_settings();
+		$raw     = array(
+			'enabled'        => ! empty( $raw_input['alerts_enabled'] ) ? 1 : 0,
+			'channels'       => array(
+				'generic'  => array(
+					'url' => isset( $raw_input['generic_webhook_url'] ) ? $raw_input['generic_webhook_url'] : '',
+				),
+				'slack'    => array(
+					'url' => isset( $raw_input['slack_webhook_url'] ) ? $raw_input['slack_webhook_url'] : '',
+				),
+				'teams'    => array(
+					'url' => isset( $raw_input['teams_webhook_url'] ) ? $raw_input['teams_webhook_url'] : '',
+				),
+				'telegram' => array(
+					'url'     => isset( $raw_input['telegram_webhook_url'] ) ? $raw_input['telegram_webhook_url'] : '',
+					'chat_id' => isset( $raw_input['telegram_chat_id'] ) ? $raw_input['telegram_chat_id'] : '',
+				),
+				'discord'  => array(
+					'url' => isset( $raw_input['discord_webhook_url'] ) ? $raw_input['discord_webhook_url'] : '',
+				),
+			),
+			'events'         => isset( $raw_input['alert_events'] ) && is_array( $raw_input['alert_events'] ) ? $raw_input['alert_events'] : array(),
+			'external_links' => array(
+				'uptime_robot' => isset( $raw_input['uptime_robot_url'] ) ? $raw_input['uptime_robot_url'] : '',
+				'sentry'       => isset( $raw_input['sentry_url'] ) ? $raw_input['sentry_url'] : '',
+				'new_relic'    => isset( $raw_input['new_relic_url'] ) ? $raw_input['new_relic_url'] : '',
+				'datadog'      => isset( $raw_input['datadog_url'] ) ? $raw_input['datadog_url'] : '',
+			),
+		);
+
+		$normalized = $this->alert_notifier->normalize_settings( $raw );
+		$normalized['last_test_result'] = isset( $current['last_test_result'] ) && is_array( $current['last_test_result'] ) ? $current['last_test_result'] : array();
+
+		return $normalized;
+	}
+
+	/**
+	 * Notify an alert event with current settings.
+	 *
+	 * @param string $event_type Event type.
+	 * @param array  $context    Context.
+	 * @return array
+	 */
+	protected function notify_alert_event( $event_type, array $context ) {
+		return $this->alert_notifier->notify_event( $event_type, $context, $this->get_alert_integrations_settings() );
+	}
+
+	/**
+	 * Send restore failure alerts for non-successful outcomes.
+	 *
+	 * @param int   $snapshot_id Snapshot ID.
+	 * @param array $result      Restore result.
+	 * @return void
+	 */
+	protected function maybe_notify_restore_failed( $snapshot_id, array $result ) {
+		$status = isset( $result['status'] ) ? sanitize_key( (string) $result['status'] ) : '';
+
+		if ( ! in_array( $status, array( 'blocked', 'failed', 'fail', 'partial' ), true ) ) {
+			return;
+		}
+
+		$this->notify_alert_event(
+			'restore_failed',
+			array(
+				'snapshot_id' => absint( $snapshot_id ),
+				'status'      => $status,
+				'run_id'      => isset( $result['run_id'] ) ? $result['run_id'] : '',
+				'summary'     => isset( $result['summary'] ) ? $result['summary'] : array(),
+				'message'     => __( 'Restore execution did not complete cleanly.', 'zignites-sentinel' ),
+			)
 		);
 	}
 

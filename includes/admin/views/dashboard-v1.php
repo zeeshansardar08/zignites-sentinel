@@ -13,6 +13,8 @@ $recent_snapshots      = isset( $view_data['recent_snapshots'] ) && is_array( $v
 $recent_logs           = isset( $view_data['recent_logs'] ) && is_array( $view_data['recent_logs'] ) ? $view_data['recent_logs'] : array();
 $async_jobs            = isset( $view_data['async_jobs'] ) && is_array( $view_data['async_jobs'] ) ? $view_data['async_jobs'] : array();
 $artifact_storage      = isset( $view_data['artifact_storage'] ) && is_array( $view_data['artifact_storage'] ) ? $view_data['artifact_storage'] : array();
+$alert_integrations    = isset( $view_data['alert_integrations'] ) && is_array( $view_data['alert_integrations'] ) ? $view_data['alert_integrations'] : array();
+$notice                = isset( $view_data['notice'] ) && is_array( $view_data['notice'] ) ? $view_data['notice'] : array();
 $latest_snapshot       = ! empty( $recent_snapshots[0] ) ? $recent_snapshots[0] : array();
 $latest_snapshot_state = ( ! empty( $latest_snapshot['id'] ) && isset( $snapshot_status_index[ (int) $latest_snapshot['id'] ] ) ) ? $snapshot_status_index[ (int) $latest_snapshot['id'] ] : array();
 $primary_action        = isset( $site_status_card['primary_action'] ) && is_array( $site_status_card['primary_action'] ) ? $site_status_card['primary_action'] : array();
@@ -23,6 +25,7 @@ $primary_action_url    = isset( $primary_action['url'] ) ? (string) $primary_act
 $help_panels           = isset( $view_data['help_panels'] ) && is_array( $view_data['help_panels'] ) ? $view_data['help_panels'] : array();
 $positioning_note      = isset( $view_data['positioning_note'] ) && is_array( $view_data['positioning_note'] ) ? $view_data['positioning_note'] : array();
 $admin_page_url        = \Zignites\Sentinel\Admin\znts_admin_url( 'admin.php' );
+$admin_post_url        = \Zignites\Sentinel\Admin\znts_admin_url( 'admin-post.php' );
 $first_run_cta_url     = add_query_arg(
 	array(
 		'page' => 'zignites-sentinel-update-readiness',
@@ -35,6 +38,12 @@ $first_run_cta_url     = add_query_arg(
 		<h1><?php echo esc_html__( 'Zignites Sentinel', 'zignites-sentinel' ); ?></h1>
 		<p class="znts-page-intro"><?php echo esc_html__( 'Safe Update Checkpoints and Rollback for WordPress plugin/theme code changes.', 'zignites-sentinel' ); ?></p>
 	</div>
+
+	<?php if ( ! empty( $notice ) ) : ?>
+		<div class="notice notice-<?php echo esc_attr( isset( $notice['type'] ) ? $notice['type'] : 'info' ); ?>">
+			<p><?php echo esc_html( isset( $notice['message'] ) ? $notice['message'] : '' ); ?></p>
+		</div>
+	<?php endif; ?>
 
 	<section class="znts-summary-hero">
 		<span class="znts-eyebrow"><?php echo esc_html__( 'Before Update', 'zignites-sentinel' ); ?></span>
@@ -145,6 +154,92 @@ $first_run_cta_url     = add_query_arg(
 				<?php endif; ?>
 			</section>
 		<?php endif; ?>
+
+		<section id="znts-alert-integrations" class="znts-card znts-card-full znts-card-flat">
+			<?php
+			$alert_settings = isset( $alert_integrations['settings'] ) && is_array( $alert_integrations['settings'] ) ? $alert_integrations['settings'] : array();
+			$alert_summary  = isset( $alert_integrations['summary'] ) && is_array( $alert_integrations['summary'] ) ? $alert_integrations['summary'] : array();
+			$channels       = isset( $alert_settings['channels'] ) && is_array( $alert_settings['channels'] ) ? $alert_settings['channels'] : array();
+			$events         = isset( $alert_settings['events'] ) && is_array( $alert_settings['events'] ) ? $alert_settings['events'] : array();
+			$event_labels   = isset( $alert_summary['event_labels'] ) && is_array( $alert_summary['event_labels'] ) ? $alert_summary['event_labels'] : array();
+			$external_links = isset( $alert_settings['external_links'] ) && is_array( $alert_settings['external_links'] ) ? $alert_settings['external_links'] : array();
+			$last_test      = isset( $alert_summary['last_test_result'] ) && is_array( $alert_summary['last_test_result'] ) ? $alert_summary['last_test_result'] : array();
+			?>
+			<div class="znts-readiness-row">
+				<span class="znts-pill znts-pill-<?php echo ! empty( $alert_summary['enabled'] ) && ! empty( $alert_summary['channel_count'] ) ? 'success' : 'warning'; ?>">
+					<?php echo esc_html( ! empty( $alert_summary['enabled'] ) && ! empty( $alert_summary['channel_count'] ) ? __( 'Alerts active', 'zignites-sentinel' ) : __( 'Alerts not active', 'zignites-sentinel' ) ); ?>
+				</span>
+				<span><?php echo esc_html( sprintf( __( '%d channels configured', 'zignites-sentinel' ), isset( $alert_summary['channel_count'] ) ? (int) $alert_summary['channel_count'] : 0 ) ); ?></span>
+			</div>
+			<h2><?php echo esc_html__( 'Alerts and Integrations', 'zignites-sentinel' ); ?></h2>
+			<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
+				<input type="hidden" name="action" value="znts_save_alert_integrations" />
+				<?php wp_nonce_field( 'znts_save_alert_integrations_action' ); ?>
+				<p>
+					<label><input type="checkbox" name="alerts_enabled" value="1" <?php echo ! empty( $alert_settings['enabled'] ) ? 'checked="checked"' : ''; ?> /> <?php echo esc_html__( 'Enable operation alerts', 'zignites-sentinel' ); ?></label>
+				</p>
+				<div class="znts-summary-strip">
+					<div class="znts-summary-item">
+						<span><?php echo esc_html__( 'Generic webhook', 'zignites-sentinel' ); ?></span>
+						<p><input type="url" name="generic_webhook_url" class="regular-text" value="<?php echo esc_attr( isset( $channels['generic']['url'] ) ? $channels['generic']['url'] : '' ); ?>" /></p>
+					</div>
+					<div class="znts-summary-item">
+						<span><?php echo esc_html__( 'Slack', 'zignites-sentinel' ); ?></span>
+						<p><input type="url" name="slack_webhook_url" class="regular-text" value="<?php echo esc_attr( isset( $channels['slack']['url'] ) ? $channels['slack']['url'] : '' ); ?>" /></p>
+					</div>
+					<div class="znts-summary-item">
+						<span><?php echo esc_html__( 'Teams', 'zignites-sentinel' ); ?></span>
+						<p><input type="url" name="teams_webhook_url" class="regular-text" value="<?php echo esc_attr( isset( $channels['teams']['url'] ) ? $channels['teams']['url'] : '' ); ?>" /></p>
+					</div>
+					<div class="znts-summary-item">
+						<span><?php echo esc_html__( 'Discord', 'zignites-sentinel' ); ?></span>
+						<p><input type="url" name="discord_webhook_url" class="regular-text" value="<?php echo esc_attr( isset( $channels['discord']['url'] ) ? $channels['discord']['url'] : '' ); ?>" /></p>
+					</div>
+					<div class="znts-summary-item">
+						<span><?php echo esc_html__( 'Telegram', 'zignites-sentinel' ); ?></span>
+						<p><input type="url" name="telegram_webhook_url" class="regular-text" value="<?php echo esc_attr( isset( $channels['telegram']['url'] ) ? $channels['telegram']['url'] : '' ); ?>" /></p>
+						<p><input type="text" name="telegram_chat_id" class="regular-text" value="<?php echo esc_attr( isset( $channels['telegram']['chat_id'] ) ? $channels['telegram']['chat_id'] : '' ); ?>" placeholder="<?php echo esc_attr__( 'Chat ID', 'zignites-sentinel' ); ?>" /></p>
+					</div>
+				</div>
+				<p><strong><?php echo esc_html__( 'Alert events', 'zignites-sentinel' ); ?></strong></p>
+				<p>
+					<?php foreach ( $event_labels as $event_key => $event_label ) : ?>
+						<label><input type="checkbox" name="alert_events[<?php echo esc_attr( $event_key ); ?>]" value="1" <?php echo ! empty( $events[ $event_key ] ) ? 'checked="checked"' : ''; ?> /> <?php echo esc_html( $event_label ); ?></label><br />
+					<?php endforeach; ?>
+				</p>
+				<p><strong><?php echo esc_html__( 'Monitoring links', 'zignites-sentinel' ); ?></strong></p>
+				<div class="znts-summary-strip">
+					<div class="znts-summary-item">
+						<span><?php echo esc_html__( 'UptimeRobot', 'zignites-sentinel' ); ?></span>
+						<p><input type="url" name="uptime_robot_url" class="regular-text" value="<?php echo esc_attr( isset( $external_links['uptime_robot'] ) ? $external_links['uptime_robot'] : '' ); ?>" /></p>
+					</div>
+					<div class="znts-summary-item">
+						<span><?php echo esc_html__( 'Sentry', 'zignites-sentinel' ); ?></span>
+						<p><input type="url" name="sentry_url" class="regular-text" value="<?php echo esc_attr( isset( $external_links['sentry'] ) ? $external_links['sentry'] : '' ); ?>" /></p>
+					</div>
+					<div class="znts-summary-item">
+						<span><?php echo esc_html__( 'New Relic', 'zignites-sentinel' ); ?></span>
+						<p><input type="url" name="new_relic_url" class="regular-text" value="<?php echo esc_attr( isset( $external_links['new_relic'] ) ? $external_links['new_relic'] : '' ); ?>" /></p>
+					</div>
+					<div class="znts-summary-item">
+						<span><?php echo esc_html__( 'Datadog', 'zignites-sentinel' ); ?></span>
+						<p><input type="url" name="datadog_url" class="regular-text" value="<?php echo esc_attr( isset( $external_links['datadog'] ) ? $external_links['datadog'] : '' ); ?>" /></p>
+					</div>
+				</div>
+				<?php submit_button( __( 'Save Integrations', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
+			</form>
+			<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
+				<input type="hidden" name="action" value="znts_send_test_alert" />
+				<?php wp_nonce_field( 'znts_send_test_alert_action' ); ?>
+				<?php submit_button( __( 'Send Test Alert', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
+			</form>
+			<?php if ( ! empty( $last_test ) ) : ?>
+				<div class="znts-flow-note">
+					<strong><?php echo esc_html__( 'Last test', 'zignites-sentinel' ); ?></strong>
+					<span><?php echo esc_html( sprintf( __( '%1$d sent, %2$d failed', 'zignites-sentinel' ), isset( $last_test['sent'] ) ? (int) $last_test['sent'] : 0, isset( $last_test['failed'] ) ? (int) $last_test['failed'] : 0 ) ); ?></span>
+				</div>
+			<?php endif; ?>
+		</section>
 
 		<section class="znts-card znts-card-full znts-card-primary">
 			<h2><?php echo esc_html__( 'Latest Checkpoint', 'zignites-sentinel' ); ?></h2>

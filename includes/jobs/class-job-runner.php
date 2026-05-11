@@ -10,6 +10,7 @@ namespace Zignites\Sentinel\Jobs;
 use Exception;
 use Throwable;
 use Zignites\Sentinel\Core\OperationLock;
+use Zignites\Sentinel\Integrations\AlertNotifier;
 use Zignites\Sentinel\Logging\Logger;
 use Zignites\Sentinel\Snapshots\RestoreCheckpointStore;
 use Zignites\Sentinel\Snapshots\RestoreExecutionPlanner;
@@ -90,6 +91,13 @@ class JobRunner {
 	protected $logger;
 
 	/**
+	 * Alert notifier.
+	 *
+	 * @var AlertNotifier
+	 */
+	protected $alert_notifier;
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct(
@@ -101,7 +109,8 @@ class JobRunner {
 		RestoreExecutionPlanner $restore_execution_planner,
 		RestoreCheckpointStore $restore_checkpoint_store,
 		OperationLock $operation_lock,
-		Logger $logger
+		Logger $logger,
+		AlertNotifier $alert_notifier = null
 	) {
 		$this->store                     = $store;
 		$this->snapshot_manager          = $snapshot_manager;
@@ -112,6 +121,7 @@ class JobRunner {
 		$this->restore_checkpoint_store   = $restore_checkpoint_store;
 		$this->operation_lock             = $operation_lock;
 		$this->logger                     = $logger;
+		$this->alert_notifier             = $alert_notifier ? $alert_notifier : new AlertNotifier();
 	}
 
 	/**
@@ -257,6 +267,15 @@ class JobRunner {
 		}
 
 		$this->store->update_progress( $job['id'], 3, 3, __( 'Checkpoint created.', 'zignites-sentinel' ) );
+		$this->alert_notifier->notify_event(
+			'checkpoint_created',
+			array(
+				'snapshot_id' => absint( $snapshot_id ),
+				'job_id'      => isset( $job['id'] ) ? $job['id'] : '',
+				'message'     => __( 'Checkpoint artifacts were created successfully.', 'zignites-sentinel' ),
+			),
+			get_option( ZNTS_OPTION_ALERT_INTEGRATIONS, array() )
+		);
 
 		return array(
 			'snapshot_id' => absint( $snapshot_id ),
