@@ -12,6 +12,7 @@ $admin_post_url        = \Zignites\Sentinel\Admin\znts_admin_url( 'admin-post.ph
 $notice                = isset( $view_data['notice'] ) && is_array( $view_data['notice'] ) ? $view_data['notice'] : array();
 $async_jobs            = isset( $view_data['async_jobs'] ) && is_array( $view_data['async_jobs'] ) ? $view_data['async_jobs'] : array();
 $safe_update_window    = isset( $view_data['safe_update_window'] ) && is_array( $view_data['safe_update_window'] ) ? $view_data['safe_update_window'] : array();
+$woocommerce_guardrails = isset( $view_data['woocommerce_guardrails'] ) && is_array( $view_data['woocommerce_guardrails'] ) ? $view_data['woocommerce_guardrails'] : array();
 $recent_snapshot_rows  = isset( $view_data['recent_snapshot_rows'] ) && is_array( $view_data['recent_snapshot_rows'] ) ? $view_data['recent_snapshot_rows'] : array();
 $snapshot_empty_message = isset( $view_data['snapshot_empty_message'] ) ? (string) $view_data['snapshot_empty_message'] : '';
 $restore_form_state    = isset( $view_data['restore_form_state'] ) && is_array( $view_data['restore_form_state'] ) ? $view_data['restore_form_state'] : array();
@@ -132,6 +133,48 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 			<section class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html( isset( $workspace_positioning_note['title'] ) ? $workspace_positioning_note['title'] : __( 'What Sentinel is designed to do', 'zignites-sentinel' ) ); ?></h2>
 				<p><?php echo esc_html( isset( $workspace_positioning_note['body'] ) ? $workspace_positioning_note['body'] : '' ); ?></p>
+			</section>
+		<?php endif; ?>
+
+		<?php if ( ! empty( $woocommerce_guardrails['active'] ) ) : ?>
+			<section id="znts-woocommerce-guardrails" class="znts-card znts-card-full znts-card-primary">
+				<?php
+				$woocommerce_settings = isset( $woocommerce_guardrails['settings'] ) && is_array( $woocommerce_guardrails['settings'] ) ? $woocommerce_guardrails['settings'] : array();
+				$woocommerce_checks   = isset( $woocommerce_guardrails['checks'] ) && is_array( $woocommerce_guardrails['checks'] ) ? $woocommerce_guardrails['checks'] : array();
+				$woocommerce_warnings = isset( $woocommerce_guardrails['warnings'] ) && is_array( $woocommerce_guardrails['warnings'] ) ? $woocommerce_guardrails['warnings'] : array();
+				?>
+				<div class="znts-readiness-row">
+					<span class="znts-pill znts-pill-warning"><?php echo esc_html__( 'WooCommerce detected', 'zignites-sentinel' ); ?></span>
+				</div>
+				<h2><?php echo esc_html__( 'WooCommerce Safe Update Mode', 'zignites-sentinel' ); ?></h2>
+				<p><?php echo esc_html( isset( $woocommerce_guardrails['message'] ) ? $woocommerce_guardrails['message'] : '' ); ?></p>
+				<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
+					<input type="hidden" name="action" value="znts_save_woocommerce_guardrails" />
+					<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
+					<?php wp_nonce_field( 'znts_save_woocommerce_guardrails_action' ); ?>
+					<p>
+						<label><input type="checkbox" name="woocommerce_safe_update_mode" value="1" <?php echo ! empty( $woocommerce_settings['safe_update_mode'] ) ? 'checked="checked"' : ''; ?> /> <?php echo esc_html__( 'Keep WooCommerce-safe update mode enabled', 'zignites-sentinel' ); ?></label><br />
+						<label><input type="checkbox" name="woocommerce_maintenance_window_confirmed" value="1" <?php echo ! empty( $woocommerce_settings['maintenance_window_confirmed'] ) ? 'checked="checked"' : ''; ?> /> <?php echo esc_html__( 'Maintenance window is scheduled', 'zignites-sentinel' ); ?></label><br />
+						<label><input type="checkbox" name="woocommerce_external_db_backup_confirmed" value="1" <?php echo ! empty( $woocommerce_settings['external_db_backup_confirmed'] ) ? 'checked="checked"' : ''; ?> /> <?php echo esc_html__( 'External database backup is confirmed', 'zignites-sentinel' ); ?></label>
+					</p>
+					<?php submit_button( __( 'Save WooCommerce Guardrails', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
+				</form>
+				<?php if ( ! empty( $woocommerce_checks ) ) : ?>
+					<div class="znts-summary-strip">
+						<?php foreach ( $woocommerce_checks as $check ) : ?>
+							<div class="znts-summary-item">
+								<span><?php echo esc_html( isset( $check['label'] ) ? $check['label'] : '' ); ?></span>
+								<p><strong><?php echo esc_html( isset( $check['status'] ) ? ucfirst( (string) $check['status'] ) : '' ); ?></strong> <?php echo esc_html( isset( $check['message'] ) ? $check['message'] : '' ); ?></p>
+							</div>
+						<?php endforeach; ?>
+					</div>
+				<?php endif; ?>
+				<?php if ( ! empty( $woocommerce_warnings ) ) : ?>
+					<div class="znts-flow-note">
+						<strong><?php echo esc_html__( 'WooCommerce boundary', 'zignites-sentinel' ); ?></strong>
+						<span><?php echo esc_html( implode( ' ', $woocommerce_warnings ) ); ?></span>
+					</div>
+				<?php endif; ?>
 			</section>
 		<?php endif; ?>
 

@@ -11,6 +11,7 @@ use Zignites\Sentinel\Admin\Admin;
 use Zignites\Sentinel\Diagnostics\ConflictRepository;
 use Zignites\Sentinel\Diagnostics\HealthScore;
 use Zignites\Sentinel\Diagnostics\Monitor;
+use Zignites\Sentinel\Diagnostics\WooCommerceGuardrails;
 use Zignites\Sentinel\Core\Installer;
 use Zignites\Sentinel\Core\DiskSpacePreflight;
 use Zignites\Sentinel\Core\OperationLock;
@@ -88,6 +89,7 @@ class Plugin {
 		$disk_preflight      = new DiskSpacePreflight();
 		$journal_recorder    = new RestoreJournalRecorder( $logger, $log_repository );
 		$health_score        = new HealthScore( $conflict_repository, $log_repository );
+		$woocommerce_guardrails = new WooCommerceGuardrails();
 		$snapshot_comparator = new SnapshotComparator();
 		$storage_guard       = new ArtifactStorageGuard();
 		$storage_backend     = new LocalArtifactStorageBackend( $storage_guard );
@@ -139,7 +141,8 @@ class Plugin {
 			$exposure_scanner,
 			$job_store,
 			$job_runner,
-			$alert_notifier
+			$alert_notifier,
+			$woocommerce_guardrails
 		);
 		$this->job_runner = $job_runner;
 	}

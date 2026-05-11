@@ -52,6 +52,26 @@ function znts_test_update_screen_notice_warns_when_plugin_updates_have_no_checkp
 	znts_assert_same( 'Open Before Update', $payload['actions'][1]['label'], 'Update-screen notice should still provide a path into Before Update.' );
 }
 
+function znts_test_update_screen_notice_adds_woocommerce_guardrail_boundary() {
+	$GLOBALS['znts_test_options']['active_plugins'] = array( 'woocommerce/woocommerce.php' );
+	$admin   = new ZNTS_Testable_Update_Screen_Notice_Admin();
+	$payload = $admin->expose_build_update_screen_notice_payload(
+		array(
+			array(
+				'type' => 'plugin',
+				'key'  => 'plugin:woocommerce/woocommerce.php',
+			),
+		),
+		array(),
+		'plugins'
+	);
+
+	unset( $GLOBALS['znts_test_options']['active_plugins'] );
+
+	znts_assert_true( false !== strpos( $payload['boundary'], 'WooCommerce is active' ), 'Update-screen notice should add WooCommerce-specific guardrail warnings when WooCommerce is active.' );
+	znts_assert_true( false !== strpos( $payload['boundary'], 'does not roll back orders, payments' ), 'WooCommerce update notice boundary should avoid implying order/payment rollback.' );
+}
+
 function znts_test_update_screen_notice_uses_latest_checkpoint_when_attention_is_needed() {
 	$admin   = new ZNTS_Testable_Update_Screen_Notice_Admin();
 	$payload = $admin->expose_build_update_screen_notice_payload(

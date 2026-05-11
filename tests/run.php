@@ -49,6 +49,7 @@ require_once __DIR__ . '/test-update-aware-snapshot-context.php';
 require_once __DIR__ . '/test-async-jobs.php';
 require_once __DIR__ . '/test-safe-update-window.php';
 require_once __DIR__ . '/test-alert-integrations.php';
+require_once __DIR__ . '/test-woocommerce-guardrails.php';
 
 $tests = array_filter(
 	get_defined_functions()['user'],
