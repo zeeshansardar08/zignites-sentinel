@@ -11,6 +11,7 @@ $admin_page_url        = \Zignites\Sentinel\Admin\znts_admin_url( 'admin.php' );
 $admin_post_url        = \Zignites\Sentinel\Admin\znts_admin_url( 'admin-post.php' );
 $notice                = isset( $view_data['notice'] ) && is_array( $view_data['notice'] ) ? $view_data['notice'] : array();
 $async_jobs            = isset( $view_data['async_jobs'] ) && is_array( $view_data['async_jobs'] ) ? $view_data['async_jobs'] : array();
+$safe_update_window    = isset( $view_data['safe_update_window'] ) && is_array( $view_data['safe_update_window'] ) ? $view_data['safe_update_window'] : array();
 $recent_snapshot_rows  = isset( $view_data['recent_snapshot_rows'] ) && is_array( $view_data['recent_snapshot_rows'] ) ? $view_data['recent_snapshot_rows'] : array();
 $snapshot_empty_message = isset( $view_data['snapshot_empty_message'] ) ? (string) $view_data['snapshot_empty_message'] : '';
 $restore_form_state    = isset( $view_data['restore_form_state'] ) && is_array( $view_data['restore_form_state'] ) ? $view_data['restore_form_state'] : array();
@@ -155,6 +156,69 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 				</div>
 			</section>
 		<?php endif; ?>
+
+		<section id="znts-safe-update-window" class="znts-card znts-card-full znts-card-primary">
+			<h2><?php echo esc_html__( 'Safe Update Window', 'zignites-sentinel' ); ?></h2>
+			<p><?php echo esc_html__( 'Follow this guided workflow from checkpoint capture through post-update verification and client reporting.', 'zignites-sentinel' ); ?></p>
+			<?php $window_steps = isset( $safe_update_window['steps'] ) && is_array( $safe_update_window['steps'] ) ? $safe_update_window['steps'] : array(); ?>
+			<?php if ( ! empty( $window_steps ) ) : ?>
+				<div class="znts-summary-strip">
+					<?php foreach ( $window_steps as $step ) : ?>
+						<div class="znts-summary-item">
+							<span><?php echo esc_html( isset( $step['label'] ) ? $step['label'] : '' ); ?></span>
+							<p>
+								<strong><?php echo esc_html( isset( $step['status'] ) ? ucfirst( (string) $step['status'] ) : '' ); ?></strong>
+								<?php echo esc_html( isset( $step['message'] ) ? ' - ' . $step['message'] : '' ); ?>
+							</p>
+						</div>
+					<?php endforeach; ?>
+				</div>
+			<?php endif; ?>
+			<?php $window_settings = isset( $safe_update_window['settings'] ) && is_array( $safe_update_window['settings'] ) ? $safe_update_window['settings'] : array(); ?>
+			<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
+				<input type="hidden" name="action" value="znts_save_safe_update_window" />
+				<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
+				<?php wp_nonce_field( 'znts_save_safe_update_window_action' ); ?>
+				<p>
+					<label><input type="checkbox" name="check_homepage" value="1" <?php echo ! empty( $window_settings['check_homepage'] ) ? 'checked="checked"' : ''; ?> /> <?php echo esc_html__( 'Check homepage after updates', 'zignites-sentinel' ); ?></label><br />
+					<label><input type="checkbox" name="check_admin" value="1" <?php echo ! empty( $window_settings['check_admin'] ) ? 'checked="checked"' : ''; ?> /> <?php echo esc_html__( 'Check authenticated admin after updates', 'zignites-sentinel' ); ?></label>
+				</p>
+				<p>
+					<label for="znts-safe-update-custom-urls"><?php echo esc_html__( 'Optional custom URLs', 'zignites-sentinel' ); ?></label><br />
+					<textarea id="znts-safe-update-custom-urls" name="custom_urls" rows="4" class="large-text code"><?php echo esc_html( implode( "\n", isset( $window_settings['custom_urls'] ) && is_array( $window_settings['custom_urls'] ) ? $window_settings['custom_urls'] : array() ) ); ?></textarea>
+				</p>
+				<?php submit_button( __( 'Save Health Checks', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
+			</form>
+			<?php if ( $has_form_snapshot ) : ?>
+				<div class="znts-actions">
+					<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
+						<input type="hidden" name="action" value="znts_run_update_window_health" />
+						<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
+						<?php wp_nonce_field( 'znts_run_update_window_health_action' ); ?>
+						<?php submit_button( __( 'Run Post-Update Health Checks', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
+					</form>
+					<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
+						<input type="hidden" name="action" value="znts_confirm_update_window_success" />
+						<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
+						<?php wp_nonce_field( 'znts_confirm_update_window_success_action' ); ?>
+						<?php submit_button( __( 'Confirm Update Window', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
+					</form>
+					<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
+						<input type="hidden" name="action" value="znts_download_update_window_report" />
+						<input type="hidden" name="snapshot_id" value="<?php echo esc_attr( $form_snapshot_id ); ?>" />
+						<?php wp_nonce_field( 'znts_download_update_window_report_action' ); ?>
+						<?php submit_button( __( 'Download Client Report', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
+					</form>
+				</div>
+			<?php endif; ?>
+			<?php $window_health = isset( $safe_update_window['health'] ) && is_array( $safe_update_window['health'] ) ? $safe_update_window['health'] : array(); ?>
+			<?php if ( ! empty( $window_health ) ) : ?>
+				<div class="znts-flow-note">
+					<strong><?php echo esc_html__( 'Post-update health', 'zignites-sentinel' ); ?></strong>
+					<span><?php echo esc_html( ( isset( $window_health['status'] ) ? ucfirst( (string) $window_health['status'] ) : '' ) . ( isset( $window_health['note'] ) ? ': ' . $window_health['note'] : '' ) ); ?></span>
+				</div>
+			<?php endif; ?>
+		</section>
 
 		<section class="znts-card znts-card-full znts-card-primary">
 			<h2><?php echo esc_html__( 'Create Checkpoint', 'zignites-sentinel' ); ?></h2>

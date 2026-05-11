@@ -113,6 +113,14 @@ if ( ! defined( 'ZNTS_OPTION_ASYNC_JOBS' ) ) {
 	define( 'ZNTS_OPTION_ASYNC_JOBS', 'znts_async_jobs' );
 }
 
+if ( ! defined( 'ZNTS_OPTION_SAFE_UPDATE_WINDOW_SETTINGS' ) ) {
+	define( 'ZNTS_OPTION_SAFE_UPDATE_WINDOW_SETTINGS', 'znts_safe_update_window_settings' );
+}
+
+if ( ! defined( 'ZNTS_OPTION_LAST_SAFE_UPDATE_WINDOW' ) ) {
+	define( 'ZNTS_OPTION_LAST_SAFE_UPDATE_WINDOW', 'znts_last_safe_update_window' );
+}
+
 if ( ! defined( 'ZNTS_CRON_ASYNC_JOBS' ) ) {
 	define( 'ZNTS_CRON_ASYNC_JOBS', 'znts_process_async_jobs' );
 }
