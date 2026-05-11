@@ -20,8 +20,79 @@ class RestoreHealthVerifier {
 	 * @return array
 	 */
 	public function verify( array $snapshot ) {
-		$checks    = array();
-		$endpoints = array(
+		return $this->verify_endpoints( $this->get_default_endpoints() );
+	}
+
+	/**
+	 * Verify configured Safe Update Window endpoints.
+	 *
+	 * @param array $settings Health check settings.
+	 * @return array
+	 */
+	public function verify_update_window( array $settings ) {
+		$endpoints = array();
+
+		if ( ! isset( $settings['check_homepage'] ) || ! empty( $settings['check_homepage'] ) ) {
+			$endpoints[] = array(
+				'url'               => home_url( '/' ),
+				'label'             => __( 'Homepage', 'zignites-sentinel' ),
+				'allow_empty_body'  => false,
+				'expected_types'    => array( 'html', 'text' ),
+			);
+		}
+
+		if ( ! isset( $settings['check_admin'] ) || ! empty( $settings['check_admin'] ) ) {
+			$endpoints[] = array(
+				'url'               => admin_url( 'admin.php?page=' . Admin::MENU_SLUG ),
+				'label'             => __( 'Admin', 'zignites-sentinel' ),
+				'allow_empty_body'  => false,
+				'expected_types'    => array( 'html', 'text' ),
+				'requires_auth'     => true,
+				'expected_markers'  => array( 'Zignites Sentinel', 'wpadminbar', 'wp-menu' ),
+			);
+		}
+
+		foreach ( isset( $settings['custom_urls'] ) && is_array( $settings['custom_urls'] ) ? $settings['custom_urls'] : array() as $index => $url ) {
+			$url = esc_url_raw( (string) $url );
+
+			if ( '' === $url ) {
+				continue;
+			}
+
+			$endpoints[] = array(
+				'url'               => $url,
+				'label'             => sprintf(
+					/* translators: %d: custom check number */
+					__( 'Custom URL %d', 'zignites-sentinel' ),
+					$index + 1
+				),
+				'allow_empty_body'  => false,
+				'expected_types'    => array( 'html', 'text', 'json' ),
+			);
+		}
+
+		if ( empty( $endpoints ) ) {
+			return $this->finalize_result(
+				array(
+					array(
+						'label'   => __( 'Health check configuration', 'zignites-sentinel' ),
+						'status'  => 'warning',
+						'message' => __( 'No Safe Update Window health endpoints are enabled.', 'zignites-sentinel' ),
+					),
+				)
+			);
+		}
+
+		return $this->verify_endpoints( $endpoints );
+	}
+
+	/**
+	 * Build default restore health endpoints.
+	 *
+	 * @return array
+	 */
+	protected function get_default_endpoints() {
+		return array(
 			array(
 				'url'               => home_url( '/' ),
 				'label'             => __( 'Front-end', 'zignites-sentinel' ),
@@ -49,6 +120,16 @@ class RestoreHealthVerifier {
 				'expected_markers'  => array( 'Zignites Sentinel', 'wpadminbar', 'wp-menu' ),
 			),
 		);
+	}
+
+	/**
+	 * Verify endpoint descriptors and finalize the result.
+	 *
+	 * @param array $endpoints Endpoint descriptors.
+	 * @return array
+	 */
+	protected function verify_endpoints( array $endpoints ) {
+		$checks = array();
 
 		foreach ( $endpoints as $endpoint ) {
 			foreach ( $this->verify_endpoint( $endpoint ) as $check ) {

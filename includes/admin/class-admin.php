@@ -645,6 +645,10 @@ class Admin {
 			'znts_run_restore_dry_run'     => 'handle_run_restore_dry_run',
 			'znts_run_restore_stage'       => 'handle_run_restore_stage',
 			'znts_build_restore_plan'      => 'handle_build_restore_plan',
+			'znts_save_safe_update_window' => 'handle_save_safe_update_window',
+			'znts_run_update_window_health' => 'handle_run_update_window_health',
+			'znts_confirm_update_window_success' => 'handle_confirm_update_window_success',
+			'znts_download_update_window_report' => 'handle_download_update_window_report',
 			'znts_execute_restore'         => 'handle_execute_restore',
 			'znts_resume_restore'          => 'handle_resume_restore',
 			'znts_rollback_restore'        => 'handle_rollback_restore',
@@ -1649,6 +1653,7 @@ class Admin {
 				'snapshot_activity'       => $this->get_snapshot_activity( $snapshot_detail ),
 				'snapshot_activity_url'   => $this->get_snapshot_activity_url( is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) ? (int) $snapshot_detail['id'] : 0 ),
 				'async_jobs'              => $this->job_store->get_recent( 5 ),
+				'safe_update_window'      => $this->get_safe_update_window_state( $snapshot_detail ),
 				'system_health'          => $system_health,
 				'snapshot_intelligence'  => $snapshot_intelligence,
 				'operator_timeline'      => $operator_timeline,
@@ -2441,6 +2446,126 @@ class Admin {
 		) . '#znts-restore-plan';
 
 		wp_safe_redirect( $url );
+		exit;
+	}
+
+	/**
+	 * Save Safe Update Window health-check settings.
+	 *
+	 * @return void
+	 */
+	public function handle_save_safe_update_window() {
+		$this->assert_admin_action_permissions( 'znts_save_safe_update_window_action' );
+
+		$settings = array(
+			'check_homepage' => ! empty( $_POST['check_homepage'] ),
+			'check_admin'    => ! empty( $_POST['check_admin'] ),
+			'custom_urls'    => $this->sanitize_update_window_custom_urls( isset( $_POST['custom_urls'] ) ? wp_unslash( $_POST['custom_urls'] ) : '' ),
+		);
+
+		update_option( ZNTS_OPTION_SAFE_UPDATE_WINDOW_SETTINGS, $settings, false );
+		$this->redirect_with_snapshot_notice( 'safe-update-window-saved', isset( $_POST['snapshot_id'] ) ? absint( wp_unslash( $_POST['snapshot_id'] ) ) : 0, 'znts-safe-update-window' );
+	}
+
+	/**
+	 * Run post-update health checks for the Safe Update Window.
+	 *
+	 * @return void
+	 */
+	public function handle_run_update_window_health() {
+		$this->assert_admin_action_permissions( 'znts_run_update_window_health_action' );
+
+		$snapshot_id = isset( $_POST['snapshot_id'] ) ? absint( wp_unslash( $_POST['snapshot_id'] ) ) : 0;
+		$snapshot    = $this->snapshots->get_by_id( $snapshot_id );
+
+		if ( ! is_array( $snapshot ) ) {
+			$this->redirect_with_notice( 'safe-update-window-missing' );
+		}
+
+		$settings = $this->get_safe_update_window_settings();
+		$health   = $this->restore_health_verifier->verify_update_window( $settings );
+		$health['snapshot_id'] = $snapshot_id;
+		$health['log_regression'] = $this->get_update_window_log_regression_summary();
+
+		$window = array(
+			'snapshot_id' => $snapshot_id,
+			'status'      => isset( $health['status'] ) ? sanitize_key( (string) $health['status'] ) : 'unknown',
+			'health'      => $health,
+			'settings'    => $settings,
+			'confirmed'   => false,
+			'updated_at'  => current_time( 'mysql', true ),
+		);
+
+		update_option( ZNTS_OPTION_LAST_SAFE_UPDATE_WINDOW, $window, false );
+		$this->logger->log(
+			'safe_update_window_health_checked',
+			'unhealthy' === $window['status'] ? 'error' : ( 'degraded' === $window['status'] ? 'warning' : 'info' ),
+			'safe-update-window',
+			__( 'Safe Update Window post-update health checks completed.', 'zignites-sentinel' ),
+			array(
+				'snapshot_id' => $snapshot_id,
+				'status'      => $window['status'],
+				'summary'     => isset( $health['summary'] ) ? $health['summary'] : array(),
+				'log_regression' => isset( $health['log_regression'] ) ? $health['log_regression'] : array(),
+			)
+		);
+
+		$this->redirect_with_snapshot_notice( 'safe-update-window-health-complete', $snapshot_id, 'znts-safe-update-window' );
+	}
+
+	/**
+	 * Confirm a Safe Update Window after post-update checks.
+	 *
+	 * @return void
+	 */
+	public function handle_confirm_update_window_success() {
+		$this->assert_admin_action_permissions( 'znts_confirm_update_window_success_action' );
+
+		$snapshot_id = isset( $_POST['snapshot_id'] ) ? absint( wp_unslash( $_POST['snapshot_id'] ) ) : 0;
+		$window      = get_option( ZNTS_OPTION_LAST_SAFE_UPDATE_WINDOW, array() );
+		$window      = is_array( $window ) ? $window : array();
+
+		$window['snapshot_id'] = $snapshot_id;
+		$window['confirmed']   = true;
+		$window['confirmed_at'] = current_time( 'mysql', true );
+		$window['updated_at']  = current_time( 'mysql', true );
+		update_option( ZNTS_OPTION_LAST_SAFE_UPDATE_WINDOW, $window, false );
+
+		$this->logger->log(
+			'safe_update_window_confirmed',
+			'info',
+			'safe-update-window',
+			__( 'Safe Update Window was confirmed by the operator.', 'zignites-sentinel' ),
+			array(
+				'snapshot_id' => $snapshot_id,
+			)
+		);
+
+		$this->redirect_with_snapshot_notice( 'safe-update-window-confirmed', $snapshot_id, 'znts-safe-update-window' );
+	}
+
+	/**
+	 * Download a client-readable Safe Update Window report.
+	 *
+	 * @return void
+	 */
+	public function handle_download_update_window_report() {
+		$this->assert_admin_action_permissions( 'znts_download_update_window_report_action' );
+
+		$snapshot_id = isset( $_POST['snapshot_id'] ) ? absint( wp_unslash( $_POST['snapshot_id'] ) ) : 0;
+		$snapshot    = $this->snapshots->get_by_id( $snapshot_id );
+
+		if ( ! is_array( $snapshot ) ) {
+			$this->redirect_with_notice( 'safe-update-window-missing' );
+		}
+
+		$report   = $this->build_safe_update_window_report( $snapshot );
+		$filename = 'sentinel-safe-update-window-' . $snapshot_id . '-' . gmdate( 'Ymd-His' ) . '.txt';
+
+		nocache_headers();
+		header( 'Content-Type: text/plain; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+		echo $report; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Plain text attachment assembled from sanitized report data.
 		exit;
 	}
 
@@ -3292,6 +3417,22 @@ class Admin {
 				'type'    => 'info',
 				'message' => __( 'Restore plan generation was queued and will continue in the background.', 'zignites-sentinel' ),
 			),
+			'safe-update-window-saved' => array(
+				'type'    => 'success',
+				'message' => __( 'Safe Update Window health-check settings were saved.', 'zignites-sentinel' ),
+			),
+			'safe-update-window-health-complete' => array(
+				'type'    => 'success',
+				'message' => __( 'Safe Update Window post-update health checks completed.', 'zignites-sentinel' ),
+			),
+			'safe-update-window-confirmed' => array(
+				'type'    => 'success',
+				'message' => __( 'Safe Update Window was confirmed and is ready for reporting.', 'zignites-sentinel' ),
+			),
+			'safe-update-window-missing' => array(
+				'type'    => 'error',
+				'message' => __( 'The selected checkpoint could not be found for the Safe Update Window workflow.', 'zignites-sentinel' ),
+			),
 			'restore-plan-missing' => array(
 				'type'    => 'error',
 				'message' => __( 'The selected snapshot could not be found for restore planning.', 'zignites-sentinel' ),
@@ -3387,6 +3528,151 @@ class Admin {
 		);
 
 		return isset( $messages[ $notice ] ) ? $messages[ $notice ] : array();
+	}
+
+	/**
+	 * Build Safe Update Window view state.
+	 *
+	 * @param array|null $snapshot_detail Selected snapshot.
+	 * @return array
+	 */
+	protected function get_safe_update_window_state( $snapshot_detail ) {
+		$settings    = $this->get_safe_update_window_settings();
+		$last_window = get_option( ZNTS_OPTION_LAST_SAFE_UPDATE_WINDOW, array() );
+		$last_window = is_array( $last_window ) ? $last_window : array();
+		$snapshot_id = is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) ? (int) $snapshot_detail['id'] : 0;
+		$health      = array();
+
+		if ( $snapshot_id > 0 && isset( $last_window['snapshot_id'] ) && (int) $last_window['snapshot_id'] === $snapshot_id && ! empty( $last_window['health'] ) && is_array( $last_window['health'] ) ) {
+			$health = $last_window['health'];
+		}
+
+		$health_status = isset( $health['status'] ) ? sanitize_key( (string) $health['status'] ) : '';
+		$is_confirmed  = ! empty( $last_window['confirmed'] ) && $snapshot_id > 0 && isset( $last_window['snapshot_id'] ) && (int) $last_window['snapshot_id'] === $snapshot_id;
+
+		return array(
+			'snapshot_id'   => $snapshot_id,
+			'settings'      => $settings,
+			'health'        => $health,
+			'confirmed'     => $is_confirmed,
+			'confirmed_at'  => isset( $last_window['confirmed_at'] ) ? (string) $last_window['confirmed_at'] : '',
+			'steps'         => array(
+				array(
+					'label'   => __( 'Environment preflight', 'zignites-sentinel' ),
+					'status'  => ! empty( get_option( ZNTS_OPTION_LAST_PREFLIGHT, array() ) ) ? 'complete' : 'pending',
+					'message' => __( 'Review server readiness before the update window.', 'zignites-sentinel' ),
+				),
+				array(
+					'label'   => __( 'Storage and artifact checks', 'zignites-sentinel' ),
+					'status'  => 'complete',
+					'message' => __( 'Artifact exposure and storage checks are visible on Dashboard.', 'zignites-sentinel' ),
+				),
+				array(
+					'label'   => __( 'Checkpoint capture', 'zignites-sentinel' ),
+					'status'  => $snapshot_id > 0 ? 'complete' : 'pending',
+					'message' => $snapshot_id > 0 ? __( 'A checkpoint is selected for this update window.', 'zignites-sentinel' ) : __( 'Create or select a checkpoint before updating.', 'zignites-sentinel' ),
+				),
+				array(
+					'label'   => __( 'Plugin/theme updates', 'zignites-sentinel' ),
+					'status'  => $snapshot_id > 0 ? 'operator' : 'pending',
+					'message' => __( 'Run the actual plugin/theme updates in WordPress after the checkpoint is ready.', 'zignites-sentinel' ),
+				),
+				array(
+					'label'   => __( 'Post-update health checks', 'zignites-sentinel' ),
+					'status'  => '' !== $health_status ? $health_status : 'pending',
+					'message' => '' !== $health_status ? $this->humanize_status( $health_status ) : __( 'Run health checks after updates finish.', 'zignites-sentinel' ),
+				),
+				array(
+					'label'   => __( 'Confirm or rollback', 'zignites-sentinel' ),
+					'status'  => $is_confirmed ? 'complete' : ( 'unhealthy' === $health_status ? 'attention' : 'pending' ),
+					'message' => $is_confirmed ? __( 'Operator confirmed the update window.', 'zignites-sentinel' ) : __( 'Confirm success after checks pass, or use restore/rollback controls if the site is unhealthy.', 'zignites-sentinel' ),
+				),
+			),
+			'report_ready'  => $snapshot_id > 0 && ( ! empty( $health ) || $is_confirmed ),
+			'log_regression'=> isset( $health['log_regression'] ) && is_array( $health['log_regression'] ) ? $health['log_regression'] : array(),
+		);
+	}
+
+	/**
+	 * Return Safe Update Window health settings.
+	 *
+	 * @return array
+	 */
+	protected function get_safe_update_window_settings() {
+		$settings = get_option( ZNTS_OPTION_SAFE_UPDATE_WINDOW_SETTINGS, array() );
+		$settings = is_array( $settings ) ? $settings : array();
+
+		return array(
+			'check_homepage' => ! array_key_exists( 'check_homepage', $settings ) || ! empty( $settings['check_homepage'] ),
+			'check_admin'    => ! array_key_exists( 'check_admin', $settings ) || ! empty( $settings['check_admin'] ),
+			'custom_urls'    => isset( $settings['custom_urls'] ) && is_array( $settings['custom_urls'] ) ? $settings['custom_urls'] : array(),
+		);
+	}
+
+	/**
+	 * Sanitize custom health-check URLs from a textarea or array.
+	 *
+	 * @param string|array $raw Raw URLs.
+	 * @return array
+	 */
+	protected function sanitize_update_window_custom_urls( $raw ) {
+		$lines = is_array( $raw ) ? $raw : preg_split( '/\r\n|\r|\n/', (string) $raw );
+		$urls  = array();
+
+		foreach ( is_array( $lines ) ? $lines : array() as $line ) {
+			$url = esc_url_raw( trim( (string) $line ) );
+
+			if ( '' !== $url && ! in_array( $url, $urls, true ) ) {
+				$urls[] = $url;
+			}
+		}
+
+		return array_slice( $urls, 0, 10 );
+	}
+
+	/**
+	 * Summarize recent warning/error logs for post-update review.
+	 *
+	 * @return array
+	 */
+	protected function get_update_window_log_regression_summary() {
+		$counts = method_exists( $this->logs, 'count_recent_by_severity' ) ? $this->logs->count_recent_by_severity( 1 ) : array();
+		$counts = is_array( $counts ) ? $counts : array();
+
+		return array(
+			'window'   => __( 'Last 24 hours', 'zignites-sentinel' ),
+			'warnings' => isset( $counts['warning'] ) ? (int) $counts['warning'] : 0,
+			'errors'   => ( isset( $counts['error'] ) ? (int) $counts['error'] : 0 ) + ( isset( $counts['critical'] ) ? (int) $counts['critical'] : 0 ),
+		);
+	}
+
+	/**
+	 * Build client-readable Safe Update Window report text.
+	 *
+	 * @param array $snapshot Snapshot row.
+	 * @return string
+	 */
+	protected function build_safe_update_window_report( array $snapshot ) {
+		$snapshot_id = isset( $snapshot['id'] ) ? (int) $snapshot['id'] : 0;
+		$state       = $this->get_safe_update_window_state( $snapshot );
+		$health      = isset( $state['health'] ) && is_array( $state['health'] ) ? $state['health'] : array();
+		$summary     = isset( $health['summary'] ) && is_array( $health['summary'] ) ? $health['summary'] : array();
+		$regression  = isset( $state['log_regression'] ) && is_array( $state['log_regression'] ) ? $state['log_regression'] : array();
+		$lines       = array(
+			'Zignites Sentinel Safe Update Window Report',
+			'Generated: ' . current_time( 'mysql', true ),
+			'Checkpoint: ' . ( isset( $snapshot['label'] ) ? (string) $snapshot['label'] : '#' . $snapshot_id ),
+			'Checkpoint ID: ' . $snapshot_id,
+			'Checkpoint time: ' . ( isset( $snapshot['created_at'] ) ? (string) $snapshot['created_at'] : '' ),
+			'Post-update health: ' . ( isset( $health['status'] ) ? $this->humanize_status( $health['status'] ) : 'Not run' ),
+			'Health summary: pass ' . ( isset( $summary['pass'] ) ? (int) $summary['pass'] : 0 ) . ', warning ' . ( isset( $summary['warning'] ) ? (int) $summary['warning'] : 0 ) . ', fail ' . ( isset( $summary['fail'] ) ? (int) $summary['fail'] : 0 ),
+			'Recent log regression: ' . ( isset( $regression['warnings'] ) ? (int) $regression['warnings'] : 0 ) . ' warnings, ' . ( isset( $regression['errors'] ) ? (int) $regression['errors'] : 0 ) . ' errors in ' . ( isset( $regression['window'] ) ? (string) $regression['window'] : 'the checked window' ),
+			'Operator confirmed: ' . ( ! empty( $state['confirmed'] ) ? 'Yes' : 'No' ),
+			'Restore boundary: Sentinel covers active plugin/theme code checkpoints only. It does not restore database, uploads/media, WordPress core, WooCommerce orders/payments, or malware cleanup state.',
+			'Warnings: Review any failed health checks, storage exposure warnings, and recent error logs before closing the maintenance window.',
+		);
+
+		return implode( "\n", $lines ) . "\n";
 	}
 
 	/**

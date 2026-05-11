@@ -588,6 +588,17 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 				'type'    => 'success',
 				'message' => 'Saved',
 			),
+			'safe_update_window' => array(
+				'snapshot_id' => 101,
+				'confirmed'   => true,
+				'steps'       => array(
+					array(
+						'label'   => 'Post-update health checks',
+						'status'  => 'healthy',
+						'message' => 'Healthy',
+					),
+				),
+			),
 		)
 	);
 
@@ -603,6 +614,7 @@ function znts_test_update_readiness_state_builder_normalizes_screen_state() {
 	znts_assert_same( 'Blocked for review', $state['last_update_plan_status']['status_label'], 'Update Readiness state builder should humanize update plan status labels.' );
 	znts_assert_same( 'Plugin', $state['last_update_plan_target_rows'][0]['type_label'], 'Update Readiness state builder should derive update plan target type labels.' );
 	znts_assert_same( 'Release snapshot', $state['recent_snapshots'][0]['label'], 'Update Readiness state builder should expose snapshot list items as recent snapshots.' );
+	znts_assert_same( true, $state['safe_update_window']['confirmed'], 'Update Readiness state builder should preserve Safe Update Window state.' );
 	znts_assert_same( true, $state['snapshot_status_index'][101]['restore_ready'], 'Update Readiness state builder should expose the snapshot status index from list state.' );
 	znts_assert_same( 25, $state['snapshot_pagination']['total_items'], 'Update Readiness state builder should expose snapshot pagination from list state.' );
 	znts_assert_same( true, $state['settings_form_state']['logging_enabled'], 'Update Readiness state builder should derive settings form logging state.' );
