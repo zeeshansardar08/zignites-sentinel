@@ -23,6 +23,7 @@ define( 'ZNTS_CRON_ASYNC_JOBS', 'znts_process_async_jobs' );
 define( 'ZNTS_OPTION_SAFE_UPDATE_WINDOW_SETTINGS', 'znts_safe_update_window_settings' );
 define( 'ZNTS_OPTION_LAST_SAFE_UPDATE_WINDOW', 'znts_last_safe_update_window' );
 define( 'ZNTS_OPTION_ALERT_INTEGRATIONS', 'znts_alert_integrations' );
+define( 'ZNTS_OPTION_WOOCOMMERCE_GUARDRAILS', 'znts_woocommerce_guardrails' );
 
 if ( ! defined( 'WP_PLUGIN_DIR' ) ) {
 	define( 'WP_PLUGIN_DIR', 'D:/plugins' );
@@ -38,6 +39,12 @@ $GLOBALS['znts_test_scheduled_events'] = array();
 if ( ! function_exists( '__' ) ) {
 	function __( $text, $domain = '' ) {
 		return $text;
+	}
+}
+
+if ( ! function_exists( '_n' ) ) {
+	function _n( $single, $plural, $number, $domain = '' ) {
+		return 1 === (int) $number ? $single : $plural;
 	}
 }
 
@@ -288,6 +295,12 @@ if ( ! function_exists( 'admin_url' ) ) {
 	}
 }
 
+if ( ! function_exists( 'get_site_option' ) ) {
+	function get_site_option( $name, $default = false ) {
+		return isset( $GLOBALS['znts_test_site_options'][ $name ] ) ? $GLOBALS['znts_test_site_options'][ $name ] : $default;
+	}
+}
+
 if ( ! function_exists( 'home_url' ) ) {
 	function home_url( $path = '' ) {
 		return 'http://example.test/' . ltrim( (string) $path, '/' );
@@ -424,6 +437,7 @@ require_once __DIR__ . '/../includes/snapshots/class-local-artifact-storage-back
 require_once __DIR__ . '/../includes/snapshots/class-artifact-exposure-scanner.php';
 require_once __DIR__ . '/../includes/core/class-operation-lock.php';
 require_once __DIR__ . '/../includes/core/class-disk-space-preflight.php';
+require_once __DIR__ . '/../includes/diagnostics/class-woocommerce-guardrails.php';
 require_once __DIR__ . '/../includes/integrations/class-alert-notifier.php';
 require_once __DIR__ . '/../includes/jobs/class-job-store.php';
 require_once __DIR__ . '/../includes/jobs/class-job-runner.php';

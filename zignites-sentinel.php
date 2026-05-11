@@ -125,6 +125,10 @@ if ( ! defined( 'ZNTS_OPTION_ALERT_INTEGRATIONS' ) ) {
 	define( 'ZNTS_OPTION_ALERT_INTEGRATIONS', 'znts_alert_integrations' );
 }
 
+if ( ! defined( 'ZNTS_OPTION_WOOCOMMERCE_GUARDRAILS' ) ) {
+	define( 'ZNTS_OPTION_WOOCOMMERCE_GUARDRAILS', 'znts_woocommerce_guardrails' );
+}
+
 if ( ! defined( 'ZNTS_CRON_ASYNC_JOBS' ) ) {
 	define( 'ZNTS_CRON_ASYNC_JOBS', 'znts_process_async_jobs' );
 }

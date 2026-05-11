@@ -14,6 +14,7 @@ $recent_logs           = isset( $view_data['recent_logs'] ) && is_array( $view_d
 $async_jobs            = isset( $view_data['async_jobs'] ) && is_array( $view_data['async_jobs'] ) ? $view_data['async_jobs'] : array();
 $artifact_storage      = isset( $view_data['artifact_storage'] ) && is_array( $view_data['artifact_storage'] ) ? $view_data['artifact_storage'] : array();
 $alert_integrations    = isset( $view_data['alert_integrations'] ) && is_array( $view_data['alert_integrations'] ) ? $view_data['alert_integrations'] : array();
+$woocommerce_guardrails = isset( $view_data['woocommerce_guardrails'] ) && is_array( $view_data['woocommerce_guardrails'] ) ? $view_data['woocommerce_guardrails'] : array();
 $notice                = isset( $view_data['notice'] ) && is_array( $view_data['notice'] ) ? $view_data['notice'] : array();
 $latest_snapshot       = ! empty( $recent_snapshots[0] ) ? $recent_snapshots[0] : array();
 $latest_snapshot_state = ( ! empty( $latest_snapshot['id'] ) && isset( $snapshot_status_index[ (int) $latest_snapshot['id'] ] ) ) ? $snapshot_status_index[ (int) $latest_snapshot['id'] ] : array();
@@ -152,6 +153,17 @@ $first_run_cta_url     = add_query_arg(
 						<span><?php echo esc_html( $artifact_storage['warning'] ); ?></span>
 					</div>
 				<?php endif; ?>
+			</section>
+		<?php endif; ?>
+
+		<?php if ( ! empty( $woocommerce_guardrails['active'] ) ) : ?>
+			<section class="znts-card znts-card-full znts-card-flat">
+				<div class="znts-readiness-row">
+					<span class="znts-pill znts-pill-warning"><?php echo esc_html( isset( $woocommerce_guardrails['label'] ) ? $woocommerce_guardrails['label'] : __( 'WooCommerce detected', 'zignites-sentinel' ) ); ?></span>
+				</div>
+				<h2><?php echo esc_html__( 'WooCommerce Guardrails', 'zignites-sentinel' ); ?></h2>
+				<p><?php echo esc_html( isset( $woocommerce_guardrails['message'] ) ? $woocommerce_guardrails['message'] : '' ); ?></p>
+				<p><a href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-update-readiness' ), $admin_page_url ) . '#znts-woocommerce-guardrails' ); ?>"><?php echo esc_html__( 'Review WooCommerce Safe Update Mode', 'zignites-sentinel' ); ?></a></p>
 			</section>
 		<?php endif; ?>
 

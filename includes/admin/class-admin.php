@@ -9,6 +9,7 @@ namespace Zignites\Sentinel\Admin;
 
 use Zignites\Sentinel\Diagnostics\ConflictRepository;
 use Zignites\Sentinel\Diagnostics\HealthScore;
+use Zignites\Sentinel\Diagnostics\WooCommerceGuardrails;
 use Zignites\Sentinel\Core\Installer;
 use Zignites\Sentinel\Core\OperationLock;
 use Zignites\Sentinel\Integrations\AlertNotifier;
@@ -495,6 +496,13 @@ class Admin {
 	protected $alert_notifier;
 
 	/**
+	 * WooCommerce guardrails.
+	 *
+	 * @var WooCommerceGuardrails
+	 */
+	protected $woocommerce_guardrails;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Logger                   $logger              Structured logger.
@@ -522,6 +530,7 @@ class Admin {
 	 * @param JobStore|null             $job_store                Async job store.
 	 * @param JobRunner|null            $job_runner               Async job runner.
 	 * @param AlertNotifier|null        $alert_notifier           Alert notifier.
+	 * @param WooCommerceGuardrails|null $woocommerce_guardrails  WooCommerce guardrails.
 	 */
 	public function __construct(
 		Logger $logger,
@@ -548,7 +557,8 @@ class Admin {
 		ArtifactExposureScanner $artifact_exposure_scanner = null,
 		JobStore $job_store = null,
 		JobRunner $job_runner = null,
-		AlertNotifier $alert_notifier = null
+		AlertNotifier $alert_notifier = null,
+		WooCommerceGuardrails $woocommerce_guardrails = null
 	) {
 		$this->logger            = $logger;
 		$this->logs              = $logs;
@@ -575,6 +585,7 @@ class Admin {
 		$this->job_store                = $job_store ? $job_store : new JobStore();
 		$this->job_runner               = $job_runner;
 		$this->alert_notifier           = $alert_notifier ? $alert_notifier : new AlertNotifier();
+		$this->woocommerce_guardrails   = $woocommerce_guardrails ? $woocommerce_guardrails : new WooCommerceGuardrails();
 		$this->settings_portability     = new SettingsPortability();
 		$this->audit_report_verifier    = new AuditReportVerifier();
 		$this->restore_operator_checklist_evaluator = new RestoreOperatorChecklistEvaluator();
@@ -662,6 +673,7 @@ class Admin {
 			'znts_download_update_window_report' => 'handle_download_update_window_report',
 			'znts_save_alert_integrations' => 'handle_save_alert_integrations',
 			'znts_send_test_alert'         => 'handle_send_test_alert',
+			'znts_save_woocommerce_guardrails' => 'handle_save_woocommerce_guardrails',
 			'znts_execute_restore'         => 'handle_execute_restore',
 			'znts_resume_restore'          => 'handle_resume_restore',
 			'znts_rollback_restore'        => 'handle_rollback_restore',
@@ -1142,6 +1154,12 @@ class Admin {
 			}
 		}
 
+		$woocommerce_state = $this->get_woocommerce_guardrails_state();
+		if ( ! empty( $woocommerce_state['active'] ) ) {
+			$woocommerce_note = __( 'WooCommerce is active. Use a maintenance window and external database backup because Sentinel does not roll back orders, payments, carts, migrations, or schema changes.', 'zignites-sentinel' );
+			$boundary_note   = '' !== $boundary_note ? $boundary_note . ' ' . $woocommerce_note : $woocommerce_note;
+		}
+
 		if ( 'snapshot-failed' === $notice_key ) {
 			return array(
 				'type'        => 'error',
@@ -1524,6 +1542,7 @@ class Admin {
 		);
 		$view_data['notice']             = $this->get_notice_message();
 		$view_data['alert_integrations'] = $this->get_alert_integrations_state();
+		$view_data['woocommerce_guardrails'] = $this->get_woocommerce_guardrails_state();
 		$view_data = $this->apply_dashboard_capture_state( $this->normalize_admin_links_in_value( $view_data ) );
 
 		require ZNTS_PLUGIN_DIR . 'includes/admin/views/dashboard-v1.php';
@@ -1669,6 +1688,7 @@ class Admin {
 				'snapshot_activity_url'   => $this->get_snapshot_activity_url( is_array( $snapshot_detail ) && ! empty( $snapshot_detail['id'] ) ? (int) $snapshot_detail['id'] : 0 ),
 				'async_jobs'              => $this->job_store->get_recent( 5 ),
 				'safe_update_window'      => $this->get_safe_update_window_state( $snapshot_detail ),
+				'woocommerce_guardrails'  => $this->get_woocommerce_guardrails_state(),
 				'system_health'          => $system_health,
 				'snapshot_intelligence'  => $snapshot_intelligence,
 				'operator_timeline'      => $operator_timeline,
@@ -2601,6 +2621,34 @@ class Admin {
 		);
 
 		$this->redirect_dashboard_with_notice( empty( $result['sent'] ) || ! empty( $result['failed'] ) ? 'alert-test-warning' : 'alert-test-sent', 'znts-alert-integrations' );
+	}
+
+	/**
+	 * Save WooCommerce guardrail acknowledgements.
+	 *
+	 * @return void
+	 */
+	public function handle_save_woocommerce_guardrails() {
+		$this->assert_admin_action_permissions( 'znts_save_woocommerce_guardrails_action' );
+
+		$settings = $this->woocommerce_guardrails->normalize_settings(
+			array(
+				'safe_update_mode'              => ! empty( $_POST['woocommerce_safe_update_mode'] ) ? 1 : 0,
+				'maintenance_window_confirmed' => ! empty( $_POST['woocommerce_maintenance_window_confirmed'] ) ? 1 : 0,
+				'external_db_backup_confirmed' => ! empty( $_POST['woocommerce_external_db_backup_confirmed'] ) ? 1 : 0,
+			)
+		);
+
+		update_option( ZNTS_OPTION_WOOCOMMERCE_GUARDRAILS, $settings, false );
+		$this->logger->log(
+			'woocommerce_guardrails_saved',
+			'info',
+			'woocommerce-guardrails',
+			__( 'WooCommerce update guardrails were saved.', 'zignites-sentinel' ),
+			$settings
+		);
+
+		$this->redirect_with_snapshot_notice( 'woocommerce-guardrails-saved', isset( $_POST['snapshot_id'] ) ? absint( wp_unslash( $_POST['snapshot_id'] ) ) : 0, 'znts-woocommerce-guardrails' );
 	}
 
 	/**
@@ -3595,6 +3643,10 @@ class Admin {
 				'type'    => 'warning',
 				'message' => __( 'Test alert finished with warnings. Review the alert integration status.', 'zignites-sentinel' ),
 			),
+			'woocommerce-guardrails-saved' => array(
+				'type'    => 'success',
+				'message' => __( 'WooCommerce update guardrails were saved.', 'zignites-sentinel' ),
+			),
 			'restore-plan-missing' => array(
 				'type'    => 'error',
 				'message' => __( 'The selected snapshot could not be found for restore planning.', 'zignites-sentinel' ),
@@ -3797,6 +3849,30 @@ class Admin {
 	}
 
 	/**
+	 * Return normalized WooCommerce guardrail settings.
+	 *
+	 * @return array
+	 */
+	protected function get_woocommerce_guardrails_settings() {
+		$settings = get_option( ZNTS_OPTION_WOOCOMMERCE_GUARDRAILS, array() );
+
+		return $this->woocommerce_guardrails->normalize_settings( is_array( $settings ) ? $settings : array() );
+	}
+
+	/**
+	 * Build WooCommerce guardrail view state.
+	 *
+	 * @return array
+	 */
+	protected function get_woocommerce_guardrails_state() {
+		if ( ! $this->woocommerce_guardrails instanceof WooCommerceGuardrails ) {
+			$this->woocommerce_guardrails = new WooCommerceGuardrails();
+		}
+
+		return $this->woocommerce_guardrails->build_state( $this->get_woocommerce_guardrails_settings() );
+	}
+
+	/**
 	 * Sanitize alert integration form input.
 	 *
 	 * @param array $raw_input Posted data.
@@ -3925,6 +4001,7 @@ class Admin {
 		$health      = isset( $state['health'] ) && is_array( $state['health'] ) ? $state['health'] : array();
 		$summary     = isset( $health['summary'] ) && is_array( $health['summary'] ) ? $health['summary'] : array();
 		$regression  = isset( $state['log_regression'] ) && is_array( $state['log_regression'] ) ? $state['log_regression'] : array();
+		$woocommerce = $this->get_woocommerce_guardrails_state();
 		$lines       = array(
 			'Zignites Sentinel Safe Update Window Report',
 			'Generated: ' . current_time( 'mysql', true ),
@@ -3938,6 +4015,14 @@ class Admin {
 			'Restore boundary: Sentinel covers active plugin/theme code checkpoints only. It does not restore database, uploads/media, WordPress core, WooCommerce orders/payments, or malware cleanup state.',
 			'Warnings: Review any failed health checks, storage exposure warnings, and recent error logs before closing the maintenance window.',
 		);
+
+		if ( ! empty( $woocommerce['report_lines'] ) && is_array( $woocommerce['report_lines'] ) ) {
+			$lines[] = '';
+			$lines[] = 'WooCommerce Guardrails';
+			foreach ( $woocommerce['report_lines'] as $line ) {
+				$lines[] = (string) $line;
+			}
+		}
 
 		return implode( "\n", $lines ) . "\n";
 	}
