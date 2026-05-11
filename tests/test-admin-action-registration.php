@@ -21,6 +21,8 @@ function znts_test_admin_default_actions_match_simplified_ui() {
 		'znts_run_update_window_health',
 		'znts_confirm_update_window_success',
 		'znts_download_update_window_report',
+		'znts_save_alert_integrations',
+		'znts_send_test_alert',
 		'znts_execute_restore',
 		'znts_resume_restore',
 		'znts_rollback_restore',

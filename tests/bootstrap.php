@@ -22,6 +22,7 @@ define( 'ZNTS_OPTION_ASYNC_JOBS', 'znts_async_jobs' );
 define( 'ZNTS_CRON_ASYNC_JOBS', 'znts_process_async_jobs' );
 define( 'ZNTS_OPTION_SAFE_UPDATE_WINDOW_SETTINGS', 'znts_safe_update_window_settings' );
 define( 'ZNTS_OPTION_LAST_SAFE_UPDATE_WINDOW', 'znts_last_safe_update_window' );
+define( 'ZNTS_OPTION_ALERT_INTEGRATIONS', 'znts_alert_integrations' );
 
 if ( ! defined( 'WP_PLUGIN_DIR' ) ) {
 	define( 'WP_PLUGIN_DIR', 'D:/plugins' );
@@ -209,6 +210,26 @@ if ( ! function_exists( 'wp_remote_get' ) ) {
 		return array(
 			'response' => array(
 				'code' => 403,
+			),
+			'body'     => '',
+		);
+	}
+}
+
+if ( ! function_exists( 'wp_remote_post' ) ) {
+	function wp_remote_post( $url, $args = array() ) {
+		$GLOBALS['znts_test_last_http_post'] = array(
+			'url'  => $url,
+			'args' => $args,
+		);
+
+		if ( isset( $GLOBALS['znts_test_http_post_response'] ) ) {
+			return $GLOBALS['znts_test_http_post_response'];
+		}
+
+		return array(
+			'response' => array(
+				'code' => 200,
 			),
 			'body'     => '',
 		);
@@ -403,6 +424,7 @@ require_once __DIR__ . '/../includes/snapshots/class-local-artifact-storage-back
 require_once __DIR__ . '/../includes/snapshots/class-artifact-exposure-scanner.php';
 require_once __DIR__ . '/../includes/core/class-operation-lock.php';
 require_once __DIR__ . '/../includes/core/class-disk-space-preflight.php';
+require_once __DIR__ . '/../includes/integrations/class-alert-notifier.php';
 require_once __DIR__ . '/../includes/jobs/class-job-store.php';
 require_once __DIR__ . '/../includes/jobs/class-job-runner.php';
 require_once __DIR__ . '/../includes/snapshots/class-component-manifest-builder.php';

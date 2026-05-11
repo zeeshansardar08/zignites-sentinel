@@ -121,6 +121,10 @@ if ( ! defined( 'ZNTS_OPTION_LAST_SAFE_UPDATE_WINDOW' ) ) {
 	define( 'ZNTS_OPTION_LAST_SAFE_UPDATE_WINDOW', 'znts_last_safe_update_window' );
 }
 
+if ( ! defined( 'ZNTS_OPTION_ALERT_INTEGRATIONS' ) ) {
+	define( 'ZNTS_OPTION_ALERT_INTEGRATIONS', 'znts_alert_integrations' );
+}
+
 if ( ! defined( 'ZNTS_CRON_ASYNC_JOBS' ) ) {
 	define( 'ZNTS_CRON_ASYNC_JOBS', 'znts_process_async_jobs' );
 }

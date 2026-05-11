@@ -14,6 +14,7 @@ use Zignites\Sentinel\Diagnostics\Monitor;
 use Zignites\Sentinel\Core\Installer;
 use Zignites\Sentinel\Core\DiskSpacePreflight;
 use Zignites\Sentinel\Core\OperationLock;
+use Zignites\Sentinel\Integrations\AlertNotifier;
 use Zignites\Sentinel\Jobs\JobRunner;
 use Zignites\Sentinel\Jobs\JobStore;
 use Zignites\Sentinel\Logging\Logger;
@@ -108,7 +109,8 @@ class Plugin {
 		$preflight_checker   = new PreflightChecker( $disk_preflight );
 		$update_planner      = new UpdatePlanner( $snapshot_manager, $source_validator, $logger );
 		$job_store           = new JobStore();
-		$job_runner          = new JobRunner( $job_store, $snapshot_manager, $snapshot_repository, $artifact_repository, $restore_staging, $restore_planner, $checkpoint_store, $operation_lock, $logger );
+		$alert_notifier      = new AlertNotifier();
+		$job_runner          = new JobRunner( $job_store, $snapshot_manager, $snapshot_repository, $artifact_repository, $restore_staging, $restore_planner, $checkpoint_store, $operation_lock, $logger, $alert_notifier );
 
 		$this->monitor = new Monitor( $logger, $conflict_repository );
 		$this->snapshot_maintenance = $snapshot_maintenance;
@@ -136,7 +138,8 @@ class Plugin {
 			$operation_lock,
 			$exposure_scanner,
 			$job_store,
-			$job_runner
+			$job_runner,
+			$alert_notifier
 		);
 		$this->job_runner = $job_runner;
 	}
