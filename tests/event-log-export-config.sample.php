@@ -10,7 +10,7 @@
 
 return array(
 	'base_url'      => 'http://example.test/wp-admin/',
-	'cookie_header' => 'wordpress_logged_in_example=replace-me; wordpress_sec_example=replace-me;',
+	'cookie_header' => '',
 	'local_user'    => '',
 	'wordpress_root' => '',
 	'path'          => 'admin.php?page=zignites-sentinel-event-logs&source=restore-execution-journal&run_id=run-42&snapshot_id=205',

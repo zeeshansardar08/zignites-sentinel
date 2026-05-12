@@ -792,3 +792,9 @@
   - version metadata synced to `1.33.0`
   - WordPress.org changelog, upgrade notice, and screenshot captions updated for WooCommerce guardrails
   - a repo-local release summary draft and screenshot asset check added before tagging or handoff
+- Current branch adds the launch-gate hardening pass for:
+  - a local smoke seed helper so checkpoint/history-dependent live smoke checks can run deterministically
+  - sample smoke/export configs now default to empty cookies so CLI `--local-user` auth is not overridden by placeholder cookie text
+  - package install verification now passes against the built zip with temporary packaged-plugin activation and embedded admin smoke
+  - seeded live admin smoke, History export verification, and optional update-surface smoke all pass on `zee-dev.test`
+  - screenshot captions are aligned, but final WordPress.org screenshot/banner/icon assets still need external capture/upload before broad public launch

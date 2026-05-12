@@ -21,6 +21,7 @@ php -l includes/admin/views/history.php
 Recommended live checks:
 
 ```powershell
+php tests/seed-admin-smoke.php --base-url=http://zee-dev.test/wp-admin/ --local-user=1
 php tests/smoke-admin-live.php --base-url=http://zee-dev.test/wp-admin/ --local-user=1
 php tests/export-event-logs-live.php --base-url=http://zee-dev.test/wp-admin/ --local-user=1 --path="admin.php?page=zignites-sentinel-event-logs"
 php tests/smoke-admin-live.php --config=tests/admin-smoke-update-surfaces.sample.php
@@ -33,11 +34,26 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build-release.ps1
 powershell -ExecutionPolicy Bypass -File .\scripts\verify-release-package.ps1 -BaseUrl http://zee-dev.test/wp-admin/ -LocalUser 1
 ```
 
+## Verification Run
+
+- `php tests/run.php`: passed.
+- `php tests/seed-admin-smoke.php --base-url=http://zee-dev.test/wp-admin/ --local-user=1`: seeded checkpoint `1` for local smoke coverage.
+- `php tests/smoke-admin-live.php --base-url=http://zee-dev.test/wp-admin/ --local-user=1`: passed with `Summary: 10 passed, 0 skipped, 0 failed.`
+- `php tests/export-event-logs-live.php --base-url=http://zee-dev.test/wp-admin/ --local-user=1 --path="admin.php?page=zignites-sentinel-event-logs"`: passed with 176 export rows.
+- `php tests/smoke-admin-live.php --config=tests/admin-smoke-update-surfaces.sample.php --base-url=http://zee-dev.test/wp-admin/ --local-user=1`: passed with `Summary: 3 passed, 3 skipped, 0 failed.`
+- `powershell -ExecutionPolicy Bypass -File .\scripts\verify-release-package.ps1 -BaseUrl http://zee-dev.test/wp-admin/ -LocalUser 1`: passed, including temporary packaged-plugin activation and embedded admin smoke.
+
 ## Screenshot Asset Check
 
 - No repo-local WordPress.org screenshot, banner, or icon image assets are currently tracked under `assets/`; only runtime admin CSS is present.
 - WordPress.org screenshot captions in `readme.txt` are aligned to the current Dashboard, Before Update, WooCommerce guardrail, and History surfaces.
 - Final screenshot files still need to be captured or uploaded through the WordPress.org asset workflow before publishing.
+
+## Launch Gate Decision
+
+- Do not treat `1.33.0` as a broad public WordPress.org launch until package install verification, one clean seeded live smoke run, and final screenshots are complete.
+- The right release posture is a controlled beta or private agency/developer release first, because the plugin solves a real update-window rollback problem but still needs final install, live-state, and screenshot validation.
+- Public launch is appropriate after the beta path confirms package activation, checkpoint/history smoke coverage, and no misleading restore expectations remain in the UI or listing copy.
 
 ## Known Non-Blocking Notes
 

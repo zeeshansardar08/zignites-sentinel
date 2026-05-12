@@ -56,6 +56,7 @@ Confirm:
 Run the authenticated Sentinel admin smoke helper:
 
 ```powershell
+php tests/seed-admin-smoke.php --base-url=http://zee-dev.test/wp-admin/ --local-user=1
 php tests/smoke-admin-live.php --base-url=http://zee-dev.test/wp-admin/ --local-user=1
 ```
 
