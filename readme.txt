@@ -4,7 +4,7 @@ Tags: rollback, restore, checkpoint, plugins, theme
 Requires at least: 6.5
 Tested up to: 6.8
 Requires PHP: 8.0
-Stable tag: 1.32.0
+Stable tag: 1.33.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,12 @@ Use a full backup solution for full-site recovery and a dedicated security clean
 * Sentinel keeps validation steps in front of the restore action so teams can check readiness before touching live code
 * Live restore is gated by current validation evidence and an explicit confirmation phrase
 * Rollback is available for the last restore when the related backup context still exists
+
+= WooCommerce Guardrails =
+
+When WooCommerce is active, Sentinel surfaces stronger update-window warnings because store updates can change orders, payments, carts, sessions, scheduled actions, database migrations, and schema outside code-layer rollback coverage.
+
+WooCommerce Safe Update Mode encourages a low-traffic maintenance window, active cart/order review where detectable, and external database backup confirmation before WooCommerce or extension updates. These guardrails reduce false confidence, but they do not make Sentinel a WooCommerce database or order/payment rollback system.
 
 = Artifact and Backup Handling =
 
@@ -165,12 +171,19 @@ Open **Sentinel > History** to review the recorded events, then confirm the site
 
 == Screenshots ==
 
-1. Dashboard showing the latest checkpoint, next step, and restore boundary guidance.
+1. Dashboard showing the latest checkpoint, next step, restore boundary guidance, and WooCommerce guardrails when relevant.
 2. Before Update showing first-run checkpoint guidance and checkpoint creation.
-3. Before Update showing validation, restore, and rollback actions for a selected checkpoint.
+3. Before Update showing validation, WooCommerce Safe Update Mode, restore, and rollback actions for a selected checkpoint.
 4. History showing filtered activity review and CSV export for the current view.
 
 == Changelog ==
+
+= 1.33.0 =
+
+* Added WooCommerce guardrails that detect active WooCommerce stores and surface stronger update-window warnings.
+* Added WooCommerce Safe Update Mode acknowledgements for maintenance windows, active cart/order review, and external database backup confirmation.
+* Added WooCommerce-specific report lines so client handoff notes state the order/payment/database rollback boundary clearly.
+* Extended update-screen notices, Dashboard guidance, and Before Update guidance to avoid false confidence on WooCommerce stores.
 
 = 1.32.0 =
 
@@ -181,6 +194,10 @@ Open **Sentinel > History** to review the recorded events, then confirm the site
 * Clarified public plugin-page copy around validation flow, artifact handling, and restore boundaries.
 
 == Upgrade Notice ==
+
+= 1.33.0 =
+
+Sentinel now adds WooCommerce-specific guardrails for store update windows while keeping the same narrow plugin/theme code rollback boundary.
 
 = 1.32.0 =
 

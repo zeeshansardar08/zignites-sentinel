@@ -1,7 +1,7 @@
 # Zignites Sentinel Progress Audit
 
 ## Current State
-- Plugin version: `1.32.0`
+- Plugin version: `1.33.0`
 - Database version: `1.4.0`
 - Status: advanced MVP / controlled-restore product foundation
 - Current objective achieved: the plugin now covers snapshot capture, advisory readiness, staged validation, restore planning, guarded live restore, guarded rollback, health verification, audit reporting, checkpointing, resumability, operator-facing admin workflows, trust-layer guidance around system health, snapshot quality, and historical recovery confidence, plus launch-facing product polish across first-run UX, in-product guidance, public positioning, screenshot readiness, and repository launch assets
@@ -783,5 +783,12 @@
   - a new `tests/verify-release-package-activation.php` helper now handles packaged-plugin activation and restoration through authenticated plugin-admin requests without requiring `wp-cli`
   - release docs now include a concrete packaged-install verification command instead of leaving activation trust as a manual assumption
   - focused regression coverage now includes the path/basename guards used by the package-install verifier helper
-- Tomorrow starting point:
-  - run the final release-prep pass: version sync, screenshot asset check, release summary draft, and any last WordPress.org copy cleanup before tagging or handoff
+- Main is now current through the merged WooCommerce guardrails pass for:
+  - active WooCommerce detection across direct, option-backed, and network-active signals
+  - WooCommerce Safe Update Mode acknowledgements for maintenance windows, cart/order review, and external database backup confirmation
+  - Dashboard, Before Update, update-screen notice, and audit/report copy that keeps WooCommerce order/payment/database boundaries explicit
+  - focused regression coverage for guardrail state, report lines, admin action registration, update notices, and Before Update state handoff
+- Current branch adds the final release-prep pass for:
+  - version metadata synced to `1.33.0`
+  - WordPress.org changelog, upgrade notice, and screenshot captions updated for WooCommerce guardrails
+  - a repo-local release summary draft and screenshot asset check added before tagging or handoff

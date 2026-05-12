@@ -63,6 +63,7 @@ class Autoloader {
 	 */
 	protected static function normalize_class_name( $class_name ) {
 		$normalized = preg_replace( '/(?<!^)[A-Z]/', '-$0', $class_name );
+		$normalized = str_replace( 'Woo-Commerce', 'WooCommerce', $normalized );
 
 		return strtolower( $normalized );
 	}

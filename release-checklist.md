@@ -151,7 +151,7 @@ Default output:
 - Verify the package can be installed and activated outside the repo checkout when local install verification is available:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\verify-release-package.ps1 --BaseUrl=http://zee-dev.test/wp-admin/ --LocalUser=1
+powershell -ExecutionPolicy Bypass -File .\scripts\verify-release-package.ps1 -BaseUrl http://zee-dev.test/wp-admin/ -LocalUser 1
 ```
 
 - Confirm the verification script:

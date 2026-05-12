@@ -3,7 +3,7 @@
  * Plugin Name: Zignites Sentinel
  * Plugin URI:  https://zignites.com/
  * Description: Safe Update Checkpoints and Rollback for WordPress plugin/theme code changes.
- * Version:     1.32.0
+ * Version:     1.33.0
  * Author:      Zignites
  * Text Domain: zignites-sentinel
  * Domain Path: /languages
@@ -14,7 +14,7 @@
 defined( 'ABSPATH' ) || exit;
 
 if ( ! defined( 'ZNTS_VERSION' ) ) {
-	define( 'ZNTS_VERSION', '1.32.0' );
+	define( 'ZNTS_VERSION', '1.33.0' );
 }
 
 if ( ! defined( 'ZNTS_MINIMUM_PHP_VERSION' ) ) {
