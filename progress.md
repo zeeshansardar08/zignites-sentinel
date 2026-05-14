@@ -814,3 +814,7 @@
   - a read-only update risk model that summarizes update targets, component types, version jumps, source/package validation, and optional changelog context
   - explicit safety flags that keep auto-update and auto-rollback disabled regardless of AI or risk text
   - focused regression coverage for major version risk, core rollback boundaries, and low-risk minor updates
+- Current branch adds the Phase 9 client-friendly incident-summary foundation for:
+  - a deterministic incident summary model that converts failure summaries and restore journal entries into client-readable outcome, impact, timeline, action, and next-step payloads
+  - plain-text incident handoff rendering with the same plugin/theme-code-only restore boundaries
+  - focused regression coverage for attention-state incidents, resolved terminal journal runs, and empty-journal report fallbacks

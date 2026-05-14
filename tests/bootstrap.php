@@ -444,6 +444,7 @@ require_once __DIR__ . '/../includes/platform/class-outbound-sync-boundary.php';
 require_once __DIR__ . '/../includes/platform/class-agency-report-model.php';
 require_once __DIR__ . '/../includes/platform/class-failure-summary-model.php';
 require_once __DIR__ . '/../includes/platform/class-update-risk-summary-model.php';
+require_once __DIR__ . '/../includes/platform/class-incident-summary-model.php';
 require_once __DIR__ . '/../includes/jobs/class-job-store.php';
 require_once __DIR__ . '/../includes/jobs/class-job-runner.php';
 require_once __DIR__ . '/../includes/snapshots/class-component-manifest-builder.php';
