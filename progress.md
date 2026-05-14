@@ -806,3 +806,7 @@
   - a structured, white-label-ready agency report model built from existing snapshot, Safe Update Window, platform status, storage, health, and warning payloads
   - exportable plain-text rendering with stable operational boundaries for client handoff
   - focused regression coverage for white-label metadata, report shape, warning text, and boundary output
+- Current branch adds the Phase 9 deterministic failure-summary foundation for:
+  - a read-only failure summary model that combines recent logs, health checks, and restore journal entries into severity, overview, findings, and next-step payloads
+  - a plain-text deterministic fallback summary that explicitly keeps AI assistance optional and non-authoritative
+  - focused regression coverage for high-severity incidents, critical blockers, and no-failure fallback rendering
