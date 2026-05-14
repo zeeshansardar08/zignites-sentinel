@@ -810,3 +810,7 @@
   - a read-only failure summary model that combines recent logs, health checks, and restore journal entries into severity, overview, findings, and next-step payloads
   - a plain-text deterministic fallback summary that explicitly keeps AI assistance optional and non-authoritative
   - focused regression coverage for high-severity incidents, critical blockers, and no-failure fallback rendering
+- Current branch adds the Phase 9 deterministic update-risk summary foundation for:
+  - a read-only update risk model that summarizes update targets, component types, version jumps, source/package validation, and optional changelog context
+  - explicit safety flags that keep auto-update and auto-rollback disabled regardless of AI or risk text
+  - focused regression coverage for major version risk, core rollback boundaries, and low-risk minor updates

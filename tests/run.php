@@ -54,6 +54,7 @@ require_once __DIR__ . '/test-woocommerce-guardrails.php';
 require_once __DIR__ . '/test-platform-status-model.php';
 require_once __DIR__ . '/test-agency-report-model.php';
 require_once __DIR__ . '/test-failure-summary-model.php';
+require_once __DIR__ . '/test-update-risk-summary-model.php';
 
 $tests = array_filter(
 	get_defined_functions()['user'],
