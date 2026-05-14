@@ -798,3 +798,11 @@
   - package install verification now passes against the built zip with temporary packaged-plugin activation and embedded admin smoke
   - seeded live admin smoke, History export verification, and optional update-surface smoke all pass on `zee-dev.test`
   - screenshot captions are aligned, but final WordPress.org screenshot/banner/icon assets still need external capture/upload before broad public launch
+- Current branch adds the platform status foundation pass for:
+  - a read-only local site status payload model for future agency dashboard consumers without adding a SaaS dependency
+  - a disabled-by-default outbound sync boundary that normalizes future settings but never sends by default
+  - focused regression coverage for status payload shape, compact warnings, and disabled sync behavior
+- Current branch adds the agency report foundation pass for:
+  - a structured, white-label-ready agency report model built from existing snapshot, Safe Update Window, platform status, storage, health, and warning payloads
+  - exportable plain-text rendering with stable operational boundaries for client handoff
+  - focused regression coverage for white-label metadata, report shape, warning text, and boundary output

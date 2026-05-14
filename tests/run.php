@@ -51,6 +51,8 @@ require_once __DIR__ . '/test-async-jobs.php';
 require_once __DIR__ . '/test-safe-update-window.php';
 require_once __DIR__ . '/test-alert-integrations.php';
 require_once __DIR__ . '/test-woocommerce-guardrails.php';
+require_once __DIR__ . '/test-platform-status-model.php';
+require_once __DIR__ . '/test-agency-report-model.php';
 
 $tests = array_filter(
 	get_defined_functions()['user'],
