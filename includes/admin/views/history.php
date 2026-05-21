@@ -69,8 +69,8 @@ $admin_page_url     = \Zignites\Sentinel\Admin\znts_admin_url( 'admin.php' );
 						<input id="znts-log-search" type="search" name="log_search" value="<?php echo esc_attr( isset( $log_filters['search'] ) ? $log_filters['search'] : '' ); ?>" />
 					</p>
 					<p class="znts-filter-actions">
-						<?php submit_button( __( 'Filter', 'zignites-sentinel' ), 'secondary', '', false ); ?>
-						<a class="button button-link" href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs' ), $admin_page_url ) ); ?>"><?php echo esc_html__( 'Reset', 'zignites-sentinel' ); ?></a>
+						<?php submit_button( __( 'Apply Filters', 'zignites-sentinel' ), 'primary', '', false ); ?>
+						<a class="button button-secondary" href="<?php echo esc_url( add_query_arg( array( 'page' => 'zignites-sentinel-event-logs' ), $admin_page_url ) ); ?>"><?php echo esc_html__( 'Reset', 'zignites-sentinel' ); ?></a>
 					</p>
 				</form>
 				<?php if ( ! empty( $export_form['show_form'] ) ) : ?>
@@ -88,7 +88,7 @@ $admin_page_url     = \Zignites\Sentinel\Admin\znts_admin_url( 'admin.php' );
 							</div>
 						<?php endif; ?>
 						<p class="znts-export-actions">
-							<?php submit_button( isset( $export_form['submit_label'] ) ? $export_form['submit_label'] : __( 'Export CSV', 'zignites-sentinel' ), 'secondary', '', false ); ?>
+							<?php submit_button( isset( $export_form['submit_label'] ) ? $export_form['submit_label'] : __( 'Export CSV', 'zignites-sentinel' ), 'primary', '', false ); ?>
 						</p>
 					</form>
 				<?php endif; ?>

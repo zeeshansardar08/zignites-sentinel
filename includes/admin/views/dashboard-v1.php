@@ -70,7 +70,7 @@ $first_run_cta_url     = add_query_arg(
 				<?php if ( '' !== $primary_action_url ) : ?>
 					<p><a class="button button-primary" href="<?php echo esc_url( $primary_action_url ); ?>"><?php echo esc_html( $primary_action_label ); ?></a></p>
 				<?php endif; ?>
-				<?php if ( ! empty( $site_status_card['activity_url'] ) ) : ?>
+				<?php if ( ! empty( $site_status_card['activity_url'] ) && $site_status_card['activity_url'] !== $primary_action_url ) : ?>
 					<p><a class="button button-secondary" href="<?php echo esc_url( $site_status_card['activity_url'] ); ?>"><?php echo esc_html__( 'Open History', 'zignites-sentinel' ); ?></a></p>
 				<?php endif; ?>
 			</div>
@@ -190,60 +190,65 @@ $first_run_cta_url     = add_query_arg(
 				<p>
 					<label><input type="checkbox" name="alerts_enabled" value="1" <?php echo ! empty( $alert_settings['enabled'] ) ? 'checked="checked"' : ''; ?> /> <?php echo esc_html__( 'Enable operation alerts', 'zignites-sentinel' ); ?></label>
 				</p>
-				<div class="znts-summary-strip">
-					<div class="znts-summary-item">
-						<span><?php echo esc_html__( 'Generic webhook', 'zignites-sentinel' ); ?></span>
-						<p><input type="url" name="generic_webhook_url" class="regular-text" value="<?php echo esc_attr( isset( $channels['generic']['url'] ) ? $channels['generic']['url'] : '' ); ?>" /></p>
+				<span class="znts-fieldset-label"><?php echo esc_html__( 'Notification channels', 'zignites-sentinel' ); ?></span>
+				<div class="znts-field-grid">
+					<div class="znts-field">
+						<label class="znts-field-label" for="znts-channel-generic"><?php echo esc_html__( 'Generic webhook', 'zignites-sentinel' ); ?></label>
+						<input id="znts-channel-generic" type="url" name="generic_webhook_url" value="<?php echo esc_attr( isset( $channels['generic']['url'] ) ? $channels['generic']['url'] : '' ); ?>" placeholder="https://" />
 					</div>
-					<div class="znts-summary-item">
-						<span><?php echo esc_html__( 'Slack', 'zignites-sentinel' ); ?></span>
-						<p><input type="url" name="slack_webhook_url" class="regular-text" value="<?php echo esc_attr( isset( $channels['slack']['url'] ) ? $channels['slack']['url'] : '' ); ?>" /></p>
+					<div class="znts-field">
+						<label class="znts-field-label" for="znts-channel-slack"><?php echo esc_html__( 'Slack', 'zignites-sentinel' ); ?></label>
+						<input id="znts-channel-slack" type="url" name="slack_webhook_url" value="<?php echo esc_attr( isset( $channels['slack']['url'] ) ? $channels['slack']['url'] : '' ); ?>" placeholder="https://hooks.slack.com/..." />
 					</div>
-					<div class="znts-summary-item">
-						<span><?php echo esc_html__( 'Teams', 'zignites-sentinel' ); ?></span>
-						<p><input type="url" name="teams_webhook_url" class="regular-text" value="<?php echo esc_attr( isset( $channels['teams']['url'] ) ? $channels['teams']['url'] : '' ); ?>" /></p>
+					<div class="znts-field">
+						<label class="znts-field-label" for="znts-channel-teams"><?php echo esc_html__( 'Teams', 'zignites-sentinel' ); ?></label>
+						<input id="znts-channel-teams" type="url" name="teams_webhook_url" value="<?php echo esc_attr( isset( $channels['teams']['url'] ) ? $channels['teams']['url'] : '' ); ?>" placeholder="https://" />
 					</div>
-					<div class="znts-summary-item">
-						<span><?php echo esc_html__( 'Discord', 'zignites-sentinel' ); ?></span>
-						<p><input type="url" name="discord_webhook_url" class="regular-text" value="<?php echo esc_attr( isset( $channels['discord']['url'] ) ? $channels['discord']['url'] : '' ); ?>" /></p>
+					<div class="znts-field">
+						<label class="znts-field-label" for="znts-channel-discord"><?php echo esc_html__( 'Discord', 'zignites-sentinel' ); ?></label>
+						<input id="znts-channel-discord" type="url" name="discord_webhook_url" value="<?php echo esc_attr( isset( $channels['discord']['url'] ) ? $channels['discord']['url'] : '' ); ?>" placeholder="https://discord.com/api/webhooks/..." />
 					</div>
-					<div class="znts-summary-item">
-						<span><?php echo esc_html__( 'Telegram', 'zignites-sentinel' ); ?></span>
-						<p><input type="url" name="telegram_webhook_url" class="regular-text" value="<?php echo esc_attr( isset( $channels['telegram']['url'] ) ? $channels['telegram']['url'] : '' ); ?>" /></p>
-						<p><input type="text" name="telegram_chat_id" class="regular-text" value="<?php echo esc_attr( isset( $channels['telegram']['chat_id'] ) ? $channels['telegram']['chat_id'] : '' ); ?>" placeholder="<?php echo esc_attr__( 'Chat ID', 'zignites-sentinel' ); ?>" /></p>
+					<div class="znts-field">
+						<label class="znts-field-label" for="znts-channel-telegram"><?php echo esc_html__( 'Telegram', 'zignites-sentinel' ); ?></label>
+						<input id="znts-channel-telegram" type="url" name="telegram_webhook_url" value="<?php echo esc_attr( isset( $channels['telegram']['url'] ) ? $channels['telegram']['url'] : '' ); ?>" placeholder="https://api.telegram.org/bot.../sendMessage" />
+						<input type="text" name="telegram_chat_id" value="<?php echo esc_attr( isset( $channels['telegram']['chat_id'] ) ? $channels['telegram']['chat_id'] : '' ); ?>" placeholder="<?php echo esc_attr__( 'Chat ID', 'zignites-sentinel' ); ?>" />
 					</div>
 				</div>
-				<p><strong><?php echo esc_html__( 'Alert events', 'zignites-sentinel' ); ?></strong></p>
-				<p>
+				<span class="znts-fieldset-label"><?php echo esc_html__( 'Alert events', 'zignites-sentinel' ); ?></span>
+				<div class="znts-checklist">
 					<?php foreach ( $event_labels as $event_key => $event_label ) : ?>
-						<label><input type="checkbox" name="alert_events[<?php echo esc_attr( $event_key ); ?>]" value="1" <?php echo ! empty( $events[ $event_key ] ) ? 'checked="checked"' : ''; ?> /> <?php echo esc_html( $event_label ); ?></label><br />
+						<label><input type="checkbox" name="alert_events[<?php echo esc_attr( $event_key ); ?>]" value="1" <?php echo ! empty( $events[ $event_key ] ) ? 'checked="checked"' : ''; ?> /> <span><?php echo esc_html( $event_label ); ?></span></label>
 					<?php endforeach; ?>
-				</p>
-				<p><strong><?php echo esc_html__( 'Monitoring links', 'zignites-sentinel' ); ?></strong></p>
-				<div class="znts-summary-strip">
-					<div class="znts-summary-item">
-						<span><?php echo esc_html__( 'UptimeRobot', 'zignites-sentinel' ); ?></span>
-						<p><input type="url" name="uptime_robot_url" class="regular-text" value="<?php echo esc_attr( isset( $external_links['uptime_robot'] ) ? $external_links['uptime_robot'] : '' ); ?>" /></p>
+				</div>
+				<span class="znts-fieldset-label"><?php echo esc_html__( 'Monitoring links', 'zignites-sentinel' ); ?></span>
+				<div class="znts-field-grid">
+					<div class="znts-field">
+						<label class="znts-field-label" for="znts-monitor-uptimerobot"><?php echo esc_html__( 'UptimeRobot', 'zignites-sentinel' ); ?></label>
+						<input id="znts-monitor-uptimerobot" type="url" name="uptime_robot_url" value="<?php echo esc_attr( isset( $external_links['uptime_robot'] ) ? $external_links['uptime_robot'] : '' ); ?>" placeholder="https://" />
 					</div>
-					<div class="znts-summary-item">
-						<span><?php echo esc_html__( 'Sentry', 'zignites-sentinel' ); ?></span>
-						<p><input type="url" name="sentry_url" class="regular-text" value="<?php echo esc_attr( isset( $external_links['sentry'] ) ? $external_links['sentry'] : '' ); ?>" /></p>
+					<div class="znts-field">
+						<label class="znts-field-label" for="znts-monitor-sentry"><?php echo esc_html__( 'Sentry', 'zignites-sentinel' ); ?></label>
+						<input id="znts-monitor-sentry" type="url" name="sentry_url" value="<?php echo esc_attr( isset( $external_links['sentry'] ) ? $external_links['sentry'] : '' ); ?>" placeholder="https://" />
 					</div>
-					<div class="znts-summary-item">
-						<span><?php echo esc_html__( 'New Relic', 'zignites-sentinel' ); ?></span>
-						<p><input type="url" name="new_relic_url" class="regular-text" value="<?php echo esc_attr( isset( $external_links['new_relic'] ) ? $external_links['new_relic'] : '' ); ?>" /></p>
+					<div class="znts-field">
+						<label class="znts-field-label" for="znts-monitor-newrelic"><?php echo esc_html__( 'New Relic', 'zignites-sentinel' ); ?></label>
+						<input id="znts-monitor-newrelic" type="url" name="new_relic_url" value="<?php echo esc_attr( isset( $external_links['new_relic'] ) ? $external_links['new_relic'] : '' ); ?>" placeholder="https://" />
 					</div>
-					<div class="znts-summary-item">
-						<span><?php echo esc_html__( 'Datadog', 'zignites-sentinel' ); ?></span>
-						<p><input type="url" name="datadog_url" class="regular-text" value="<?php echo esc_attr( isset( $external_links['datadog'] ) ? $external_links['datadog'] : '' ); ?>" /></p>
+					<div class="znts-field">
+						<label class="znts-field-label" for="znts-monitor-datadog"><?php echo esc_html__( 'Datadog', 'zignites-sentinel' ); ?></label>
+						<input id="znts-monitor-datadog" type="url" name="datadog_url" value="<?php echo esc_attr( isset( $external_links['datadog'] ) ? $external_links['datadog'] : '' ); ?>" placeholder="https://" />
 					</div>
 				</div>
-				<?php submit_button( __( 'Save Integrations', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
+				<div class="znts-form-actions">
+					<?php submit_button( __( 'Save Integrations', 'zignites-sentinel' ), 'primary', 'submit', false ); ?>
+				</div>
 			</form>
-			<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>">
+			<form method="post" action="<?php echo esc_url( $admin_post_url ); ?>" class="znts-test-alert-form">
 				<input type="hidden" name="action" value="znts_send_test_alert" />
 				<?php wp_nonce_field( 'znts_send_test_alert_action' ); ?>
-				<?php submit_button( __( 'Send Test Alert', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
+				<div class="znts-form-actions">
+					<?php submit_button( __( 'Send Test Alert', 'zignites-sentinel' ), 'secondary', 'submit', false ); ?>
+				</div>
 			</form>
 			<?php if ( ! empty( $last_test ) ) : ?>
 				<div class="znts-flow-note">

@@ -395,12 +395,19 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 			</section>
 		<?php endif; ?>
 
-		<?php if ( ! empty( $restore_execution_status ) ) : ?>
+		<?php
+		$restore_result_label  = isset( $restore_execution_status['status_label'] ) ? trim( (string) $restore_execution_status['status_label'] ) : '';
+		$restore_result_note   = isset( $restore_execution_status['note'] ) ? trim( (string) $restore_execution_status['note'] ) : '';
+		$restore_result_health = isset( $restore_execution_health_status['status_label'] ) ? trim( (string) $restore_execution_health_status['status_label'] ) : '';
+		?>
+		<?php if ( '' !== $restore_result_label || '' !== $restore_result_note || '' !== $restore_result_health ) : ?>
 			<section class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Restore Result', 'zignites-sentinel' ); ?></h2>
-				<p><?php echo esc_html( $restore_execution_status['status_label'] . ': ' . $restore_execution_status['note'] ); ?></p>
-				<?php if ( ! empty( $restore_execution_health_status ) ) : ?>
-					<p><?php echo esc_html__( 'Post-restore health:', 'zignites-sentinel' ); ?> <?php echo esc_html( $restore_execution_health_status['status_label'] ); ?></p>
+				<?php if ( '' !== $restore_result_label || '' !== $restore_result_note ) : ?>
+					<p><?php echo esc_html( trim( $restore_result_label . ( '' !== $restore_result_note ? ' — ' . $restore_result_note : '' ) ) ); ?></p>
+				<?php endif; ?>
+				<?php if ( '' !== $restore_result_health ) : ?>
+					<p><strong><?php echo esc_html__( 'Post-restore health:', 'zignites-sentinel' ); ?></strong> <?php echo esc_html( $restore_result_health ); ?></p>
 				<?php endif; ?>
 			</section>
 		<?php endif; ?>
@@ -430,12 +437,19 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 			</section>
 		<?php endif; ?>
 
-		<?php if ( ! empty( $restore_rollback_status ) ) : ?>
+		<?php
+		$rollback_result_label  = isset( $restore_rollback_status['status_label'] ) ? trim( (string) $restore_rollback_status['status_label'] ) : '';
+		$rollback_result_note   = isset( $restore_rollback_status['note'] ) ? trim( (string) $restore_rollback_status['note'] ) : '';
+		$rollback_result_health = isset( $restore_rollback_health_status['status_label'] ) ? trim( (string) $restore_rollback_health_status['status_label'] ) : '';
+		?>
+		<?php if ( '' !== $rollback_result_label || '' !== $rollback_result_note || '' !== $rollback_result_health ) : ?>
 			<section class="znts-card znts-card-full znts-card-flat">
 				<h2><?php echo esc_html__( 'Rollback Result', 'zignites-sentinel' ); ?></h2>
-				<p><?php echo esc_html( $restore_rollback_status['status_label'] . ': ' . $restore_rollback_status['note'] ); ?></p>
-				<?php if ( ! empty( $restore_rollback_health_status ) ) : ?>
-					<p><?php echo esc_html__( 'Post-rollback health:', 'zignites-sentinel' ); ?> <?php echo esc_html( $restore_rollback_health_status['status_label'] ); ?></p>
+				<?php if ( '' !== $rollback_result_label || '' !== $rollback_result_note ) : ?>
+					<p><?php echo esc_html( trim( $rollback_result_label . ( '' !== $rollback_result_note ? ' — ' . $rollback_result_note : '' ) ) ); ?></p>
+				<?php endif; ?>
+				<?php if ( '' !== $rollback_result_health ) : ?>
+					<p><strong><?php echo esc_html__( 'Post-rollback health:', 'zignites-sentinel' ); ?></strong> <?php echo esc_html( $rollback_result_health ); ?></p>
 				<?php endif; ?>
 			</section>
 		<?php endif; ?>
