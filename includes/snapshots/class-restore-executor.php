@@ -953,7 +953,7 @@ class RestoreExecutor {
 			return '';
 		}
 
-		$path = trailingslashit( $base_dir ) . 'snapshot-' . absint( $snapshot_id ) . '-' . gmdate( 'YmdHis' );
+		$path = trailingslashit( $base_dir ) . 'snapshot-' . absint( $snapshot_id ) . '-' . gmdate( 'YmdHis' ) . '-' . wp_generate_password( 20, false, false );
 
 		if ( wp_mkdir_p( $path ) ) {
 			return $path;

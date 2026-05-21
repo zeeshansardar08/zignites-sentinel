@@ -705,7 +705,7 @@ class RestoreStagingManager {
 			return '';
 		}
 
-		$stage_path = trailingslashit( $base_dir ) . 'snapshot-' . absint( $snapshot_id ) . '-' . gmdate( 'YmdHis' );
+		$stage_path = trailingslashit( $base_dir ) . 'snapshot-' . absint( $snapshot_id ) . '-' . gmdate( 'YmdHis' ) . '-' . wp_generate_password( 20, false, false );
 
 		if ( wp_mkdir_p( $stage_path ) ) {
 			return $stage_path;
