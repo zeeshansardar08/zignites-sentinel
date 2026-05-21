@@ -522,10 +522,18 @@
 }
 
 .znts-filter-actions {
-	align-items: end;
+	align-items: center;
+	border-top: 1px solid var(--znts-border);
 	display: flex;
 	flex-wrap: wrap;
-	gap: 8px;
+	gap: 10px;
+	grid-column: 1 / -1;
+	margin-top: 4px;
+	padding-top: 14px;
+}
+
+.znts-export-actions {
+	margin-top: 4px;
 }
 
 .znts-toolbar {
@@ -981,9 +989,8 @@
 }
 
 .znts-toolbar-panel-accent {
-	background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
-	border-color: #d8e4f8;
-	box-shadow: inset 4px 0 0 #1d4f91;
+	background: linear-gradient(180deg, #f8fbff 0%, #f1f6fd 100%);
+	border-color: #cdddf3;
 }
 
 .znts-toolbar-panel h3,
@@ -1172,6 +1179,117 @@
 	margin-top: 12px;
 }
 
+/* --- Form fields: stop fixed-width inputs from overflowing their containers --- */
+.znts-admin-page input[type="text"],
+.znts-admin-page input[type="search"],
+.znts-admin-page input[type="url"],
+.znts-admin-page input[type="email"],
+.znts-admin-page input[type="number"],
+.znts-admin-page input[type="password"],
+.znts-admin-page input[type="tel"],
+.znts-admin-page select,
+.znts-admin-page textarea {
+	box-sizing: border-box;
+	max-width: 100%;
+}
+
+.znts-admin-page textarea {
+	width: 100%;
+}
+
+/* Field grid for labelled inputs (alerts, integrations, monitoring links) */
+.znts-field-grid {
+	display: grid;
+	gap: 16px;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	margin: 14px 0 6px;
+}
+
+.znts-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+
+.znts-field-label {
+	color: var(--znts-text-strong);
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+.znts-field input[type="text"],
+.znts-field input[type="url"],
+.znts-field input[type="email"],
+.znts-field input[type="number"],
+.znts-field select,
+.znts-field textarea {
+	width: 100%;
+}
+
+.znts-field input + input {
+	margin-top: 8px;
+}
+
+.znts-field-hint {
+	color: var(--znts-text-soft);
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+/* Checkbox option lists */
+.znts-checklist {
+	display: grid;
+	gap: 10px;
+	margin: 12px 0 4px;
+}
+
+.znts-checklist label {
+	align-items: flex-start;
+	color: var(--znts-text-strong);
+	display: flex;
+	font-size: 13px;
+	gap: 8px;
+	line-height: 1.5;
+	margin: 0;
+}
+
+.znts-checklist input[type="checkbox"] {
+	flex: 0 0 auto;
+	margin: 1px 0 0;
+}
+
+/* Grouped form action rows */
+.znts-form-actions {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 18px;
+}
+
+.znts-form-actions form {
+	margin: 0;
+}
+
+.znts-fieldset-label {
+	color: var(--znts-text-strong);
+	display: block;
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+	margin: 20px 0 2px;
+}
+
+/* Consistent control sizing across Sentinel screens */
+.znts-admin-page .button,
+.znts-admin-page .button-primary,
+.znts-admin-page .button-secondary {
+	min-height: 32px;
+}
+
 @media screen and (max-width: 1100px) {
 	.znts-hero-grid,
 	.znts-readiness-columns,
@@ -1201,8 +1319,22 @@
 	.znts-focus-grid,
 	.znts-investigation-grid,
 	.znts-snapshot-overview,
+	.znts-field-grid,
 	.znts-kpi-grid {
 		grid-template-columns: 1fr;
+	}
+
+	.znts-form-actions {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.znts-form-actions .button,
+	.znts-form-actions .button-primary,
+	.znts-form-actions .button-secondary {
+		justify-content: center;
+		text-align: center;
+		width: 100%;
 	}
 
 	.znts-score-header,
