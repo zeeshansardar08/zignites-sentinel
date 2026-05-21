@@ -473,18 +473,39 @@ class EventLogPresenter {
 
 		return array(
 			isset( $row['id'] ) ? (int) $row['id'] : 0,
-			isset( $row['created_at'] ) ? (string) $row['created_at'] : '',
-			isset( $row['severity'] ) ? (string) $row['severity'] : '',
-			isset( $row['source'] ) ? (string) $row['source'] : '',
-			isset( $row['event_type'] ) ? (string) $row['event_type'] : '',
-			isset( $row['message'] ) ? (string) $row['message'] : '',
+			$this->sanitize_export_cell( isset( $row['created_at'] ) ? (string) $row['created_at'] : '' ),
+			$this->sanitize_export_cell( isset( $row['severity'] ) ? (string) $row['severity'] : '' ),
+			$this->sanitize_export_cell( isset( $row['source'] ) ? (string) $row['source'] : '' ),
+			$this->sanitize_export_cell( isset( $row['event_type'] ) ? (string) $row['event_type'] : '' ),
+			$this->sanitize_export_cell( isset( $row['message'] ) ? (string) $row['message'] : '' ),
 			isset( $context['snapshot_id'] ) ? absint( $context['snapshot_id'] ) : 0,
-			isset( $context['run_id'] ) ? (string) $context['run_id'] : '',
-			isset( $journal_entry['scope'] ) ? (string) $journal_entry['scope'] : '',
-			isset( $journal_entry['phase'] ) ? (string) $journal_entry['phase'] : '',
-			isset( $journal_entry['status'] ) ? (string) $journal_entry['status'] : '',
-			! empty( $context ) ? wp_json_encode( $context ) : '',
+			$this->sanitize_export_cell( isset( $context['run_id'] ) ? (string) $context['run_id'] : '' ),
+			$this->sanitize_export_cell( isset( $journal_entry['scope'] ) ? (string) $journal_entry['scope'] : '' ),
+			$this->sanitize_export_cell( isset( $journal_entry['phase'] ) ? (string) $journal_entry['phase'] : '' ),
+			$this->sanitize_export_cell( isset( $journal_entry['status'] ) ? (string) $journal_entry['status'] : '' ),
+			$this->sanitize_export_cell( ! empty( $context ) ? (string) wp_json_encode( $context ) : '' ),
 		);
+	}
+
+	/**
+	 * Neutralize spreadsheet formula injection in an exported CSV cell.
+	 *
+	 * A leading =, +, -, @, tab, or carriage return causes spreadsheet
+	 * software to evaluate the cell as a formula. Prefixing with a single
+	 * quote keeps the value inert when the export is opened in Excel or
+	 * Google Sheets.
+	 *
+	 * @param string $value Raw cell value.
+	 * @return string
+	 */
+	protected function sanitize_export_cell( $value ) {
+		$value = (string) $value;
+
+		if ( '' !== $value && in_array( $value[0], array( '=', '+', '-', '@', "\t", "\r" ), true ) ) {
+			return "'" . $value;
+		}
+
+		return $value;
 	}
 
 	/**
@@ -506,7 +527,7 @@ class EventLogPresenter {
 				'snapshot_id' => absint( $snapshot_id ),
 				'log_id'      => isset( $row['id'] ) ? (int) $row['id'] : 0,
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 
 		return array(

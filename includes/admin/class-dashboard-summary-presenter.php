@@ -30,7 +30,7 @@ class DashboardSummaryPresenter {
 					'page'        => (string) $update_page_slug,
 					'snapshot_id' => (int) $site_status_card['latest_snapshot']['id'],
 				),
-				admin_url( 'admin.php' )
+				znts_admin_url( 'admin.php' )
 			);
 			$site_status_card['activity_url'] = (string) $activity_url;
 		}
@@ -182,14 +182,14 @@ class DashboardSummaryPresenter {
 				'page'        => (string) $update_page_slug,
 				'snapshot_id' => (int) $snapshot['id'],
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 		$snapshot['activity_url'] = add_query_arg(
 			array(
 				'page'        => 'zignites-sentinel-event-logs',
 				'snapshot_id' => (int) $snapshot['id'],
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 
 		return $snapshot;
@@ -278,7 +278,7 @@ class DashboardSummaryPresenter {
 					'page'        => (string) $update_page_slug,
 					'snapshot_id' => (int) $snapshot['id'],
 				),
-				admin_url( 'admin.php' )
+				znts_admin_url( 'admin.php' )
 			),
 			'activity_url'     => (string) $activity_url,
 		);
@@ -305,7 +305,7 @@ class DashboardSummaryPresenter {
 					'page'        => (string) $update_page_slug,
 					'snapshot_id' => (int) $snapshot['id'],
 				),
-				admin_url( 'admin.php' )
+				znts_admin_url( 'admin.php' )
 			),
 		);
 	}

@@ -137,19 +137,6 @@ if ( ! function_exists( __NAMESPACE__ . '\\znts_admin_url' ) ) {
 	}
 }
 
-if ( ! function_exists( __NAMESPACE__ . '\\admin_url' ) ) {
-	/**
-	 * Namespace-local admin_url wrapper so Sentinel surfaces remain consistent in
-	 * subdirectory installs without touching WordPress core configuration.
-	 *
-	 * @param string $path Optional admin path.
-	 * @return string
-	 */
-	function admin_url( $path = '' ) {
-		return znts_admin_url( $path );
-	}
-}
-
 class Admin {
 
 	/**
@@ -1113,14 +1100,14 @@ class Admin {
 			array(
 				'page' => self::UPDATE_PAGE_SLUG,
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 		$create_checkpoint_url = $this->build_update_screen_snapshot_action_url( $raw_screen_id );
 		$history_url = add_query_arg(
 			array(
 				'page' => self::LOGS_PAGE_SLUG,
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 
 		if ( 'update-core' === $screen_id && $plugin_count < 1 && $theme_count < 1 && $core_count > 0 ) {
@@ -1427,7 +1414,7 @@ class Admin {
 			array(
 				'page' => self::UPDATE_PAGE_SLUG,
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 		$detail_url = ! empty( $site_status_card['detail_url'] ) ? (string) $site_status_card['detail_url'] : $before_update_url;
 		$status     = isset( $site_status_card['status'] ) ? sanitize_key( (string) $site_status_card['status'] ) : '';
@@ -1473,7 +1460,7 @@ class Admin {
 
 		return add_query_arg(
 			$args,
-			admin_url( 'admin-post.php' )
+			znts_admin_url( 'admin-post.php' )
 		);
 	}
 
@@ -1735,7 +1722,7 @@ class Admin {
 				'total_pages'  => $total_pages,
 			),
 			array(
-				'action_url' => admin_url( 'admin-post.php' ),
+				'action_url' => znts_admin_url( 'admin-post.php' ),
 				'nonce'      => wp_create_nonce( 'znts_export_event_logs_action' ),
 			)
 		);
@@ -2323,7 +2310,7 @@ class Admin {
 				'snapshot_id' => $snapshot_id,
 				'znts_notice' => 'restore-check-complete',
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 
 		wp_safe_redirect( $url );
@@ -2376,7 +2363,7 @@ class Admin {
 				'snapshot_id' => $snapshot_id,
 				'znts_notice' => 'restore-dry-run-complete',
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		) . '#znts-restore-dry-run';
 
 		wp_safe_redirect( $url );
@@ -2431,7 +2418,7 @@ class Admin {
 				'snapshot_id' => $snapshot_id,
 				'znts_notice' => 'restore-stage-complete',
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		) . '#znts-restore-stage';
 
 		wp_safe_redirect( $url );
@@ -2485,7 +2472,7 @@ class Admin {
 				'snapshot_id' => $snapshot_id,
 				'znts_notice' => 'restore-plan-complete',
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		) . '#znts-restore-plan';
 
 		wp_safe_redirect( $url );
@@ -2758,7 +2745,7 @@ class Admin {
 				'snapshot_id' => $snapshot_id,
 				'znts_notice' => 'restore-gates-refreshed',
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 
 		wp_safe_redirect( $url );
@@ -2840,7 +2827,7 @@ class Admin {
 				'snapshot_id' => $snapshot_id,
 				'znts_notice' => 'restore-execution-complete',
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 
 		wp_safe_redirect( $url );
@@ -2936,7 +2923,7 @@ class Admin {
 				'snapshot_id' => $snapshot_id,
 				'znts_notice' => 'restore-resume-complete',
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 
 		wp_safe_redirect( $url );
@@ -3012,7 +2999,7 @@ class Admin {
 				'snapshot_id' => $snapshot_id,
 				'znts_notice' => 'restore-checkpoint-discarded',
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 
 		wp_safe_redirect( $url );
@@ -3060,7 +3047,7 @@ class Admin {
 				'snapshot_id' => $snapshot_id,
 				'znts_notice' => 'snapshot-health-baseline-captured',
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 
 		wp_safe_redirect( $url );
@@ -3173,7 +3160,7 @@ class Admin {
 				'snapshot_id' => $snapshot_id,
 				'znts_notice' => 'snapshot-audit-verified',
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 
 		wp_safe_redirect( $url );
@@ -3236,7 +3223,7 @@ class Admin {
 				'snapshot_id' => $snapshot_id,
 				'znts_notice' => 'restore-rollback-complete',
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 
 		wp_safe_redirect( $url );
@@ -3312,7 +3299,7 @@ class Admin {
 				'snapshot_id' => $snapshot_id,
 				'znts_notice' => 'restore-rollback-resume-complete',
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 
 		wp_safe_redirect( $url );
@@ -3394,7 +3381,7 @@ class Admin {
 				'page'        => self::UPDATE_PAGE_SLUG,
 				'znts_notice' => sanitize_key( $notice ),
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 
 		wp_safe_redirect( $url );
@@ -3414,7 +3401,7 @@ class Admin {
 				'page'        => self::MENU_SLUG,
 				'znts_notice' => sanitize_key( $notice ),
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 
 		if ( '' !== (string) $fragment ) {
@@ -3447,7 +3434,7 @@ class Admin {
 			$args['znts_job_id'] = sanitize_text_field( (string) $job_id );
 		}
 
-		$url = add_query_arg( $args, admin_url( 'admin.php' ) );
+		$url = add_query_arg( $args, znts_admin_url( 'admin.php' ) );
 
 		if ( '' !== (string) $fragment ) {
 			$url .= '#' . ltrim( sanitize_key( (string) $fragment ), '#' );
@@ -3477,7 +3464,7 @@ class Admin {
 						'znts_job_id' => '' !== (string) $job_id ? sanitize_text_field( (string) $job_id ) : '',
 					)
 				),
-				admin_url( 'admin.php' )
+				znts_admin_url( 'admin.php' )
 			);
 
 			wp_safe_redirect( $url );
@@ -3508,7 +3495,7 @@ class Admin {
 		$screen_id = sanitize_key( (string) $screen_id );
 
 		if ( 'plugins' === $screen_id ) {
-			return admin_url( 'plugins.php' );
+			return znts_admin_url( 'plugins.php' );
 		}
 
 		if ( 'plugins-network' === $screen_id ) {
@@ -3516,7 +3503,7 @@ class Admin {
 		}
 
 		if ( 'themes' === $screen_id ) {
-			return admin_url( 'themes.php' );
+			return znts_admin_url( 'themes.php' );
 		}
 
 		if ( 'themes-network' === $screen_id ) {
@@ -3524,7 +3511,7 @@ class Admin {
 		}
 
 		if ( 'update-core' === $screen_id ) {
-			return admin_url( 'update-core.php' );
+			return znts_admin_url( 'update-core.php' );
 		}
 
 		if ( 'update-core-network' === $screen_id ) {
@@ -5490,7 +5477,7 @@ class Admin {
 			$args['snapshot_id'] = absint( $snapshot_id );
 		}
 
-		return add_query_arg( $args, admin_url( 'admin.php' ) );
+		return add_query_arg( $args, znts_admin_url( 'admin.php' ) );
 	}
 
 	/**
@@ -5731,7 +5718,7 @@ class Admin {
 				'page'        => self::LOGS_PAGE_SLUG,
 				'snapshot_id' => $snapshot_id,
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 	}
 

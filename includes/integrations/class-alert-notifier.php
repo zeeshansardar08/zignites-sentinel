@@ -256,6 +256,14 @@ class AlertNotifier {
 			);
 		}
 
+		if ( function_exists( 'wp_http_validate_url' ) && ! wp_http_validate_url( $url ) ) {
+			return array(
+				'channel' => $channel,
+				'success' => false,
+				'error'   => __( 'Webhook URL was rejected as unsafe (private or reserved network address).', 'zignites-sentinel' ),
+			);
+		}
+
 		$response = wp_remote_post(
 			$url,
 			array(

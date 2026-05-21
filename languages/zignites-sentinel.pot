@@ -1,0 +1,5506 @@
+# Copyright (C) 2026 Zignites
+# This file is distributed under the same license as the Zignites Sentinel plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Zignites Sentinel 1.33.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/zignites-sentinel\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-05-21T13:30:31+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: zignites-sentinel\n"
+
+#. Plugin Name of the plugin
+#: zignites-sentinel.php
+#: includes/admin/class-admin.php:714
+#: includes/admin/views/dashboard-v1.php:39
+msgid "Zignites Sentinel"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: zignites-sentinel.php
+msgid "https://zignites.com/"
+msgstr ""
+
+#. Description of the plugin
+#: zignites-sentinel.php
+#: includes/admin/views/before-update.php:48
+#: includes/admin/views/dashboard-v1.php:40
+msgid "Safe Update Checkpoints and Rollback for WordPress plugin/theme code changes."
+msgstr ""
+
+#. Author of the plugin
+#: zignites-sentinel.php
+msgid "Zignites"
+msgstr ""
+
+#: includes/admin/class-admin.php:715
+msgid "Sentinel"
+msgstr ""
+
+#: includes/admin/class-admin.php:725
+#: includes/admin/class-admin.php:726
+#: includes/admin/views/before-update.php:47
+#: includes/admin/views/dashboard-v1.php:50
+msgid "Before Update"
+msgstr ""
+
+#: includes/admin/class-admin.php:734
+#: includes/admin/class-admin.php:735
+#: includes/admin/views/history.php:24
+msgid "History"
+msgstr ""
+
+#: includes/admin/class-admin.php:1116
+msgid "Sentinel does not restore WordPress core updates."
+msgstr ""
+
+#: includes/admin/class-admin.php:1117
+msgid "Use Sentinel for safe-update checkpoints on plugin and theme code changes. Use a full backup solution before changing WordPress core."
+msgstr ""
+
+#: includes/admin/class-admin.php:1120
+#: includes/admin/class-admin.php:1162
+#: includes/admin/class-admin.php:1181
+#: includes/admin/class-admin.php:1200
+#: includes/admin/class-admin.php:1227
+#: includes/admin/class-snapshot-status-resolver.php:1450
+#: includes/admin/class-snapshot-status-resolver.php:1477
+#: includes/admin/class-snapshot-status-resolver.php:1486
+#: includes/admin/class-snapshot-status-resolver.php:1495
+#: includes/admin/class-snapshot-status-resolver.php:1504
+#: includes/admin/class-snapshot-status-resolver.php:1521
+#: includes/admin/views/dashboard-v1.php:24
+#: includes/admin/views/dashboard-v1.php:262
+#: includes/admin/views/dashboard-widget.php:55
+msgid "Open Before Update"
+msgstr ""
+
+#: includes/admin/class-admin.php:1130
+msgid "the latest checkpoint"
+msgstr ""
+
+#: includes/admin/class-admin.php:1137
+msgid "WordPress core updates are also pending. Sentinel covers the active theme and plugins, not core recovery."
+msgstr ""
+
+#: includes/admin/class-admin.php:1140
+msgid "WordPress core updates are also pending on this screen. Sentinel can help you prepare safe-update checkpoints for the active theme and plugins, but not for core recovery."
+msgstr ""
+
+#: includes/admin/class-admin.php:1146
+msgid "WooCommerce is active. Use a maintenance window and external database backup because Sentinel does not roll back orders, payments, carts, migrations, or schema changes."
+msgstr ""
+
+#. translators: %s: update scope label
+#: includes/admin/class-admin.php:1155
+#, php-format
+msgid "Sentinel could not create a checkpoint before updating %s."
+msgstr ""
+
+#: includes/admin/class-admin.php:1158
+msgid "Open Before Update and review storage or package issues before relying on Sentinel for this change window."
+msgstr ""
+
+#: includes/admin/class-admin.php:1173
+msgid "Sentinel is already running another operation."
+msgstr ""
+
+#: includes/admin/class-admin.php:1174
+msgid "Sentinel blocked checkpoint creation because disk space is unsafe."
+msgstr ""
+
+#: includes/admin/class-admin.php:1176
+msgid "Wait for the active operation to finish before starting another checkpoint or restore workflow."
+msgstr ""
+
+#: includes/admin/class-admin.php:1177
+msgid "Free disk space or adjust retention before relying on Sentinel for this update window."
+msgstr ""
+
+#. translators: %s: update scope label
+#: includes/admin/class-admin.php:1193
+#, php-format
+msgid "Sentinel queued a checkpoint before updating %s."
+msgstr ""
+
+#: includes/admin/class-admin.php:1196
+msgid "Checkpoint capture is running in the background. Wait for it to complete before starting the update."
+msgstr ""
+
+#: includes/admin/class-admin.php:1204
+#: includes/admin/class-admin.php:1254
+#: includes/admin/class-admin.php:1285
+#: includes/admin/class-admin.php:1316
+#: includes/admin/class-admin.php:1346
+#: includes/admin/class-snapshot-status-resolver.php:1459
+#: includes/admin/class-snapshot-status-resolver.php:1468
+#: includes/admin/class-snapshot-status-resolver.php:1513
+#: includes/admin/views/dashboard-v1.php:56
+#: includes/admin/views/dashboard-v1.php:74
+#: includes/admin/views/dashboard-widget.php:58
+msgid "Open History"
+msgstr ""
+
+#. translators: %s: update scope label
+#: includes/admin/class-admin.php:1216
+#, php-format
+msgid "Create a safe-update checkpoint before updating %s."
+msgstr ""
+
+#: includes/admin/class-admin.php:1219
+msgid "Sentinel has not recorded a recent checkpoint for the active theme and plugins. Create one now so you have a code-layer rollback point if the update breaks the site."
+msgstr ""
+
+#: includes/admin/class-admin.php:1223
+msgid "Create Checkpoint Now"
+msgstr ""
+
+#. translators: %s: update scope label
+#: includes/admin/class-admin.php:1239
+#, php-format
+msgid "Sentinel created a checkpoint before updating %s."
+msgstr ""
+
+#. translators: %s: latest snapshot label
+#: includes/admin/class-admin.php:1244
+#, php-format
+msgid "The latest checkpoint, %s, was just captured. Review it in Before Update if you want to validate it before running the update."
+msgstr ""
+
+#: includes/admin/class-admin.php:1250
+#: includes/admin/class-admin.php:1277
+#: includes/admin/class-admin.php:1308
+#: includes/admin/class-admin.php:1342
+msgid "Review Before Update"
+msgstr ""
+
+#. translators: %s: update scope label
+#: includes/admin/class-admin.php:1266
+#, php-format
+msgid "Sentinel needs review before you update %s."
+msgstr ""
+
+#. translators: %s: latest snapshot label
+#: includes/admin/class-admin.php:1271
+#, php-format
+msgid "The latest checkpoint, %s, is currently marked at risk or tied to unresolved failure signals. Review Sentinel before continuing with the update."
+msgstr ""
+
+#: includes/admin/class-admin.php:1281
+#: includes/admin/class-admin.php:1312
+#: includes/admin/class-admin.php:1338
+msgid "Create Fresh Checkpoint"
+msgstr ""
+
+#. translators: %s: update scope label
+#: includes/admin/class-admin.php:1297
+#, php-format
+msgid "Latest checkpoint needs review before updating %s."
+msgstr ""
+
+#. translators: %s: latest snapshot label
+#: includes/admin/class-admin.php:1302
+#, php-format
+msgid "Sentinel has a recent checkpoint, %s, but its restore evidence still needs attention. Open Before Update and finish the validation steps first."
+msgstr ""
+
+#. translators: %s: update scope label
+#: includes/admin/class-admin.php:1327
+#, php-format
+msgid "Sentinel already has a checkpoint for %s."
+msgstr ""
+
+#. translators: %s: latest snapshot label
+#: includes/admin/class-admin.php:1332
+#, php-format
+msgid "The latest checkpoint, %s, is available before you update. Capture a fresh checkpoint for this update window, or open Before Update if you want to review restore readiness first."
+msgstr ""
+
+#: includes/admin/class-admin.php:1365
+#: includes/admin/class-admin.php:1375
+msgid "plugin"
+msgstr ""
+
+#: includes/admin/class-admin.php:1365
+#: includes/admin/class-admin.php:1375
+msgid "plugins"
+msgstr ""
+
+#: includes/admin/class-admin.php:1369
+#: includes/admin/class-admin.php:1379
+msgid "theme"
+msgstr ""
+
+#: includes/admin/class-admin.php:1369
+#: includes/admin/class-admin.php:1379
+msgid "themes"
+msgstr ""
+
+#: includes/admin/class-admin.php:1382
+msgid " and "
+msgstr ""
+
+#. translators: 1: item count, 2: item label
+#: includes/admin/class-admin.php:1396
+#, php-format
+msgid "%1$d %2$s"
+msgstr ""
+
+#: includes/admin/class-admin.php:1424
+msgid "Sentinel: create checkpoint now"
+msgstr ""
+
+#: includes/admin/class-admin.php:1431
+msgid "Sentinel: review checkpoint"
+msgstr ""
+
+#: includes/admin/class-admin.php:1437
+msgid "Sentinel: create fresh checkpoint"
+msgstr ""
+
+#: includes/admin/class-admin.php:1510
+#: includes/admin/class-admin.php:1609
+#: includes/admin/class-admin.php:1695
+msgid "You do not have permission to access this page."
+msgstr ""
+
+#: includes/admin/class-admin.php:1550
+msgid "Sentinel Site Status"
+msgstr ""
+
+#: includes/admin/class-admin.php:1801
+msgid "Snapshot and execution milestones will appear here once Sentinel records them."
+msgstr ""
+
+#: includes/admin/class-admin.php:1804
+msgid "Waiting"
+msgstr ""
+
+#: includes/admin/class-admin.php:1805
+msgid "Create the first snapshot to let Sentinel score system health, recommend a trusted restore point, and build operator history."
+msgstr ""
+
+#: includes/admin/class-admin.php:1823
+#: includes/admin/class-snapshot-status-resolver.php:1187
+#: includes/admin/class-snapshot-status-resolver.php:1227
+#: includes/admin/class-update-readiness-state-builder.php:1072
+msgid "Snapshot"
+msgstr ""
+
+#. translators: %d: snapshot id
+#: includes/admin/class-admin.php:1839
+#, php-format
+msgid "ROLLBACK SNAPSHOT %d"
+msgstr ""
+
+#: includes/admin/class-admin.php:1842
+msgid "ROLLBACK SNAPSHOT"
+msgstr ""
+
+#. translators: 1: baseline label, 2: timestamp
+#: includes/admin/class-admin.php:1847
+#: includes/admin/class-update-readiness-state-builder.php:1099
+#, php-format
+msgid "%1$s captured at %2$s."
+msgstr ""
+
+#: includes/admin/class-admin.php:1848
+#: includes/admin/class-health-comparison-presenter.php:42
+#: includes/admin/class-update-readiness-state-builder.php:1100
+msgid "Baseline"
+msgstr ""
+
+#: includes/admin/class-admin.php:1851
+#: includes/admin/class-update-readiness-state-builder.php:1103
+msgid "No baseline timestamp is available for comparison."
+msgstr ""
+
+#. translators: %d: snapshot id
+#: includes/admin/class-admin.php:1862
+#, php-format
+msgid "wp-content/uploads/znts-sentinel/backups/snapshot-%d"
+msgstr ""
+
+#: includes/admin/class-admin.php:1867
+#: includes/admin/class-update-readiness-state-builder.php:1121
+msgid "Rollback Confirmation Context"
+msgstr ""
+
+#: includes/admin/class-admin.php:1868
+#: includes/admin/class-update-readiness-state-builder.php:1122
+msgid "Rollback uses the backup root captured during the last restore execution. Confirm the exact snapshot and recovery scope before continuing."
+msgstr ""
+
+#: includes/admin/class-admin.php:1871
+#: includes/admin/class-update-readiness-state-builder.php:1068
+msgid "Snapshot reference"
+msgstr ""
+
+#. translators: 1: snapshot label, 2: snapshot id
+#: includes/admin/class-admin.php:1875
+#: includes/admin/class-update-readiness-state-builder.php:1071
+#, php-format
+msgid "%1$s (#%2$d)"
+msgstr ""
+
+#: includes/admin/class-admin.php:1882
+#: includes/admin/class-update-readiness-state-builder.php:1077
+msgid "Rollback source"
+msgstr ""
+
+#: includes/admin/class-admin.php:1886
+#: includes/admin/class-update-readiness-state-builder.php:1081
+msgid "What will be restored"
+msgstr ""
+
+#. translators: %d: item count
+#: includes/admin/class-admin.php:1890
+#: includes/admin/class-update-readiness-state-builder.php:1085
+#, php-format
+msgid "%d recorded restore item from the last execution context."
+msgstr ""
+
+#. translators: %d: item count
+#: includes/admin/class-admin.php:1895
+#: includes/admin/class-update-readiness-state-builder.php:1090
+#, php-format
+msgid "%d recorded restore items from the last execution context."
+msgstr ""
+
+#: includes/admin/class-admin.php:1900
+#: includes/admin/class-update-readiness-state-builder.php:1095
+msgid "Last known good state"
+msgstr ""
+
+#: includes/admin/class-admin.php:1906
+#: includes/admin/class-admin.php:1908
+#: includes/admin/class-update-readiness-state-builder.php:1159
+msgid "Review Rollback Context"
+msgstr ""
+
+#: includes/admin/class-admin.php:1907
+msgid "Use the rollback summary below to confirm snapshot scope, backup source, and recovery intent before running a reversal."
+msgstr ""
+
+#: includes/admin/class-admin.php:1945
+msgid "The event log export could not be created."
+msgstr ""
+
+#: includes/admin/class-admin.php:1997
+msgid "Checkpoint creation queued."
+msgstr ""
+
+#: includes/admin/class-admin.php:2024
+#: includes/jobs/class-job-runner.php:275
+msgid "Checkpoint artifacts were created successfully."
+msgstr ""
+
+#: includes/admin/class-admin.php:2200
+msgid "Sentinel settings export downloaded."
+msgstr ""
+
+#: includes/admin/class-admin.php:2230
+msgid "Sentinel settings import failed."
+msgstr ""
+
+#: includes/admin/class-admin.php:2244
+msgid "Sentinel settings import completed."
+msgstr ""
+
+#: includes/admin/class-admin.php:2298
+#: includes/admin/class-admin.php:3571
+msgid "Restore-readiness assessment completed."
+msgstr ""
+
+#: includes/admin/class-admin.php:2349
+#: includes/admin/class-admin.php:3579
+msgid "Restore dry-run validation completed."
+msgstr ""
+
+#: includes/admin/class-admin.php:2396
+msgid "Staged restore validation queued."
+msgstr ""
+
+#: includes/admin/class-admin.php:2451
+msgid "Restore plan generation queued."
+msgstr ""
+
+#: includes/admin/class-admin.php:2534
+#: includes/admin/class-admin.php:3611
+msgid "Safe Update Window post-update health checks completed."
+msgstr ""
+
+#: includes/admin/class-admin.php:2550
+msgid "Safe Update Window health checks need attention."
+msgstr ""
+
+#: includes/admin/class-admin.php:2574
+#: includes/admin/class-admin.php:3623
+msgid "Alert integration settings were saved."
+msgstr ""
+
+#: includes/admin/class-admin.php:2601
+msgid "Alert integration test completed."
+msgstr ""
+
+#: includes/admin/class-admin.php:2634
+#: includes/admin/class-admin.php:3635
+msgid "WooCommerce update guardrails were saved."
+msgstr ""
+
+#: includes/admin/class-admin.php:2663
+msgid "Safe Update Window was confirmed by the operator."
+msgstr ""
+
+#: includes/admin/class-admin.php:2732
+msgid "Restore checklist gates were refreshed."
+msgstr ""
+
+#: includes/admin/class-admin.php:2784
+msgid "Restore execution was blocked because the pre-restore checklist is incomplete."
+msgstr ""
+
+#: includes/admin/class-admin.php:2802
+msgid "A guarded live restore was started."
+msgstr ""
+
+#: includes/admin/class-admin.php:2812
+msgid "Restore execution result recorded."
+msgstr ""
+
+#: includes/admin/class-admin.php:2871
+msgid "Restore resume was blocked because the operator checklist is incomplete."
+msgstr ""
+
+#: includes/admin/class-admin.php:2889
+msgid "A guarded live restore resume was started."
+msgstr ""
+
+#: includes/admin/class-admin.php:2906
+msgid "Restore execution resume recorded."
+msgstr ""
+
+#: includes/admin/class-admin.php:2969
+#: includes/admin/class-admin.php:3683
+msgid "The preserved restore execution checkpoint could not be discarded because its stage directory could not be removed."
+msgstr ""
+
+#: includes/admin/class-admin.php:2988
+#: includes/admin/class-admin.php:3675
+msgid "The preserved restore execution checkpoint was discarded."
+msgstr ""
+
+#: includes/admin/class-admin.php:3036
+#: includes/admin/class-admin.php:3687
+msgid "Snapshot health baseline captured."
+msgstr ""
+
+#: includes/admin/class-admin.php:3079
+msgid "Snapshot audit report downloaded."
+msgstr ""
+
+#: includes/admin/class-admin.php:3117
+msgid "Snapshot summary downloaded."
+msgstr ""
+
+#: includes/admin/class-admin.php:3149
+#: includes/admin/class-admin.php:3703
+msgid "Snapshot audit report verification completed."
+msgstr ""
+
+#: includes/admin/class-admin.php:3200
+msgid "Restore rollback result recorded."
+msgstr ""
+
+#: includes/admin/class-admin.php:3213
+#: includes/snapshots/class-restore-rollback-manager.php:962
+msgid "Restore rollback completed."
+msgstr ""
+
+#: includes/admin/class-admin.php:3274
+msgid "Restore rollback resume recorded."
+msgstr ""
+
+#: includes/admin/class-admin.php:3289
+msgid "Restore rollback resume completed."
+msgstr ""
+
+#: includes/admin/class-admin.php:3317
+msgid "You do not have permission to perform this action."
+msgstr ""
+
+#: includes/admin/class-admin.php:3342
+msgid "A heavy Sentinel operation was blocked because another operation is active."
+msgstr ""
+
+#: includes/admin/class-admin.php:3535
+msgid "Update readiness scan completed."
+msgstr ""
+
+#: includes/admin/class-admin.php:3539
+msgid "Snapshot metadata was created successfully."
+msgstr ""
+
+#: includes/admin/class-admin.php:3543
+msgid "Checkpoint creation was queued and will continue in the background."
+msgstr ""
+
+#: includes/admin/class-admin.php:3547
+msgid "Snapshot metadata could not be created."
+msgstr ""
+
+#: includes/admin/class-admin.php:3551
+msgid "Another Sentinel operation is already running. Wait for it to finish or for the lock timeout to expire before starting a new heavy operation."
+msgstr ""
+
+#: includes/admin/class-admin.php:3555
+msgid "Sentinel blocked the operation because available disk space is below the safe threshold."
+msgstr ""
+
+#: includes/admin/class-admin.php:3559
+msgid "Sentinel settings were saved."
+msgstr ""
+
+#: includes/admin/class-admin.php:3563
+#: includes/updates/class-update-planner.php:126
+msgid "Manual update review plan created."
+msgstr ""
+
+#: includes/admin/class-admin.php:3567
+#: includes/updates/class-update-planner.php:76
+msgid "No valid update targets were selected."
+msgstr ""
+
+#: includes/admin/class-admin.php:3575
+msgid "The selected snapshot could not be found."
+msgstr ""
+
+#: includes/admin/class-admin.php:3583
+msgid "The selected snapshot could not be found for restore dry-run validation."
+msgstr ""
+
+#: includes/admin/class-admin.php:3587
+#: includes/admin/class-admin.php:4964
+#: includes/jobs/class-job-runner.php:444
+msgid "Staged restore validation completed."
+msgstr ""
+
+#: includes/admin/class-admin.php:3591
+msgid "Staged restore validation was queued and will continue in the background."
+msgstr ""
+
+#: includes/admin/class-admin.php:3595
+msgid "The selected snapshot could not be found for staged restore validation."
+msgstr ""
+
+#: includes/admin/class-admin.php:3599
+#: includes/admin/class-admin.php:4994
+#: includes/jobs/class-job-runner.php:466
+msgid "Restore execution plan created."
+msgstr ""
+
+#: includes/admin/class-admin.php:3603
+msgid "Restore plan generation was queued and will continue in the background."
+msgstr ""
+
+#: includes/admin/class-admin.php:3607
+msgid "Safe Update Window health-check settings were saved."
+msgstr ""
+
+#: includes/admin/class-admin.php:3615
+msgid "Safe Update Window was confirmed and is ready for reporting."
+msgstr ""
+
+#: includes/admin/class-admin.php:3619
+msgid "The selected checkpoint could not be found for the Safe Update Window workflow."
+msgstr ""
+
+#: includes/admin/class-admin.php:3627
+msgid "Test alert sent to configured channels."
+msgstr ""
+
+#: includes/admin/class-admin.php:3631
+msgid "Test alert finished with warnings. Review the alert integration status."
+msgstr ""
+
+#: includes/admin/class-admin.php:3639
+msgid "The selected snapshot could not be found for restore planning."
+msgstr ""
+
+#: includes/admin/class-admin.php:3643
+msgid "Restore checklist gates were refreshed for the selected snapshot."
+msgstr ""
+
+#: includes/admin/class-admin.php:3647
+msgid "The selected snapshot could not be found for restore gate refresh."
+msgstr ""
+
+#: includes/admin/class-admin.php:3651
+msgid "Sentinel settings imported."
+msgstr ""
+
+#: includes/admin/class-admin.php:3655
+msgid "The provided Sentinel settings export could not be imported."
+msgstr ""
+
+#: includes/admin/class-admin.php:3659
+msgid "Restore execution attempt completed."
+msgstr ""
+
+#: includes/admin/class-admin.php:3663
+msgid "The selected snapshot could not be found for restore execution."
+msgstr ""
+
+#: includes/admin/class-admin.php:3667
+msgid "Restore execution resume attempt completed."
+msgstr ""
+
+#: includes/admin/class-admin.php:3671
+msgid "No resumable restore execution context is available for the selected snapshot."
+msgstr ""
+
+#: includes/admin/class-admin.php:3679
+msgid "No preserved restore execution checkpoint is available for the selected snapshot."
+msgstr ""
+
+#: includes/admin/class-admin.php:3691
+msgid "The selected snapshot could not be found for health baseline capture."
+msgstr ""
+
+#: includes/admin/class-admin.php:3695
+msgid "The selected snapshot could not be found for audit report export."
+msgstr ""
+
+#: includes/admin/class-admin.php:3699
+msgid "The selected snapshot could not be found for summary export."
+msgstr ""
+
+#: includes/admin/class-admin.php:3707
+msgid "Live restore is blocked until the operator checklist is complete and current for this snapshot."
+msgstr ""
+
+#: includes/admin/class-admin.php:3711
+msgid "Live restore remains blocked. Review the Pre-Restore Checklist for the current missing requirement or unresolved failure state."
+msgstr ""
+
+#: includes/admin/class-admin.php:3715
+msgid "Restore rollback attempt completed."
+msgstr ""
+
+#: includes/admin/class-admin.php:3719
+msgid "Restore rollback resume attempt completed."
+msgstr ""
+
+#: includes/admin/class-admin.php:3723
+msgid "The selected snapshot could not be found for restore rollback."
+msgstr ""
+
+#: includes/admin/class-admin.php:3727
+msgid "No resumable restore rollback context is available for the selected snapshot."
+msgstr ""
+
+#: includes/admin/class-admin.php:3762
+msgid "Environment preflight"
+msgstr ""
+
+#: includes/admin/class-admin.php:3764
+msgid "Review server readiness before the update window."
+msgstr ""
+
+#: includes/admin/class-admin.php:3767
+msgid "Storage and artifact checks"
+msgstr ""
+
+#: includes/admin/class-admin.php:3769
+msgid "Artifact exposure and storage checks are visible on Dashboard."
+msgstr ""
+
+#: includes/admin/class-admin.php:3772
+msgid "Checkpoint capture"
+msgstr ""
+
+#: includes/admin/class-admin.php:3774
+msgid "A checkpoint is selected for this update window."
+msgstr ""
+
+#: includes/admin/class-admin.php:3774
+msgid "Create or select a checkpoint before updating."
+msgstr ""
+
+#: includes/admin/class-admin.php:3777
+msgid "Plugin/theme updates"
+msgstr ""
+
+#: includes/admin/class-admin.php:3779
+msgid "Run the actual plugin/theme updates in WordPress after the checkpoint is ready."
+msgstr ""
+
+#: includes/admin/class-admin.php:3782
+msgid "Post-update health checks"
+msgstr ""
+
+#: includes/admin/class-admin.php:3784
+msgid "Run health checks after updates finish."
+msgstr ""
+
+#: includes/admin/class-admin.php:3787
+msgid "Confirm or rollback"
+msgstr ""
+
+#: includes/admin/class-admin.php:3789
+msgid "Operator confirmed the update window."
+msgstr ""
+
+#: includes/admin/class-admin.php:3789
+msgid "Confirm success after checks pass, or use restore/rollback controls if the site is unhealthy."
+msgstr ""
+
+#: includes/admin/class-admin.php:3937
+msgid "Restore execution did not complete cleanly."
+msgstr ""
+
+#: includes/admin/class-admin.php:3973
+msgid "Last 24 hours"
+msgstr ""
+
+#: includes/admin/class-admin.php:4688
+msgid "Working snapshot selected"
+msgstr ""
+
+#. translators: %d: snapshot id
+#: includes/admin/class-admin.php:4692
+#, php-format
+msgid "Snapshot #%d is selected as the active restore workspace."
+msgstr ""
+
+#: includes/admin/class-admin.php:4697
+msgid "Restore readiness check current"
+msgstr ""
+
+#. translators: %d: max age in hours
+#: includes/admin/class-admin.php:4702
+#, php-format
+msgid "A matching restore-readiness assessment was completed within the last %d hours."
+msgstr ""
+
+#: includes/admin/class-admin.php:4706
+msgid "The latest restore-readiness assessment is stale for this snapshot. Run it again before live restore."
+msgstr ""
+
+#: includes/admin/class-admin.php:4707
+msgid "Run Restore Readiness Check before live restore."
+msgstr ""
+
+#: includes/admin/class-admin.php:4710
+msgid "Operator checklist complete"
+msgstr ""
+
+#: includes/admin/class-admin.php:4713
+msgid "Baseline, staged validation, and restore plan gates are current for this snapshot."
+msgstr ""
+
+#: includes/admin/class-admin.php:4714
+msgid "Resolve the failing operator checklist items before offering live restore."
+msgstr ""
+
+#: includes/admin/class-admin.php:4717
+msgid "No unresolved restore failure"
+msgstr ""
+
+#: includes/admin/class-admin.php:4720
+msgid "A partial or blocked restore is still unresolved. Resume from checkpoint or roll back before starting another live restore."
+msgstr ""
+
+#: includes/admin/class-admin.php:4721
+msgid "No unresolved partial or blocked restore state is currently recorded for this snapshot."
+msgstr ""
+
+#. translators: 1: checklist item, 2: warning text
+#: includes/admin/class-admin.php:4734
+#, php-format
+msgid "%1$s: %2$s"
+msgstr ""
+
+#: includes/admin/class-admin.php:4735
+#: includes/admin/class-restore-impact-summary-presenter.php:109
+msgid "Requirement"
+msgstr ""
+
+#: includes/admin/class-admin.php:4745
+msgid "Pre-Restore Checklist Ready"
+msgstr ""
+
+#: includes/admin/class-admin.php:4745
+msgid "Pre-Restore Checklist Incomplete"
+msgstr ""
+
+#: includes/admin/class-admin.php:4747
+msgid "Live restore can stay available because the selected snapshot, readiness evidence, and failure state are all in a safe state."
+msgstr ""
+
+#: includes/admin/class-admin.php:4748
+msgid "Live restore stays blocked until the current missing requirement is resolved. Use the warnings below instead of relying on journal logs alone."
+msgstr ""
+
+#: includes/admin/class-admin.php:4788
+#: includes/admin/class-dashboard-summary-presenter.php:253
+msgid "No staged validation checkpoint is available."
+msgstr ""
+
+#: includes/admin/class-admin.php:4789
+#: includes/admin/class-dashboard-summary-presenter.php:270
+msgid "No restore plan checkpoint is available."
+msgstr ""
+
+#: includes/admin/class-admin.php:5068
+msgid "The stored checkpoint result no longer satisfies execution requirements."
+msgstr ""
+
+#: includes/admin/class-admin.php:5069
+msgid "The stored checkpoint package fingerprint no longer matches the current rollback package artifact."
+msgstr ""
+
+#. translators: %s: checkpoint type
+#: includes/admin/class-admin.php:5077
+#, php-format
+msgid "Restore %s checkpoint could not be reused."
+msgstr ""
+
+#: includes/admin/class-admin.php:5125
+msgid "The checkpoint timestamp is missing or invalid."
+msgstr ""
+
+#. translators: %d: max age in hours
+#: includes/admin/class-admin.php:5128
+#, php-format
+msgid "The checkpoint is older than the configured %d-hour age window."
+msgstr ""
+
+#. translators: %s: checkpoint type
+#: includes/admin/class-admin.php:5138
+#, php-format
+msgid "Restore %s checkpoint expired and can no longer be offered."
+msgstr ""
+
+#: includes/admin/class-admin.php:5294
+msgid "Stage Checkpoint"
+msgstr ""
+
+#. translators: %d: pass count
+#: includes/admin/class-admin.php:5298
+#, php-format
+msgid "%d passing checks recorded."
+msgstr ""
+
+#: includes/admin/class-admin.php:5306
+msgid "Plan Checkpoint"
+msgstr ""
+
+#. translators: %d: item count
+#: includes/admin/class-admin.php:5310
+#, php-format
+msgid "%d restore items prepared."
+msgstr ""
+
+#: includes/admin/class-admin.php:5318
+msgid "Latest Restore Run"
+msgstr ""
+
+#: includes/admin/class-admin.php:5328
+msgid "Latest Rollback Run"
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:53
+msgid "Report payload"
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:55
+msgid "The provided audit report is not valid JSON."
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:58
+msgid "Audit report verification failed."
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:73
+msgid "Report envelope"
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:76
+msgid "The audit report contains report and integrity sections."
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:77
+msgid "The audit report is missing report or integrity sections."
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:80
+msgid "Integrity algorithm"
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:83
+msgid "The audit report uses the supported SHA-256 integrity algorithm."
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:84
+msgid "The audit report uses an unsupported integrity algorithm."
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:87
+msgid "Snapshot match"
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:90
+msgid "The audit report matches the selected snapshot."
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:91
+msgid "The audit report does not match the selected snapshot."
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:94
+msgid "Payload hash"
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:97
+msgid "The audit report payload hash matches."
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:98
+msgid "The audit report payload hash does not match."
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:101
+msgid "Site signature"
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:104
+msgid "The audit report site signature matches this site."
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:105
+msgid "The audit report site signature does not match this site."
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:128
+msgid "Audit report verification passed for this site and snapshot."
+msgstr ""
+
+#: includes/admin/class-audit-report-verifier.php:128
+msgid "Audit report verification found integrity or snapshot mismatches."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:91
+#: includes/admin/class-event-log-presenter.php:120
+#: includes/admin/class-update-readiness-state-builder.php:859
+msgid "How to use this screen"
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:93
+msgid "Start with the latest checkpoint, then open Before Update when you need to validate, restore, or roll back it."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:94
+msgid "Create a safe-update checkpoint before updates so you have a rollback point for the active theme and plugins."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:97
+#: includes/admin/class-event-log-presenter.php:126
+#: includes/admin/class-update-readiness-state-builder.php:865
+msgid "What this status means"
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:98
+msgid "Dashboard status tells you whether the latest checkpoint looks usable, needs validation, or needs review before restore work."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:101
+#: includes/admin/class-event-log-presenter.php:130
+#: includes/admin/class-update-readiness-state-builder.php:871
+msgid "What to do next"
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:104
+msgid "Create a fresh checkpoint, validate it, and keep it ready before updates."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:122
+msgid "Create your first safe-update checkpoint."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:123
+msgid "Save the active theme and plugins before updates so you can restore that code layer later if needed."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:124
+msgid "Open Before Update and create your first checkpoint."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:127
+msgid "No restore-ready snapshot yet."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:128
+msgid "This section summarizes whether Sentinel has enough evidence to trust a restore review. It stays empty until the first snapshot exists."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:129
+msgid "Capture a snapshot, then run readiness checks to build a trusted restore path."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:132
+msgid "No recent activity to review."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:133
+msgid "Critical conflicts, warnings, and recovery signals will gather here when Sentinel detects them."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:135
+msgid "Keep using snapshots and readiness checks. Sentinel will surface the first meaningful warnings here."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:136
+msgid "Create your first snapshot so Sentinel can begin tracking restore-facing activity."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:139
+msgid "No health comparison yet."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:140
+msgid "Health comparison helps you judge whether a snapshot has a stable starting point and whether later recovery checks changed that picture."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:141
+msgid "Capture a baseline after taking a snapshot so Sentinel can compare future restore or rollback outcomes."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:144
+msgid "No restore history yet."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:145
+msgid "The timeline is a condensed narrative of snapshot captures, restore attempts, and rollback milestones."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:146
+msgid "Create and validate a snapshot first. Sentinel will start building the timeline as readiness and recovery events occur."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:149
+#: includes/admin/class-update-readiness-state-builder.php:771
+msgid "No checkpoints have been captured yet."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:150
+msgid "Checkpoints are the starting point for restore and rollback work in Sentinel."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:151
+msgid "Open Before Update and create the first checkpoint."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:163
+#: includes/admin/class-update-readiness-state-builder.php:886
+#: includes/admin/views/before-update.php:134
+#: includes/admin/views/dashboard-v1.php:105
+msgid "What Sentinel is designed to do"
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:164
+msgid "Sentinel provides Safe Update Checkpoints and Rollback for WordPress plugin/theme code changes. It helps you create a checkpoint before updates and restore it later if the code layer breaks, without claiming database, WooCommerce order/payment, core, or malware cleanup recovery."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:232
+msgid "Health baseline"
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:235
+msgid "Captured for the latest snapshot."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:236
+msgid "Not captured yet."
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:239
+#: includes/admin/class-snapshot-summary-presenter.php:79
+msgid "Stage checkpoint"
+msgstr ""
+
+#. translators: %s: checkpoint freshness label
+#: includes/admin/class-dashboard-summary-presenter.php:244
+#, php-format
+msgid "Fresh staged validation is available. %s"
+msgstr ""
+
+#. translators: %s: checkpoint freshness label
+#: includes/admin/class-dashboard-summary-presenter.php:250
+#, php-format
+msgid "Stored checkpoint exists but is expired or no longer reusable. %s"
+msgstr ""
+
+#: includes/admin/class-dashboard-summary-presenter.php:256
+#: includes/admin/class-restore-impact-summary-presenter.php:89
+#: includes/admin/class-snapshot-summary-presenter.php:84
+msgid "Restore plan"
+msgstr ""
+
+#. translators: %s: checkpoint freshness label
+#: includes/admin/class-dashboard-summary-presenter.php:261
+#, php-format
+msgid "Fresh restore plan is available. %s"
+msgstr ""
+
+#. translators: %s: checkpoint freshness label
+#: includes/admin/class-dashboard-summary-presenter.php:267
+#, php-format
+msgid "Stored plan exists but is expired or blocked. %s"
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:61
+msgid "Matching Events"
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:65
+msgid "Active Filters"
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:69
+msgid "Run Summaries"
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:73
+msgid "Operational Events"
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:94
+#: includes/admin/views/history.php:91
+msgid "Export CSV"
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:95
+msgid "Download the current filtered History view as CSV."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:96
+msgid "Event logs can include filesystem paths, package metadata, run IDs, and operational context. Share exported CSV files only with trusted operators."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:122
+msgid "Start with the latest checkpoint, restore, and rollback events, then narrow the filters only if you need a specific run."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:123
+msgid "This screen fills in after Sentinel records checkpoint, restore, or rollback activity."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:127
+msgid "History stores the checkpoint, restore, and rollback trail so you can confirm what happened later."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:132
+msgid "Keep the current filters if they isolate the issue, or reset them to return to the full event stream."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:133
+msgid "Use Before Update to create a checkpoint and run the first validation checks."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:148
+msgid "No events match the current filters."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:149
+msgid "The filters are working, but nothing in the recorded history matches this exact view yet."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:150
+msgid "Reset or broaden the filters to bring more of the event stream back into view."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:156
+msgid "No event history has been recorded yet."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:157
+msgid "This screen will show checkpoint, restore, and rollback history once Sentinel has activity to record."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:158
+msgid "Create a checkpoint and run validation to start building history."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:163
+msgid "No events are visible right now."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:164
+msgid "The event stream is available, but nothing is showing in the current result set."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:165
+msgid "Review the filters or page selection to return to the main event stream."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:185
+#: includes/admin/class-update-readiness-state-builder.php:839
+msgid "No restore or rollback history yet."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:186
+msgid "Additional run summaries appear here after Sentinel records a restore or rollback attempt."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:187
+msgid "Create and validate a checkpoint first. Restore history appears after real restore work."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:198
+msgid "What this history is for"
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:199
+msgid "Sentinel records checkpoint, restore, and rollback events for traceability. It does not claim a full-site or atomic restore workflow."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:366
+#: includes/admin/class-update-readiness-state-builder.php:1035
+msgid "Failed"
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:366
+#: includes/admin/class-snapshot-status-resolver.php:383
+#: includes/admin/views/history.php:50
+msgid "Warning"
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:366
+msgid "Success"
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:367
+msgid "Run Outcome Summary"
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:369
+msgid "This run ended with failed work. Review the timeline and recovery context below before repeating the action."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:371
+msgid "This run completed with warnings or partial work. Review the affected phases before continuing."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:372
+msgid "This run completed without recorded failures in the persisted journal."
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:376
+msgid "Started"
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:377
+#: includes/admin/class-event-log-presenter.php:381
+#: includes/admin/class-event-log-presenter.php:412
+#: includes/admin/class-snapshot-status-resolver.php:279
+#: includes/admin/class-snapshot-status-resolver.php:780
+#: includes/admin/class-snapshot-status-resolver.php:1244
+msgid "Unknown"
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:380
+msgid "Finished"
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:384
+msgid "Duration"
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:388
+msgid "Key actions performed"
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:389
+msgid "No labeled phases were captured."
+msgstr ""
+
+#. translators: 1: pass count, 2: warning count, 3: fail count, 4: entry count
+#: includes/admin/class-event-log-presenter.php:394
+#, php-format
+msgid "Execution story: %1$d pass, %2$d warning, %3$d fail across %4$d journal entries."
+msgstr ""
+
+#. translators: 1: hour count, 2: minute count
+#. translators: 1: hours, 2: minutes
+#: includes/admin/class-event-log-presenter.php:423
+#: includes/admin/class-restore-checkpoint-presenter.php:374
+#, php-format
+msgid "%1$dh %2$dm"
+msgstr ""
+
+#. translators: 1: minute count, 2: second count
+#: includes/admin/class-event-log-presenter.php:432
+#, php-format
+msgid "%1$dm %2$ds"
+msgstr ""
+
+#. translators: %d: second count
+#: includes/admin/class-event-log-presenter.php:440
+#, php-format
+msgid "%ds"
+msgstr ""
+
+#: includes/admin/class-event-log-presenter.php:542
+#, php-format
+msgid "Run %s"
+msgstr ""
+
+#: includes/admin/class-health-comparison-presenter.php:46
+msgid "Post-Restore"
+msgstr ""
+
+#: includes/admin/class-health-comparison-presenter.php:50
+msgid "Post-Rollback"
+msgstr ""
+
+#: includes/admin/class-health-comparison-presenter.php:105
+msgid "No change"
+msgstr ""
+
+#: includes/admin/class-restore-checkpoint-presenter.php:48
+#, php-format
+msgid "Package: %s"
+msgstr ""
+
+#: includes/admin/class-restore-checkpoint-presenter.php:87
+msgid "Checkpoint timestamp is invalid."
+msgstr ""
+
+#. translators: %s: remaining duration
+#: includes/admin/class-restore-checkpoint-presenter.php:97
+#, php-format
+msgid "Expires in %s."
+msgstr ""
+
+#. translators: %s: expired duration
+#: includes/admin/class-restore-checkpoint-presenter.php:102
+#, php-format
+msgid "Expired %s ago."
+msgstr ""
+
+#. translators: 1: checkpoint status, 2: timing label
+#: includes/admin/class-restore-checkpoint-presenter.php:130
+#, php-format
+msgid "%1$s. %2$s"
+msgstr ""
+
+#: includes/admin/class-restore-checkpoint-presenter.php:131
+msgid "Stored"
+msgstr ""
+
+#. translators: %s: backup root path
+#: includes/admin/class-restore-checkpoint-presenter.php:149
+#, php-format
+msgid "Resume will reuse the existing backup root at %s"
+msgstr ""
+
+#: includes/admin/class-restore-checkpoint-presenter.php:155
+msgid "Backup storage path will be resolved under uploads at execution time."
+msgstr ""
+
+#. translators: 1: backup root base path, 2: snapshot ID
+#: includes/admin/class-restore-checkpoint-presenter.php:162
+#, php-format
+msgid "A new run-specific backup directory will be created under %1$s for snapshot %2$d"
+msgstr ""
+
+#. translators: 1: pass count, 2: warning count, 3: fail count
+#: includes/admin/class-restore-checkpoint-presenter.php:185
+#, php-format
+msgid "%1$d pass, %2$d warning, %3$d fail."
+msgstr ""
+
+#. translators: %d: completed item count
+#: includes/admin/class-restore-checkpoint-presenter.php:193
+#, php-format
+msgid "Resume available with %d completed items."
+msgstr ""
+
+#: includes/admin/class-restore-checkpoint-presenter.php:196
+msgid "No resume action is currently required."
+msgstr ""
+
+#. translators: %s: health status
+#: includes/admin/class-restore-checkpoint-presenter.php:201
+#, php-format
+msgid "Health: %s"
+msgstr ""
+
+#: includes/admin/class-restore-checkpoint-presenter.php:208
+msgid "Stage reuse ready."
+msgstr ""
+
+#: includes/admin/class-restore-checkpoint-presenter.php:208
+msgid "No preserved stage."
+msgstr ""
+
+#: includes/admin/class-restore-checkpoint-presenter.php:209
+msgid "Health reuse ready."
+msgstr ""
+
+#: includes/admin/class-restore-checkpoint-presenter.php:209
+msgid "Health will rerun."
+msgstr ""
+
+#. translators: %s: restore run id
+#: includes/admin/class-restore-checkpoint-presenter.php:222
+#: includes/admin/class-update-readiness-state-builder.php:1252
+#, php-format
+msgid "Run ID: %s"
+msgstr ""
+
+#. translators: %d: minutes
+#: includes/admin/class-restore-checkpoint-presenter.php:382
+#, php-format
+msgid "%dm"
+msgstr ""
+
+#: includes/admin/class-restore-impact-summary-presenter.php:35
+msgid "Low impact"
+msgstr ""
+
+#: includes/admin/class-restore-impact-summary-presenter.php:36
+msgid "The current restore plan is mostly aligned with the live site."
+msgstr ""
+
+#: includes/admin/class-restore-impact-summary-presenter.php:40
+#: includes/admin/class-snapshot-status-resolver.php:155
+#: includes/admin/class-snapshot-summary-presenter.php:48
+msgid "Restore blocked"
+msgstr ""
+
+#: includes/admin/class-restore-impact-summary-presenter.php:41
+msgid "Live restore is still blocked by checklist or plan state. Review the items below before attempting execution."
+msgstr ""
+
+#: includes/admin/class-restore-impact-summary-presenter.php:44
+msgid "Review impact"
+msgstr ""
+
+#: includes/admin/class-restore-impact-summary-presenter.php:45
+msgid "This restore will overwrite live payloads. Review the replacement scope, backup behavior, and baseline before executing."
+msgstr ""
+
+#. translators: 1: health status, 2: timestamp
+#: includes/admin/class-restore-impact-summary-presenter.php:51
+#, php-format
+msgid "%1$s captured at %2$s"
+msgstr ""
+
+#: includes/admin/class-restore-impact-summary-presenter.php:52
+msgid "Healthy"
+msgstr ""
+
+#: includes/admin/class-restore-impact-summary-presenter.php:55
+msgid "No baseline captured yet"
+msgstr ""
+
+#: includes/admin/class-restore-impact-summary-presenter.php:59
+msgid "Live changes"
+msgstr ""
+
+#. translators: 1: create count, 2: replace count, 3: unchanged count
+#: includes/admin/class-restore-impact-summary-presenter.php:62
+#, php-format
+msgid "%1$d create, %2$d replace, %3$d unchanged"
+msgstr ""
+
+#: includes/admin/class-restore-impact-summary-presenter.php:69
+msgid "Conflict count"
+msgstr ""
+
+#. translators: %d: conflicting file count
+#: includes/admin/class-restore-impact-summary-presenter.php:72
+#, php-format
+msgid "%d planned file conflicts"
+msgstr ""
+
+#: includes/admin/class-restore-impact-summary-presenter.php:77
+msgid "Backup storage"
+msgstr ""
+
+#: includes/admin/class-restore-impact-summary-presenter.php:81
+#: includes/admin/class-snapshot-summary-presenter.php:69
+msgid "Baseline status"
+msgstr ""
+
+#: includes/admin/class-restore-impact-summary-presenter.php:85
+msgid "Stage gate"
+msgstr ""
+
+#: includes/admin/class-restore-impact-summary-presenter.php:93
+msgid "Confirmation phrase"
+msgstr ""
+
+#: includes/admin/class-restore-impact-summary-presenter.php:117
+msgid "Resume state"
+msgstr ""
+
+#. translators: 1: completed item count, 2: journal entry count
+#: includes/admin/class-restore-impact-summary-presenter.php:120
+#, php-format
+msgid "%1$d completed items already recorded across %2$d journal entries"
+msgstr ""
+
+#: includes/admin/class-restore-impact-summary-presenter.php:129
+msgid "Blocked plan items"
+msgstr ""
+
+#. translators: %d: blocked plan item count
+#: includes/admin/class-restore-impact-summary-presenter.php:132
+#, php-format
+msgid "%d plan items are currently blocked"
+msgstr ""
+
+#: includes/admin/class-restore-operator-checklist-evaluator.php:30
+msgid "Health baseline captured"
+msgstr ""
+
+#: includes/admin/class-restore-operator-checklist-evaluator.php:33
+msgid "A health baseline exists for this snapshot."
+msgstr ""
+
+#: includes/admin/class-restore-operator-checklist-evaluator.php:34
+msgid "Capture a snapshot health baseline before offering live restore."
+msgstr ""
+
+#: includes/admin/class-restore-operator-checklist-evaluator.php:37
+msgid "Staged validation current"
+msgstr ""
+
+#. translators: %d: max age in hours
+#: includes/admin/class-restore-operator-checklist-evaluator.php:42
+#, php-format
+msgid "A matching staged validation checkpoint is ready and no older than %d hours."
+msgstr ""
+
+#: includes/admin/class-restore-operator-checklist-evaluator.php:46
+msgid "The stored staged validation checkpoint is stale, expired, or no longer ready."
+msgstr ""
+
+#: includes/admin/class-restore-operator-checklist-evaluator.php:47
+msgid "Run staged restore validation for this snapshot package."
+msgstr ""
+
+#: includes/admin/class-restore-operator-checklist-evaluator.php:50
+msgid "Restore plan current"
+msgstr ""
+
+#. translators: %d: max age in hours
+#: includes/admin/class-restore-operator-checklist-evaluator.php:55
+#, php-format
+msgid "A matching restore plan checkpoint is ready and no older than %d hours."
+msgstr ""
+
+#: includes/admin/class-restore-operator-checklist-evaluator.php:59
+msgid "The stored restore plan checkpoint is stale, expired, or blocked."
+msgstr ""
+
+#: includes/admin/class-restore-operator-checklist-evaluator.php:60
+msgid "Build a restore plan for this snapshot package."
+msgstr ""
+
+#: includes/admin/class-settings-portability.php:42
+msgid "The provided settings payload is not valid JSON."
+msgstr ""
+
+#: includes/admin/class-settings-portability.php:49
+msgid "The provided JSON is not a Sentinel settings export."
+msgstr ""
+
+#: includes/admin/class-settings-portability.php:58
+msgid "The settings export does not include a settings payload."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:155
+#: includes/admin/class-snapshot-status-resolver.php:234
+#: includes/admin/class-snapshot-summary-presenter.php:48
+#: includes/admin/class-update-readiness-state-builder.php:646
+msgid "Restore ready"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:228
+msgid "All snapshots"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:229
+#: includes/admin/class-snapshot-status-resolver.php:685
+msgid "Baseline present"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:230
+msgid "Rollback package saved"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:231
+#: includes/admin/class-snapshot-status-resolver.php:740
+msgid "Stage fresh"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:232
+#: includes/admin/class-snapshot-status-resolver.php:740
+msgid "Plan fresh"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:233
+msgid "Recent restore activity"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:235
+msgid "Stage or plan stale"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:236
+msgid "Stage or plan missing"
+msgstr ""
+
+#. translators: 1: system health label, 2: system health summary
+#: includes/admin/class-snapshot-status-resolver.php:278
+#, php-format
+msgid "System health: %1$s. %2$s"
+msgstr ""
+
+#. translators: 1: warning count, 2: error count, 3: critical count
+#: includes/admin/class-snapshot-status-resolver.php:284
+#, php-format
+msgid "Open conflicts: %1$d warning, %2$d error, %3$d critical."
+msgstr ""
+
+#. translators: %s: snapshot label
+#: includes/admin/class-snapshot-status-resolver.php:293
+#, php-format
+msgid "Latest snapshot: %s."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:294
+msgid "Unknown snapshot"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:297
+msgid "Baseline status: present."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:298
+msgid "Baseline status: missing."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:300
+msgid "Rollback package: saved."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:301
+msgid "Rollback package: missing."
+msgstr ""
+
+#. translators: 1: stage label, 2: plan label
+#: includes/admin/class-snapshot-status-resolver.php:304
+#, php-format
+msgid "Restore gates: %1$s, %2$s."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:305
+msgid "No stage"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:306
+msgid "No plan"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:309
+msgid "Restore status: ready."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:310
+msgid "Restore status: blocked."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:316
+msgid "No snapshot is currently available for restore planning."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:365
+#: includes/admin/class-snapshot-status-resolver.php:388
+#: includes/admin/class-snapshot-status-resolver.php:977
+#: includes/admin/class-snapshot-status-resolver.php:1078
+msgid "System is safe to proceed."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:369
+#: includes/admin/class-snapshot-status-resolver.php:391
+#: includes/admin/class-snapshot-status-resolver.php:973
+#: includes/admin/class-snapshot-status-resolver.php:1087
+msgid "Recent failure detected - review before continuing."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:371
+msgid "No snapshot evidence is available yet."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:373
+msgid "Snapshot evidence is stale or incomplete."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:375
+msgid "Current restore evidence is not strong enough to trust the workspace yet."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:378
+msgid "System trust needs review before continuing."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:383
+msgid "Risky"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:383
+msgid "Safe"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:385
+#: includes/admin/class-update-readiness-state-builder.php:749
+msgid "System Health"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:390
+msgid "System needs a quick trust review before continuing."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:394
+msgid "Snapshot freshness"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:395
+msgid "No snapshot evidence"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:398
+msgid "Readiness status"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:402
+msgid "Unresolved failures"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:403
+msgid "Detected"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:403
+msgid "None detected"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:406
+msgid "Last restore outcome"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:479
+msgid "Latest safe and validated snapshot."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:480
+msgid "Most recent validated snapshot, but it still needs review before being treated as fully safe."
+msgstr ""
+
+#. translators: %s: last outcome label
+#: includes/admin/class-snapshot-status-resolver.php:487
+#, php-format
+msgid "Last known good state is based on %s."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:490
+msgid "Last known good state is based on the latest validated snapshot."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:565
+#: includes/admin/class-snapshot-status-resolver.php:571
+msgid "No recent site history is available yet."
+msgstr ""
+
+#. translators: %d: item count
+#: includes/admin/class-snapshot-status-resolver.php:568
+#, php-format
+msgid "Recent site history is condensed into %d operator-facing milestones."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:685
+msgid "Baseline missing"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:715
+msgid "Package saved"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:715
+msgid "No package"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:749
+msgid "Stage stale"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:749
+msgid "Plan stale"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:757
+#: includes/admin/class-snapshot-summary-presenter.php:80
+msgid "Stage missing"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:757
+#: includes/admin/class-snapshot-summary-presenter.php:85
+msgid "Plan missing"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:773
+msgid "No recent restore"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:774
+msgid "No recent restore or rollback activity was recorded for this snapshot."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:790
+msgid "Recent restore"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:790
+msgid "Past restore"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:792
+msgid "Recent restore or rollback activity was recorded for this snapshot."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:793
+msgid "Restore or rollback activity exists for this snapshot, but it is not recent."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:795
+msgid "Successful restore"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:798
+#: includes/admin/class-snapshot-status-resolver.php:948
+msgid "Recent failure"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:799
+msgid "A recent restore or rollback run for this snapshot finished with a failure or partial state."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:801
+msgid "Failed restore"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:801
+msgid "Partial restore"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:804
+msgid "Successful rollback"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:807
+#: includes/admin/class-snapshot-status-resolver.php:1213
+msgid "Restore finished with warnings"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:838
+#: includes/admin/class-snapshot-status-resolver.php:851
+msgid "Snapshot age unknown"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:862
+msgid "Fresh snapshot"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:867
+msgid "Stale snapshot"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:871
+msgid "Aging snapshot"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:907
+msgid "Risky snapshot"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:907
+msgid "Review snapshot"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:907
+msgid "Safe snapshot"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:932
+msgid "Unverified baseline"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:936
+msgid "No rollback package"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:940
+msgid "Validation evidence stale"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:944
+msgid "Validation incomplete"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:952
+msgid "No journal history"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:956
+msgid "Validated"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:981
+msgid "Snapshot evidence is aging and should be reviewed before use."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:985
+msgid "Snapshot evidence is stale and should not be trusted without review."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:989
+msgid "No restore history is available, so Sentinel is relying on current validation evidence only."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:992
+msgid "Snapshot needs review before being treated as trusted."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1081
+#: includes/admin/class-snapshot-status-resolver.php:1157
+msgid "Using last known good configuration."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1084
+msgid "You are reviewing an older or lower-confidence snapshot than Sentinel recommends."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1110
+msgid "No snapshots are available yet, so Sentinel cannot recommend a trusted restore point."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1114
+msgid "No fully safe snapshot is available. The newest validated snapshot still needs review."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1118
+msgid "Current snapshots are missing the validation evidence needed for a trusted recommendation."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1122
+msgid "Multiple validated snapshots exist. Sentinel recommends the newest one unless you have a specific rollback target in mind."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1126
+msgid "The current workspace is not the recommended snapshot."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1147
+#: includes/admin/class-snapshot-status-resolver.php:1153
+msgid "You have not taken a snapshot recently."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1149
+msgid "Last restore attempt failed - review recovery before continuing."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1151
+msgid "System is ready for safe update."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1181
+msgid "Snapshot taken"
+msgstr ""
+
+#. translators: 1: snapshot label, 2: snapshot id
+#: includes/admin/class-snapshot-status-resolver.php:1186
+#, php-format
+msgid "%1$s (#%2$d) was captured as a restore reference."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1206
+msgid "Rollback executed"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1206
+msgid "Restore succeeded"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1210
+msgid "Rollback failed"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1210
+#: includes/integrations/class-alert-notifier.php:23
+msgid "Restore failed"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1213
+msgid "Rollback finished with warnings"
+msgstr ""
+
+#. translators: 1: snapshot label, 2: run id
+#: includes/admin/class-snapshot-status-resolver.php:1226
+#, php-format
+msgid "%1$s was referenced by run %2$s."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1228
+msgid "unknown"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1277
+msgid "Validated restore-ready snapshot available"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1281
+msgid "Validation evidence exists but needs refresh"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1285
+msgid "No snapshot selected"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1288
+msgid "Validation incomplete or blocked"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1419
+#: includes/admin/class-snapshot-status-resolver.php:1431
+msgid "Open Before Update and review the latest checkpoint."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1423
+msgid "Open History and review recent checkpoint or restore issues before continuing."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1448
+msgid "Create a Checkpoint Before Updates"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1449
+msgid "No recent checkpoint is available for the active theme and plugins."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1457
+#: includes/admin/class-snapshot-status-resolver.php:1466
+#: includes/admin/class-snapshot-status-resolver.php:1511
+#: includes/admin/class-update-readiness-state-builder.php:1183
+msgid "Review Issues Before Continuing"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1458
+msgid "Critical issues are open. Review recent checkpoint and restore history before changing the site again."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1467
+msgid "A recent restore or rollback ended with warnings or failures. Review what happened before starting another action."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1475
+msgid "Validate the Latest Checkpoint"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1476
+msgid "The latest checkpoint still needs validation before it should be used for restore review."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1484
+msgid "Create a Fresh Checkpoint"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1485
+msgid "The latest checkpoint is missing its rollback package, so it should not be trusted for restore."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1493
+msgid "Refresh Checkpoint Validation"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1494
+msgid "Staged validation is not current for the latest checkpoint."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1502
+msgid "Refresh the Restore Plan"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1503
+msgid "The stored restore plan is stale or missing for the latest checkpoint."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1512
+msgid "Warnings or errors are still open. Review recent checkpoint and restore history before changing the site again."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1519
+msgid "Latest Checkpoint Ready for Review"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1520
+msgid "The latest checkpoint has current validation and restore evidence. Review it in Before Update before any guarded restore decision."
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1534
+msgid "At Risk"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1538
+msgid "Needs Attention"
+msgstr ""
+
+#: includes/admin/class-snapshot-status-resolver.php:1541
+msgid "Stable"
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:47
+msgid "Restore status"
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:49
+msgid "All current restore gates pass for this snapshot."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:49
+msgid "One or more current restore gates still require attention."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:52
+msgid "Runtime"
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:53
+#, php-format
+msgid "WordPress %1$s / PHP %2$s"
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:54
+#, php-format
+msgid "Theme: %1$s. Active plugins: %2$d."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:57
+msgid "Artifacts"
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:58
+#, php-format
+msgid "%1$d total artifacts"
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:59
+#, php-format
+msgid "Package: %1$d. Export: %2$d. Components: %3$d."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:62
+msgid "Recent activity"
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:63
+#, php-format
+msgid "%d recent events"
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:64
+#: includes/admin/class-snapshot-summary-presenter.php:284
+msgid "No recent snapshot-scoped events were recorded."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:70
+#: includes/admin/class-update-readiness-state-builder.php:1042
+msgid "Not captured"
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:71
+#, php-format
+msgid "Captured on %s."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:71
+msgid "No baseline is currently stored for this snapshot."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:74
+msgid "Restore readiness"
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:75
+msgid "Not evaluated"
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:76
+msgid "Run restore readiness when you need a current advisory check."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:81
+msgid "No staged validation checkpoint is currently available."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:86
+msgid "No current restore plan checkpoint is currently available."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:139
+msgid "No rollback package is currently saved for this snapshot."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:143
+msgid "No health baseline has been captured for this snapshot yet."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:147
+msgid "The staged validation checkpoint is missing or stale."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:151
+msgid "The restore plan checkpoint is missing or stale."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:155
+msgid "The last restore readiness assessment reported warnings or blockers."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:159
+msgid "The last restore execution did not finish cleanly."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:163
+msgid "The last rollback did not finish cleanly."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:185
+msgid "Capture a health baseline before any guarded restore work."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:189
+msgid "Run staged restore validation to refresh the stage checkpoint."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:193
+msgid "Build or refresh the restore plan before considering live restore."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:197
+msgid "Review the last restore readiness findings and resolve the flagged issues."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:201
+msgid "Review the last restore execution result and its backup context before running anything again."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:205
+msgid "Review the last rollback result before treating this snapshot as stable again."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:209
+msgid "No immediate action is required. Keep the current evidence fresh before future update or restore work."
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:223
+msgid "Snapshot Summary"
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:226
+#, php-format
+msgid "Snapshot ID: %d"
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:227
+#, php-format
+msgid "Generated: %s"
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:228
+#, php-format
+msgid "Created: %s"
+msgstr ""
+
+#: includes/admin/class-snapshot-summary-presenter.php:258
+msgid "No material risks are highlighted by the current snapshot summary."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:108
+msgid "No snapshots matched the current filters."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:109
+msgid "No checkpoints have been recorded yet."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:176
+msgid "No checkpoint selected"
+msgstr ""
+
+#. translators: 1: snapshot id, 2: created at
+#: includes/admin/class-update-readiness-state-builder.php:180
+#, php-format
+msgid "Checkpoint #%1$d captured on %2$s is selected for validation or restore review."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:184
+msgid "Choose a checkpoint from the list below to validate it, restore it, or roll back the last restore."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:195
+msgid "No active risk callouts are currently highlighted for this snapshot."
+msgstr ""
+
+#. translators: %s: recommended snapshot label
+#: includes/admin/class-update-readiness-state-builder.php:201
+#, php-format
+msgid "Review the recommended snapshot %s before using a different workspace."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:204
+msgid "No immediate follow-up step is currently required."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:207
+msgid "Restore not safe yet: capture a baseline before any guarded restore work."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:209
+msgid "Restore not safe yet: the current health baseline is unhealthy and should be reviewed before any restore decision."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:211
+msgid "Restore preparation needs attention: the current health baseline is degraded."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:212
+msgid "Baseline status is recorded for this snapshot."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:217
+msgid "The workspace is showing the shortest safe path, not every technical detail at once."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:631
+msgid "Awaiting snapshot"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:635
+msgid "Trusted workspace"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:639
+#: includes/admin/class-update-readiness-state-builder.php:1946
+msgid "Last known good"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:643
+msgid "Review required"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:646
+msgid "Needs attention"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:689
+msgid "Create a safe-update checkpoint before updates, then validate it before you rely on it for restore."
+msgstr ""
+
+#. translators: %s: recommended snapshot label
+#: includes/admin/class-update-readiness-state-builder.php:695
+#, php-format
+msgid "Switch to the recommended snapshot %s or confirm why an older workspace is required."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:701
+msgid "Review the recovery context and confirm that this last known good state still matches your rollback goal."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:705
+msgid "Review the latest plan, then restore the checkpoint only if it still matches your intent."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:708
+msgid "Refresh the checkpoint validation and restore plan before continuing."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:722
+msgid "Next: create or choose a checkpoint, then validate it before any restore decision."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:726
+msgid "Next: compare this checkpoint against the latest recommended one, then proceed only if the older state is intentional."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:730
+msgid "Next: confirm the restore plan still matches your intent, then restore the checkpoint."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:733
+msgid "Next: refresh the missing validation steps for this checkpoint."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:764
+msgid "No snapshots match this view."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:765
+msgid "The current filters are valid, but no checkpoint in the saved list fits them yet."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:766
+msgid "Reset the filters or broaden the search to return to the full checkpoint list."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:772
+msgid "Before Update becomes useful once Sentinel has a checkpoint to validate and restore."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:773
+msgid "Create the first checkpoint before plugin or theme updates."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:797
+#: includes/admin/views/before-update.php:84
+msgid "Create a checkpoint before you update."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:798
+msgid "This workspace is for saving a safe-update checkpoint, validating it, and restoring it later if a plugin/theme code update breaks the site."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:799
+msgid "Create a checkpoint first, then validate it before relying on it for restore."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:817
+msgid "No checkpoint validation history yet."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:818
+msgid "Validation and restore-planning results will appear here after you check a saved checkpoint."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:819
+msgid "Create a checkpoint and run the validation steps."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:840
+msgid "Sentinel will summarize checkpoint restores and rollbacks here after the workflow has been used."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:841
+msgid "Validate a checkpoint first. Restore history appears after real restore activity."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:861
+msgid "Use this page to review one checkpoint at a time. Validate it first, then restore it only when the plan looks acceptable."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:862
+msgid "Create a checkpoint first. Sentinel will then show the validation, restore, and rollback steps for it."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:867
+msgid "A safer status means the selected checkpoint currently has enough validation to review for restore."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:868
+msgid "A warning or risky status means the checkpoint is missing validation or needs review before restore."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:873
+msgid "Follow the next action near the top of the page, then restore or roll back only when the checkpoint state is clear."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:874
+msgid "Create a checkpoint, validate it, and return here once Sentinel has enough evidence to guide you."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:887
+msgid "Sentinel provides Safe Update Checkpoints and Rollback for WordPress plugin/theme code changes. It is not a full-site restore, database recovery, media restore, WordPress core restore, WooCommerce order/payment rollback, or malware cleanup plugin."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:946
+#: includes/admin/class-update-readiness-state-builder.php:1268
+#: includes/admin/class-update-readiness-state-builder.php:2127
+#: includes/admin/class-update-readiness-state-builder.php:2135
+msgid "Ready"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:946
+#: includes/admin/class-update-readiness-state-builder.php:1268
+msgid "Blocked"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:999
+msgid "Resume from checkpoint"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1000
+msgid "Continue the interrupted restore from the preserved journal and checkpoint state."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1007
+msgid "Rollback from backup"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1008
+msgid "Use the preserved backup root from the last restore attempt to return to the previously live payloads."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1014
+msgid "Retry after review"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1015
+msgid "Review readiness findings and failed item rows before attempting another live restore."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1021
+msgid "Partial Restore Detected"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1021
+msgid "Restore Blocked Before Completion"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1023
+msgid "Some restore steps completed, but Sentinel also recorded failed work. Use the recovery options below before attempting another live change."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1024
+msgid "The restore stopped before completion. Review the failing checks and choose a recovery action before proceeding."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1027
+msgid "Succeeded"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1031
+msgid "Warnings"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1039
+msgid "Health status"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1109
+msgid "Rollback resume state"
+msgstr ""
+
+#. translators: 1: completed count, 2: total entries
+#: includes/admin/class-update-readiness-state-builder.php:1112
+#, php-format
+msgid "%1$d rollback items are already recorded across %2$d persisted entries."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1139
+msgid "Take Snapshot Before Update"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1140
+msgid "Select or create a snapshot first so readiness, validation, and restore controls are anchored to a real workspace."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1141
+msgid "Review Snapshot Library"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1148
+msgid "Resume from Checkpoint"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1149
+msgid "An interrupted restore already has resumable state. Finish or recover that run before starting a new live restore."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1150
+msgid "Review Recovery Controls"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1157
+msgid "Rollback the Partial Restore"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1158
+msgid "A previous restore did not finish cleanly. Review the rollback context before running another live change."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1166
+msgid "Run Restore Readiness Check"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1167
+msgid "Refresh restore-readiness evidence first so later actions rely on current assessment data."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1168
+msgid "Go to Snapshot Actions"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1175
+msgid "Safe to Proceed with Restore Plan"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1176
+msgid "The current snapshot is through the safety gates. Review the impact and guarded restore controls before executing."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1177
+msgid "Review Guarded Restore"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1184
+msgid "One or more checklist or failure-state requirements still block live restore. Work from the checklist before moving deeper into the page."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1185
+msgid "Open Pre-Restore Checklist"
+msgstr ""
+
+#. translators: 1: completed item count, 2: journal entry count
+#: includes/admin/class-update-readiness-state-builder.php:1199
+#, php-format
+msgid "A resumable execution journal exists with %1$d completed items across %2$d persisted entries."
+msgstr ""
+
+#. translators: 1: completed item count, 2: journal entry count
+#: includes/admin/class-update-readiness-state-builder.php:1214
+#, php-format
+msgid "A resumable rollback journal exists with %1$d completed items across %2$d persisted entries."
+msgstr ""
+
+#. translators: 1: completed count, 2: tracked item count
+#: includes/admin/class-update-readiness-state-builder.php:1233
+#, php-format
+msgid "Rollback checkpoint state currently tracks %1$d completed items across %2$d item checkpoints."
+msgstr ""
+
+#. translators: %d: checklist check count
+#: includes/admin/class-update-readiness-state-builder.php:1272
+#, php-format
+msgid "%d checks"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1275
+msgid "Not started"
+msgstr ""
+
+#. translators: %d: max age in hours
+#: includes/admin/class-update-readiness-state-builder.php:1278
+#, php-format
+msgid "Live restore is offered only when all checklist gates pass and checkpoints are no older than %d hours."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1365
+msgid "Label"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1369
+#: includes/admin/views/dashboard-v1.php:271
+#: includes/admin/views/dashboard-v1.php:336
+msgid "Created"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1373
+#: includes/snapshots/class-restore-execution-planner.php:88
+msgid "Theme"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1377
+msgid "Core Version"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1381
+msgid "PHP Version"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1426
+#: includes/admin/views/before-update.php:320
+msgid "Checkpoint Context"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1429
+msgid "This checkpoint was captured for a specific update window."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1432
+msgid "Captured From"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1436
+msgid "Scope"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1440
+msgid "Targets"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1457
+msgid "Plugins update screen"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1461
+msgid "Themes update screen"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1465
+#: includes/snapshots/class-snapshot-manager.php:530
+msgid "Updates screen"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1468
+msgid "Manual workspace"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1481
+msgid "Specific plugin update"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1485
+msgid "Specific theme update"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1489
+msgid "Plugins update window"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1493
+msgid "Themes update window"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1497
+msgid "Mixed plugin and theme update window"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1500
+msgid "Manual checkpoint"
+msgstr ""
+
+#. translators: 1: component label, 2: target version
+#: includes/admin/class-update-readiness-state-builder.php:1532
+#, php-format
+msgid "%1$s to %2$s"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1542
+msgid "Not recorded"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1561
+#: includes/admin/class-update-readiness-state-builder.php:2122
+#: includes/admin/class-update-readiness-state-builder.php:2189
+msgid "Generated"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1565
+msgid "Theme Source"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1569
+msgid "Plugin Entries"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1751
+msgid "Snapshot Theme"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1755
+msgid "Current Theme"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1759
+msgid "Snapshot Core"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1763
+msgid "Current Core"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1767
+msgid "Snapshot PHP"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1771
+msgid "Current PHP"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1873
+msgid "Dry-Run"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1880
+msgid "Staged Validation"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1887
+msgid "Restore Plan"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1917
+msgid "Event detail"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:1944
+msgid "Recommended snapshot"
+msgstr ""
+
+#. translators: 1: current page, 2: total pages, 3: total items
+#: includes/admin/class-update-readiness-state-builder.php:2001
+#, php-format
+msgid "Page %1$d of %2$d, %3$d snapshots matched."
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:2064
+#: includes/admin/views/history.php:137
+msgid "&laquo;"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:2065
+#: includes/admin/views/history.php:138
+msgid "&raquo;"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:2118
+#: includes/admin/class-update-readiness-state-builder.php:2185
+#: includes/admin/views/history.php:60
+msgid "Run ID"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:2126
+msgid "Stage Reuse"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:2127
+msgid "Not available"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:2130
+msgid "Stage Path"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:2134
+msgid "Health Reuse"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:2135
+msgid "Health will rerun"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:2138
+msgid "Backed-Up Items"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:2142
+msgid "Written Items"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:2146
+#: includes/admin/class-update-readiness-state-builder.php:2197
+msgid "Tracked Items"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:2150
+#: includes/admin/class-update-readiness-state-builder.php:2205
+msgid "Failed Items"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:2157
+#: includes/admin/class-update-readiness-state-builder.php:2212
+msgid "Checkpoint Phases"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:2164
+msgid "Stored Health Status"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:2193
+msgid "Backup Root"
+msgstr ""
+
+#: includes/admin/class-update-readiness-state-builder.php:2201
+msgid "Completed Items"
+msgstr ""
+
+#. translators: 1: job type, 2: job status, 3: progress message
+#: includes/admin/views/before-update.php:66
+#, php-format
+msgid "Latest background job: %1$s is %2$s. %3$s"
+msgstr ""
+
+#: includes/admin/views/before-update.php:67
+#: includes/admin/views/dashboard-v1.php:116
+msgid "Job"
+msgstr ""
+
+#: includes/admin/views/before-update.php:68
+msgid "pending"
+msgstr ""
+
+#: includes/admin/views/before-update.php:78
+msgid "Safe Update Workflow"
+msgstr ""
+
+#: includes/admin/views/before-update.php:85
+msgid "Save the current active theme and plugins so you can restore that code layer if an update breaks it."
+msgstr ""
+
+#: includes/admin/views/before-update.php:87
+msgid "Next step"
+msgstr ""
+
+#: includes/admin/views/before-update.php:91
+#: includes/admin/views/dashboard-v1.php:79
+msgid "Restore boundary"
+msgstr ""
+
+#: includes/admin/views/before-update.php:92
+msgid "This plugin restores the active theme and active plugins only. It does not restore the database, uploads/media, WordPress core, or WooCommerce order/payment state, and it does not perform malware cleanup. Use dedicated backup and security tools for those needs."
+msgstr ""
+
+#: includes/admin/views/before-update.php:95
+#: includes/admin/views/dashboard-v1.php:83
+msgid "Best fit"
+msgstr ""
+
+#: includes/admin/views/before-update.php:96
+msgid "Use Sentinel when you want a safe-update checkpoint for plugin and theme code changes. Do not treat it as a full backup replacement."
+msgstr ""
+
+#: includes/admin/views/before-update.php:107
+msgid "Next Step"
+msgstr ""
+
+#: includes/admin/views/before-update.php:111
+msgid "Best First Use"
+msgstr ""
+
+#: includes/admin/views/before-update.php:112
+msgid "Create a checkpoint right before a plugin or theme update so the captured code layer matches the change window."
+msgstr ""
+
+#: includes/admin/views/before-update.php:120
+msgid "How Sentinel Works"
+msgstr ""
+
+#: includes/admin/views/before-update.php:147
+#: includes/admin/views/dashboard-v1.php:162
+#: includes/diagnostics/class-woocommerce-guardrails.php:60
+msgid "WooCommerce detected"
+msgstr ""
+
+#: includes/admin/views/before-update.php:149
+msgid "WooCommerce Safe Update Mode"
+msgstr ""
+
+#: includes/admin/views/before-update.php:156
+msgid "Keep WooCommerce-safe update mode enabled"
+msgstr ""
+
+#: includes/admin/views/before-update.php:157
+msgid "Maintenance window is scheduled"
+msgstr ""
+
+#: includes/admin/views/before-update.php:158
+msgid "External database backup is confirmed"
+msgstr ""
+
+#: includes/admin/views/before-update.php:160
+msgid "Save WooCommerce Guardrails"
+msgstr ""
+
+#: includes/admin/views/before-update.php:174
+msgid "WooCommerce boundary"
+msgstr ""
+
+#: includes/admin/views/before-update.php:183
+msgid "Adoption Guide"
+msgstr ""
+
+#: includes/admin/views/before-update.php:204
+msgid "Safe Update Window"
+msgstr ""
+
+#: includes/admin/views/before-update.php:205
+msgid "Follow this guided workflow from checkpoint capture through post-update verification and client reporting."
+msgstr ""
+
+#: includes/admin/views/before-update.php:226
+msgid "Check homepage after updates"
+msgstr ""
+
+#: includes/admin/views/before-update.php:227
+msgid "Check authenticated admin after updates"
+msgstr ""
+
+#: includes/admin/views/before-update.php:230
+msgid "Optional custom URLs"
+msgstr ""
+
+#: includes/admin/views/before-update.php:233
+msgid "Save Health Checks"
+msgstr ""
+
+#: includes/admin/views/before-update.php:241
+msgid "Run Post-Update Health Checks"
+msgstr ""
+
+#: includes/admin/views/before-update.php:247
+msgid "Confirm Update Window"
+msgstr ""
+
+#: includes/admin/views/before-update.php:253
+msgid "Download Client Report"
+msgstr ""
+
+#: includes/admin/views/before-update.php:260
+msgid "Post-update health"
+msgstr ""
+
+#: includes/admin/views/before-update.php:267
+#: includes/admin/views/before-update.php:284
+msgid "Create Checkpoint"
+msgstr ""
+
+#: includes/admin/views/before-update.php:268
+msgid "Use this before plugin or theme updates. Sentinel saves rollback artifacts for the active theme and active plugins."
+msgstr ""
+
+#: includes/admin/views/before-update.php:270
+msgid "Recommended moment"
+msgstr ""
+
+#: includes/admin/views/before-update.php:271
+msgid "Capture a checkpoint immediately before the update window you want covered, not hours or days earlier."
+msgstr ""
+
+#: includes/admin/views/before-update.php:274
+msgid "Not covered"
+msgstr ""
+
+#: includes/admin/views/before-update.php:275
+msgid "This checkpoint covers active plugin/theme code only. It does not capture database changes, uploads/media, WooCommerce order/payment state, WordPress core, or malware cleanup state."
+msgstr ""
+
+#: includes/admin/views/before-update.php:278
+#: includes/admin/views/dashboard-v1.php:152
+msgid "Sensitive artifacts"
+msgstr ""
+
+#: includes/admin/views/before-update.php:279
+msgid "Checkpoint packages can contain plugin and theme source code, configuration files, license keys, API tokens, or other secrets stored inside that code. Keep generated artifacts private and verify server-level access rules."
+msgstr ""
+
+#: includes/admin/views/before-update.php:289
+#: includes/admin/views/dashboard-v1.php:324
+msgid "Saved Checkpoints"
+msgstr ""
+
+#: includes/admin/views/before-update.php:292
+msgid "No checkpoints are available yet."
+msgstr ""
+
+#: includes/admin/views/before-update.php:299
+#: includes/admin/views/dashboard-v1.php:267
+#: includes/admin/views/dashboard-v1.php:335
+msgid "Checkpoint"
+msgstr ""
+
+#: includes/admin/views/before-update.php:300
+msgid "Captured"
+msgstr ""
+
+#: includes/admin/views/before-update.php:301
+#: includes/admin/views/dashboard-v1.php:117
+msgid "Status"
+msgstr ""
+
+#: includes/admin/views/before-update.php:334
+msgid "Validate Checkpoint"
+msgstr ""
+
+#: includes/admin/views/before-update.php:335
+msgid "Run these checks in order so the checkpoint is easier to trust before any live restore decision."
+msgstr ""
+
+#: includes/admin/views/before-update.php:341
+msgid "Check Restore Readiness"
+msgstr ""
+
+#: includes/admin/views/before-update.php:347
+msgid "Validate Checkpoint Package"
+msgstr ""
+
+#: includes/admin/views/before-update.php:353
+msgid "Run Staged Validation"
+msgstr ""
+
+#: includes/admin/views/before-update.php:359
+msgid "Build Restore Plan"
+msgstr ""
+
+#: includes/admin/views/before-update.php:363
+msgid "Restore readiness:"
+msgstr ""
+
+#: includes/admin/views/before-update.php:364
+msgid "Checkpoint package:"
+msgstr ""
+
+#: includes/admin/views/before-update.php:365
+msgid "Staged validation:"
+msgstr ""
+
+#: includes/admin/views/before-update.php:366
+msgid "Restore plan:"
+msgstr ""
+
+#: includes/admin/views/before-update.php:371
+#: includes/admin/views/before-update.php:382
+msgid "Restore Checkpoint"
+msgstr ""
+
+#: includes/admin/views/before-update.php:372
+msgid "Use this only after validation. Sentinel writes the checkpoint payload into live plugin and theme paths. It is not a full-site restore, database rollback, WooCommerce order/payment rollback, WordPress core restore, or malware cleanup."
+msgstr ""
+
+#: includes/admin/views/before-update.php:379
+msgid "Type confirmation phrase"
+msgstr ""
+
+#: includes/admin/views/before-update.php:385
+msgid "Restore stays blocked until the required validation and planning checks are current for this checkpoint."
+msgstr ""
+
+#: includes/admin/views/before-update.php:392
+msgid "Resume Restore"
+msgstr ""
+
+#: includes/admin/views/before-update.php:400
+msgid "Restore Result"
+msgstr ""
+
+#: includes/admin/views/before-update.php:403
+msgid "Post-restore health:"
+msgstr ""
+
+#: includes/admin/views/before-update.php:410
+#: includes/admin/views/before-update.php:420
+msgid "Rollback Last Restore"
+msgstr ""
+
+#: includes/admin/views/before-update.php:411
+msgid "Use rollback when the last restore introduced a new problem and Sentinel still has the related backup context."
+msgstr ""
+
+#: includes/admin/views/before-update.php:417
+msgid "Type rollback confirmation phrase"
+msgstr ""
+
+#: includes/admin/views/before-update.php:427
+msgid "Resume Rollback"
+msgstr ""
+
+#: includes/admin/views/before-update.php:435
+msgid "Rollback Result"
+msgstr ""
+
+#: includes/admin/views/before-update.php:438
+msgid "Post-rollback health:"
+msgstr ""
+
+#: includes/admin/views/before-update.php:445
+#: includes/admin/views/dashboard-v1.php:293
+#: includes/admin/views/history.php:29
+msgid "Recent History"
+msgstr ""
+
+#: includes/admin/views/before-update.php:447
+msgid "Need the full audit trail?"
+msgstr ""
+
+#: includes/admin/views/before-update.php:448
+msgid "Open History to review checkpoint creation, validation, restore, and rollback events together."
+msgstr ""
+
+#: includes/admin/views/before-update.php:449
+#: includes/admin/views/dashboard-v1.php:298
+#: includes/admin/views/dashboard-v1.php:319
+msgid "Open Full History"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:22
+msgid "Create a safe-update checkpoint before updates."
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:23
+msgid "Capture a checkpoint of your active plugins and theme before updating anything."
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:52
+#: includes/admin/views/dashboard-v1.php:55
+msgid "Create Your First Checkpoint"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:53
+msgid "Before updating your site, save a checkpoint of the active theme and plugins so you can restore that code layer if an update breaks it."
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:80
+msgid "Sentinel restores the active theme and active plugins only. It does not restore the database, uploads/media, WordPress core, or WooCommerce order/payment state, and it does not perform malware cleanup. Use dedicated backup and security tools for those needs."
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:84
+msgid "Built for agencies, freelancers, and production maintainers who want a safe-update checkpoint before risky plugin or theme updates."
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:91
+msgid "Start Here"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:112
+msgid "Background Jobs"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:118
+msgid "Progress"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:119
+msgid "Updated"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:145
+#: includes/snapshots/class-artifact-exposure-scanner.php:266
+msgid "Needs host review"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:148
+msgid "Artifact Storage Exposure"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:164
+msgid "WooCommerce Guardrails"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:166
+msgid "Review WooCommerce Safe Update Mode"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:182
+msgid "Alerts active"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:182
+msgid "Alerts not active"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:184
+#, php-format
+msgid "%d channels configured"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:186
+msgid "Alerts and Integrations"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:191
+msgid "Enable operation alerts"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:195
+msgid "Generic webhook"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:199
+msgid "Slack"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:203
+msgid "Teams"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:207
+msgid "Discord"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:211
+msgid "Telegram"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:213
+msgid "Chat ID"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:216
+msgid "Alert events"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:222
+msgid "Monitoring links"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:225
+#: includes/integrations/class-alert-notifier.php:36
+msgid "UptimeRobot"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:229
+#: includes/integrations/class-alert-notifier.php:37
+msgid "Sentry"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:233
+#: includes/integrations/class-alert-notifier.php:38
+msgid "New Relic"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:237
+#: includes/integrations/class-alert-notifier.php:39
+msgid "Datadog"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:241
+msgid "Save Integrations"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:246
+msgid "Send Test Alert"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:250
+msgid "Last test"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:251
+#, php-format
+msgid "%1$d sent, %2$d failed"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:257
+msgid "Latest Checkpoint"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:260
+msgid "No checkpoints have been saved yet."
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:261
+msgid "Create a checkpoint before making risky plugin or theme updates."
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:275
+msgid "Restore state"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:276
+msgid "Ready to restore"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:276
+msgid "Needs validation"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:288
+msgid "Open in Before Update"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:296
+msgid "No recent checkpoint or restore history yet."
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:297
+msgid "History will start filling in after you create checkpoints, run restores, or roll back the last restore."
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:304
+#: includes/admin/views/history.php:107
+#: includes/admin/views/history.php:155
+msgid "Time"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:305
+#: includes/admin/views/history.php:109
+#: includes/admin/views/history.php:157
+msgid "Event"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:306
+#: includes/admin/views/history.php:111
+#: includes/admin/views/history.php:159
+msgid "Message"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:327
+msgid "No saved checkpoints yet."
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:328
+msgid "Use Before Update to save a safe-update checkpoint before plugin or theme updates."
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:329
+msgid "Create a Checkpoint"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:337
+msgid "Actions"
+msgstr ""
+
+#: includes/admin/views/dashboard-v1.php:345
+msgid "Restore / Rollback"
+msgstr ""
+
+#: includes/admin/views/dashboard-widget.php:19
+msgid "Sentinel site status is not available yet."
+msgstr ""
+
+#: includes/admin/views/dashboard-widget.php:30
+msgid "No snapshot available"
+msgstr ""
+
+#: includes/admin/views/dashboard-widget.php:37
+msgid "Next step:"
+msgstr ""
+
+#: includes/admin/views/dashboard-widget.php:51
+msgid "Theme and active plugins only. Not a database, WooCommerce order/payment, core, or malware cleanup tool."
+msgstr ""
+
+#: includes/admin/views/history.php:25
+msgid "Review recent checkpoint, restore, and rollback activity. Start here when you need to confirm what happened, then open a specific run only if you need more detail."
+msgstr ""
+
+#: includes/admin/views/history.php:30
+msgid "Checkpoint, restore, and rollback events in one place."
+msgstr ""
+
+#: includes/admin/views/history.php:31
+msgid "This is the audit trail for the narrowed v1 workflow. It supports review, not full operational forensics."
+msgstr ""
+
+#: includes/admin/views/history.php:38
+msgid "Filter and Export"
+msgstr ""
+
+#: includes/admin/views/history.php:39
+msgid "Narrow the audit trail on the left, then export the same filtered view from the panel on the right."
+msgstr ""
+
+#: includes/admin/views/history.php:46
+#: includes/admin/views/history.php:108
+#: includes/admin/views/history.php:156
+msgid "Severity"
+msgstr ""
+
+#: includes/admin/views/history.php:48
+msgid "All severities"
+msgstr ""
+
+#: includes/admin/views/history.php:49
+msgid "Info"
+msgstr ""
+
+#: includes/admin/views/history.php:51
+msgid "Error"
+msgstr ""
+
+#: includes/admin/views/history.php:52
+msgid "Critical"
+msgstr ""
+
+#: includes/admin/views/history.php:56
+#: includes/admin/views/history.php:110
+#: includes/admin/views/history.php:158
+msgid "Source"
+msgstr ""
+
+#: includes/admin/views/history.php:64
+msgid "Checkpoint ID"
+msgstr ""
+
+#: includes/admin/views/history.php:68
+msgid "Search"
+msgstr ""
+
+#: includes/admin/views/history.php:72
+msgid "Filter"
+msgstr ""
+
+#: includes/admin/views/history.php:73
+msgid "Reset"
+msgstr ""
+
+#: includes/admin/views/history.php:81
+msgid "Current View"
+msgstr ""
+
+#: includes/admin/views/history.php:82
+msgid "Export the filtered log list."
+msgstr ""
+
+#: includes/admin/views/history.php:86
+msgid "Sensitive export"
+msgstr ""
+
+#: includes/admin/views/history.php:99
+msgid "No history entries match the current filters."
+msgstr ""
+
+#: includes/admin/views/history.php:100
+msgid "Broaden the filters or reset the view to return to the full event stream."
+msgstr ""
+
+#: includes/admin/views/history.php:101
+msgid "Reset Filters"
+msgstr ""
+
+#: includes/admin/views/history.php:152
+msgid "Event Detail"
+msgstr ""
+
+#: includes/core/class-disk-space-preflight.php:131
+msgid "Available disk space could not be determined for this operation."
+msgstr ""
+
+#: includes/core/class-disk-space-preflight.php:144
+msgid "Available disk space is below the safe threshold for this Sentinel operation."
+msgstr ""
+
+#: includes/core/class-disk-space-preflight.php:154
+msgid "Available disk space meets the safe threshold for this Sentinel operation."
+msgstr ""
+
+#: includes/core/class-operation-lock.php:193
+msgid "another operation"
+msgstr ""
+
+#. translators: %s = active operation key
+#: includes/core/class-operation-lock.php:197
+#, php-format
+msgid "Sentinel is already running %s. Wait for it to finish or for the lock timeout to expire before starting another heavy operation."
+msgstr ""
+
+#. translators: %1$d = critical conflict count, %2$d = recent critical log count
+#: includes/diagnostics/class-health-score.php:100
+#, php-format
+msgid "Critical attention needed. %1$d open critical signals and %2$d critical logs were recorded recently."
+msgstr ""
+
+#. translators: %1$d = warning conflict count, %2$d = recent error log count
+#: includes/diagnostics/class-health-score.php:109
+#, php-format
+msgid "Warnings detected. %1$d warning signals and %2$d recent error-level logs are affecting stability."
+msgstr ""
+
+#: includes/diagnostics/class-health-score.php:115
+msgid "The site appears stable based on currently captured signals, but this score is diagnostic guidance rather than a guarantee."
+msgstr ""
+
+#: includes/diagnostics/class-monitor.php:69
+msgid "Plugin activated."
+msgstr ""
+
+#: includes/diagnostics/class-monitor.php:89
+msgid "Plugin deactivated."
+msgstr ""
+
+#: includes/diagnostics/class-monitor.php:130
+msgid "WordPress update process completed."
+msgstr ""
+
+#: includes/diagnostics/class-monitor.php:154
+msgid "Deprecated function usage detected."
+msgstr ""
+
+#. translators: %s = deprecated function name
+#: includes/diagnostics/class-monitor.php:169
+#, php-format
+msgid "Deprecated function usage detected: %s"
+msgstr ""
+
+#: includes/diagnostics/class-monitor.php:195
+msgid "Deprecated argument usage detected."
+msgstr ""
+
+#: includes/diagnostics/class-monitor.php:219
+msgid "Potential hook or API misuse detected."
+msgstr ""
+
+#. translators: %s = function name
+#: includes/diagnostics/class-monitor.php:234
+#, php-format
+msgid "Potential API misuse detected in %s"
+msgstr ""
+
+#: includes/diagnostics/class-monitor.php:257
+msgid "Scheduled environment snapshot recorded."
+msgstr ""
+
+#: includes/diagnostics/class-monitor.php:280
+msgid "Fatal error detected."
+msgstr ""
+
+#. translators: %s = component label
+#: includes/diagnostics/class-monitor.php:301
+#, php-format
+msgid "Fatal error detected in %s"
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:60
+msgid "WooCommerce not detected"
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:62
+msgid "Use a maintenance window, confirm an external database backup, and treat carts, orders, payments, migrations, and schema changes as outside Sentinel rollback coverage."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:63
+msgid "WooCommerce-specific update guardrails will appear when WooCommerce is active."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:113
+msgid "Maintenance window"
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:116
+msgid "A maintenance window has been acknowledged for this update."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:117
+msgid "Schedule the update during a low-traffic maintenance window before changing WooCommerce code."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:120
+msgid "External database backup"
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:123
+msgid "An external database backup has been acknowledged."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:124
+msgid "Confirm a host or backup-platform database backup before updates that may touch orders, payments, or schema."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:127
+msgid "Active carts"
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:130
+msgid "Cart activity could not be detected in this context."
+msgstr ""
+
+#. translators: %d: active cart item count
+#: includes/diagnostics/class-woocommerce-guardrails.php:133
+#, php-format
+msgid "%d cart item is currently visible to this session."
+msgid_plural "%d cart items are currently visible to this session."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:138
+msgid "Open orders"
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:141
+msgid "Open order count could not be detected without WooCommerce order APIs."
+msgstr ""
+
+#. translators: %d: open order count
+#: includes/diagnostics/class-woocommerce-guardrails.php:144
+#, php-format
+msgid "%d pending, processing, or on-hold order was detected."
+msgid_plural "%d pending, processing, or on-hold orders were detected."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:149
+msgid "Rollback boundary"
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:151
+msgid "Sentinel can restore plugin/theme code checkpoints only. It cannot roll back WooCommerce orders, payments, database migrations, or schema changes."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:169
+msgid "WooCommerce updates can change database schema, order state, payment state, scheduled actions, and customer sessions outside Sentinel rollback coverage."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:173
+msgid "Confirm a maintenance window before running plugin or theme updates on this store."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:177
+msgid "Confirm an external database backup before updating WooCommerce or extensions."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:181
+msgid "Visible cart activity exists in this session. Consider waiting until active shoppers are clear."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:185
+msgid "Open orders are present. Avoid updates while fulfillment or payment flows are active."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:202
+msgid "WooCommerce: Not detected during this report."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:207
+msgid "WooCommerce: Active store detected."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:208
+msgid "WooCommerce limitation: Sentinel does not roll back orders, payments, carts, database migrations, scheduled actions, or schema changes."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:209
+msgid "Maintenance window: Confirmed by operator."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:209
+msgid "Maintenance window: Not confirmed in Sentinel."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:210
+msgid "External DB backup: Confirmed by operator."
+msgstr ""
+
+#: includes/diagnostics/class-woocommerce-guardrails.php:210
+msgid "External DB backup: Not confirmed in Sentinel."
+msgstr ""
+
+#: includes/integrations/class-alert-notifier.php:21
+msgid "Checkpoint created"
+msgstr ""
+
+#: includes/integrations/class-alert-notifier.php:22
+msgid "Restore started"
+msgstr ""
+
+#: includes/integrations/class-alert-notifier.php:24
+msgid "Rollback completed"
+msgstr ""
+
+#: includes/integrations/class-alert-notifier.php:25
+msgid "Health check failed"
+msgstr ""
+
+#: includes/integrations/class-alert-notifier.php:154
+msgid "This is a Sentinel test alert."
+msgstr ""
+
+#: includes/integrations/class-alert-notifier.php:184
+msgid "Alerts are disabled for this event."
+msgstr ""
+
+#: includes/integrations/class-alert-notifier.php:207
+msgid "No alert channels are configured."
+msgstr ""
+
+#: includes/integrations/class-alert-notifier.php:255
+msgid "Webhook URL is missing."
+msgstr ""
+
+#: includes/integrations/class-alert-notifier.php:263
+msgid "Webhook URL was rejected as unsafe (private or reserved network address)."
+msgstr ""
+
+#: includes/jobs/class-job-runner.php:152
+msgid "Sentinel queued a background job."
+msgstr ""
+
+#: includes/jobs/class-job-runner.php:199
+msgid "Sentinel completed a background job."
+msgstr ""
+
+#: includes/jobs/class-job-runner.php:212
+msgid "Sentinel background job failed."
+msgstr ""
+
+#: includes/jobs/class-job-runner.php:245
+msgid "Unknown background job type."
+msgstr ""
+
+#: includes/jobs/class-job-runner.php:260
+msgid "Creating checkpoint metadata and artifacts."
+msgstr ""
+
+#: includes/jobs/class-job-runner.php:269
+msgid "Checkpoint created."
+msgstr ""
+
+#: includes/jobs/class-job-runner.php:299
+#: includes/jobs/class-job-runner.php:337
+msgid "Another Sentinel operation is active. Retry this job after the active operation finishes."
+msgstr ""
+
+#: includes/jobs/class-job-runner.php:303
+msgid "Staging checkpoint artifacts."
+msgstr ""
+
+#: includes/jobs/class-job-runner.php:310
+msgid "Staged validation completed."
+msgstr ""
+
+#: includes/jobs/class-job-runner.php:341
+msgid "Building restore execution plan."
+msgstr ""
+
+#: includes/jobs/class-job-runner.php:348
+msgid "Restore plan completed."
+msgstr ""
+
+#: includes/jobs/class-job-runner.php:372
+msgid "The selected checkpoint could not be found."
+msgstr ""
+
+#: includes/jobs/class-job-runner.php:422
+msgid "Another Sentinel operation is active. Retry this checkpoint after the active operation finishes."
+msgstr ""
+
+#: includes/jobs/class-job-runner.php:426
+msgid "Available disk space is below the safe threshold for checkpoint creation."
+msgstr ""
+
+#: includes/jobs/class-job-runner.php:429
+msgid "Checkpoint creation failed."
+msgstr ""
+
+#: includes/jobs/class-job-store.php:41
+msgid "Queued."
+msgstr ""
+
+#: includes/jobs/class-job-store.php:149
+msgid "Running."
+msgstr ""
+
+#: includes/jobs/class-job-store.php:201
+msgid "Completed."
+msgstr ""
+
+#: includes/jobs/class-job-store.php:253
+msgid "Queued for retry."
+msgstr ""
+
+#: includes/snapshots/class-artifact-exposure-scanner.php:58
+msgid "Artifact storage uses a non-local backend. Verify bucket, CDN, and object permissions outside WordPress."
+msgstr ""
+
+#: includes/snapshots/class-artifact-exposure-scanner.php:78
+msgid "Sentinel artifact directories are guarded and the public probe was not readable."
+msgstr ""
+
+#: includes/snapshots/class-artifact-exposure-scanner.php:80
+msgid "Sentinel artifact storage appears publicly readable. Add server-level deny rules or move artifacts outside public uploads before relying on these packages."
+msgstr ""
+
+#: includes/snapshots/class-artifact-exposure-scanner.php:81
+msgid "Sentinel could not fully verify artifact exposure. Review host, CDN, Nginx, and object-storage rules before treating artifacts as private."
+msgstr ""
+
+#: includes/snapshots/class-artifact-exposure-scanner.php:144
+msgid "Standard guard files exist in Sentinel artifact directories."
+msgstr ""
+
+#: includes/snapshots/class-artifact-exposure-scanner.php:145
+msgid "One or more Sentinel artifact directories are missing standard guard files."
+msgstr ""
+
+#: includes/snapshots/class-artifact-exposure-scanner.php:164
+msgid "Sentinel could not build an artifact exposure probe path or URL."
+msgstr ""
+
+#: includes/snapshots/class-artifact-exposure-scanner.php:172
+msgid "Sentinel could not write the temporary artifact exposure probe file."
+msgstr ""
+
+#: includes/snapshots/class-artifact-exposure-scanner.php:195
+msgid "The artifact exposure probe could not complete an HTTP request."
+msgstr ""
+
+#: includes/snapshots/class-artifact-exposure-scanner.php:206
+msgid "The temporary artifact probe was publicly readable."
+msgstr ""
+
+#: includes/snapshots/class-artifact-exposure-scanner.php:215
+msgid "The temporary artifact probe was blocked or hidden from public HTTP access."
+msgstr ""
+
+#: includes/snapshots/class-artifact-exposure-scanner.php:223
+msgid "The artifact exposure probe returned an inconclusive HTTP response."
+msgstr ""
+
+#: includes/snapshots/class-artifact-exposure-scanner.php:247
+msgid "Snapshot packages and restore artifacts can contain plugin/theme source code and secrets. Server-level deny rules are stronger than WordPress-only checks."
+msgstr ""
+
+#: includes/snapshots/class-artifact-exposure-scanner.php:259
+msgid "Guarded"
+msgstr ""
+
+#: includes/snapshots/class-artifact-exposure-scanner.php:263
+msgid "Public exposure risk"
+msgstr ""
+
+#: includes/snapshots/class-restore-dry-run-checker.php:53
+msgid "No snapshot ZIP package is available for restore dry-run validation."
+msgstr ""
+
+#: includes/snapshots/class-restore-dry-run-checker.php:101
+#: includes/snapshots/class-restore-dry-run-checker.php:108
+msgid "Snapshot dry-run baseline"
+msgstr ""
+
+#: includes/snapshots/class-restore-dry-run-checker.php:103
+msgid "The snapshot is missing fields required for restore dry-run validation."
+msgstr ""
+
+#: includes/snapshots/class-restore-dry-run-checker.php:110
+msgid "The snapshot contains the fields required for restore dry-run validation."
+msgstr ""
+
+#: includes/snapshots/class-restore-dry-run-checker.php:123
+#: includes/snapshots/class-restore-dry-run-checker.php:130
+msgid "Snapshot ZIP package"
+msgstr ""
+
+#: includes/snapshots/class-restore-dry-run-checker.php:125
+msgid "No snapshot ZIP package was found for dry-run validation."
+msgstr ""
+
+#: includes/snapshots/class-restore-dry-run-checker.php:132
+msgid "A snapshot ZIP package is available for dry-run validation."
+msgstr ""
+
+#: includes/snapshots/class-restore-dry-run-checker.php:160
+msgid "Restore dry-run validation found blocking issues in the stored snapshot package."
+msgstr ""
+
+#: includes/snapshots/class-restore-dry-run-checker.php:164
+msgid "Restore dry-run validation passed with warnings. Review the package contents before any future restore workflow."
+msgstr ""
+
+#: includes/snapshots/class-restore-dry-run-checker.php:167
+msgid "Restore dry-run validation passed without modifying the site."
+msgstr ""
+
+#: includes/snapshots/class-restore-execution-planner.php:65
+msgid "Plan stage cleanup"
+msgstr ""
+
+#: includes/snapshots/class-restore-execution-planner.php:68
+msgid "The temporary plan stage directory was removed."
+msgstr ""
+
+#: includes/snapshots/class-restore-execution-planner.php:69
+msgid "The temporary plan stage directory could not be fully removed."
+msgstr ""
+
+#: includes/snapshots/class-restore-execution-planner.php:93
+msgid "The snapshot theme path is invalid and cannot be restored safely."
+msgstr ""
+
+#: includes/snapshots/class-restore-execution-planner.php:131
+msgid "The snapshot plugin path is invalid and cannot be restored safely."
+msgstr ""
+
+#: includes/snapshots/class-restore-execution-planner.php:175
+msgid "The restore target is outside the allowed plugin or theme scope."
+msgstr ""
+
+#: includes/snapshots/class-restore-execution-planner.php:191
+msgid "The packaged component payload is missing from the staged snapshot."
+msgstr ""
+
+#: includes/snapshots/class-restore-execution-planner.php:211
+msgid "The component does not exist on the live site and would be created."
+msgstr ""
+
+#: includes/snapshots/class-restore-execution-planner.php:232
+msgid "The live component already matches the snapshot payload."
+msgstr ""
+
+#: includes/snapshots/class-restore-execution-planner.php:245
+msgid "The live component differs from the snapshot payload and would be replaced."
+msgstr ""
+
+#: includes/snapshots/class-restore-execution-planner.php:329
+msgid "The restore plan is blocked because the snapshot package could not be staged cleanly."
+msgstr ""
+
+#. translators: %d = conflict count
+#: includes/snapshots/class-restore-execution-planner.php:335
+#, php-format
+msgid "The restore plan would overwrite %d conflicting live payloads. Explicit confirmation is required before execution."
+msgstr ""
+
+#: includes/snapshots/class-restore-execution-planner.php:340
+msgid "The restore plan is ready. The live site already matches or can safely receive the snapshot payloads."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:136
+msgid "The existing staged validation checkpoint was reused for resume execution."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:182
+msgid "Restore plan refresh"
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:184
+msgid "The restore plan could not be refreshed."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:189
+msgid "The existing restore plan checkpoint was reused for resume execution."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:223
+msgid "Restore disk capacity"
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:249
+#: includes/snapshots/class-restore-executor.php:265
+msgid "Backup root"
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:251
+#: includes/snapshots/class-restore-executor.php:253
+msgid "A restore backup directory could not be created."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:261
+msgid "The existing restore backup directory was reused."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:262
+msgid "A restore backup directory was created."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:297
+msgid "The previous health verification checkpoint was reused for resume execution."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:306
+msgid "Execution stage cleanup"
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:365
+#: includes/snapshots/class-restore-executor.php:372
+msgid "Operator confirmation"
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:367
+msgid "The required restore confirmation phrase did not match."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:374
+msgid "The required restore confirmation phrase was provided."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:393
+#: includes/snapshots/class-restore-executor.php:400
+msgid "Staged validation gate"
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:395
+msgid "A successful staged restore validation for this snapshot is required before live restore execution."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:402
+msgid "A successful staged restore validation exists for this snapshot."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:421
+#: includes/snapshots/class-restore-executor.php:428
+msgid "Restore plan gate"
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:423
+msgid "A current non-blocked restore plan for this snapshot is required before live restore execution."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:430
+msgid "A current restore plan exists for this snapshot."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:445
+#: includes/snapshots/class-restore-rollback-manager.php:252
+#: includes/snapshots/class-restore-staging-manager.php:309
+#: includes/updates/class-preflight-checker.php:256
+msgid "Disk capacity could not be evaluated."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:489
+#: includes/snapshots/class-restore-executor.php:491
+msgid "The restore plan item is not executable."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:516
+#: includes/snapshots/class-restore-executor.php:521
+msgid "This restore item was already completed in the persisted execution journal."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:548
+#: includes/snapshots/class-restore-executor.php:551
+msgid "The live payload already matches the snapshot payload. No write was needed."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:583
+#: includes/snapshots/class-restore-executor.php:587
+msgid "The staged source payload is missing and could not be restored."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:594
+msgid "The existing backup payload was reused for resume execution."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:640
+#: includes/snapshots/class-restore-executor.php:644
+msgid "The backup path could not be prepared for this restore item."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:673
+#: includes/snapshots/class-restore-executor.php:677
+msgid "The existing live payload could not be moved into backup storage."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:682
+msgid "The existing live payload was moved into backup storage."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:730
+#: includes/snapshots/class-restore-executor.php:736
+msgid "The partially restored live payload could not be reset before resume execution."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:742
+msgid "The partially restored live payload was removed before resume execution."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:789
+#: includes/snapshots/class-restore-executor.php:795
+msgid "The target parent directory could not be prepared for restore execution."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:830
+#: includes/snapshots/class-restore-executor.php:836
+msgid "The staged payload could not be written to the live target path."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:843
+#: includes/snapshots/class-restore-executor.php:867
+msgid "The staged payload was written to the live target path."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1070
+#: includes/snapshots/class-restore-staging-manager.php:173
+#: includes/snapshots/class-restore-staging-manager.php:191
+#: includes/snapshots/class-restore-staging-manager.php:209
+#: includes/snapshots/class-restore-staging-manager.php:225
+#: includes/snapshots/class-restore-staging-manager.php:242
+#: includes/snapshots/class-restore-staging-manager.php:265
+#: includes/snapshots/class-restore-staging-manager.php:284
+msgid "Stage directory"
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1072
+msgid "The previous execution stage directory was reused."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1075
+#: includes/snapshots/class-restore-staging-manager.php:247
+#: includes/snapshots/class-restore-staging-manager.php:289
+#: includes/snapshots/class-restore-staging-manager.php:776
+#: includes/snapshots/class-restore-staging-manager.php:784
+msgid "Package extraction"
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1077
+msgid "The previous execution stage contents were reused."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1140
+msgid "The execution stage directory was preserved for a future resume attempt."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1154
+msgid "The execution stage directory was removed."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1155
+msgid "The execution stage directory could not be fully removed."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1321
+msgid "The staged restore directory is outside Sentinel storage and cannot be used."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1325
+msgid "The restore package path is invalid and cannot be used safely."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1329
+msgid "The restore target is outside the active plugin or theme directories."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1333
+msgid "The restore backup directory is outside Sentinel storage and cannot be used."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1453
+msgid "Live restore execution finished."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1636
+msgid "Live restore execution resume completed."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1636
+msgid "Live restore execution completed."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1655
+msgid "Resume execution: "
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1658
+msgid "Live restore execution was blocked by safety gates."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1663
+msgid "Live restore execution completed, but the site failed post-restore health verification. Use rollback immediately."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1666
+msgid "Live restore execution ran with warnings or failures. Review the backup root and execution log immediately."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1670
+msgid "Live restore execution completed, but post-restore health verification returned warnings."
+msgstr ""
+
+#: includes/snapshots/class-restore-executor.php:1673
+msgid "Live restore execution completed and passed basic post-restore health verification."
+msgstr ""
+
+#: includes/snapshots/class-restore-health-verifier.php:38
+msgid "Homepage"
+msgstr ""
+
+#: includes/snapshots/class-restore-health-verifier.php:47
+#: includes/snapshots/class-restore-health-verifier.php:116
+msgid "Admin"
+msgstr ""
+
+#. translators: %d: custom check number
+#: includes/snapshots/class-restore-health-verifier.php:66
+#, php-format
+msgid "Custom URL %d"
+msgstr ""
+
+#: includes/snapshots/class-restore-health-verifier.php:78
+msgid "Health check configuration"
+msgstr ""
+
+#: includes/snapshots/class-restore-health-verifier.php:80
+msgid "No Safe Update Window health endpoints are enabled."
+msgstr ""
+
+#: includes/snapshots/class-restore-health-verifier.php:98
+msgid "Front-end"
+msgstr ""
+
+#: includes/snapshots/class-restore-health-verifier.php:104
+msgid "Login"
+msgstr ""
+
+#: includes/snapshots/class-restore-health-verifier.php:110
+msgid "REST API"
+msgstr ""
+
+#: includes/snapshots/class-restore-health-verifier.php:151
+msgid "Endpoint"
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:157
+#, php-format
+msgid "%s target"
+msgstr ""
+
+#. translators: 1: endpoint label, 2: url
+#: includes/snapshots/class-restore-health-verifier.php:164
+#, php-format
+msgid "%1$s verification will request %2$s"
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:170
+#, php-format
+msgid "The %s URL could not be determined for health verification."
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:202
+#, php-format
+msgid "%s request"
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:219
+#, php-format
+msgid "%s response code"
+msgstr ""
+
+#. translators: 1: endpoint label, 2: status code
+#: includes/snapshots/class-restore-health-verifier.php:225
+#, php-format
+msgid "%1$s returned HTTP %2$d."
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:234
+#, php-format
+msgid "%s response body"
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:241
+#, php-format
+msgid "%s returned non-empty content."
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:246
+#, php-format
+msgid "%s returned an empty or nearly empty response body."
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:254
+#, php-format
+msgid "%s content type"
+msgstr ""
+
+#. translators: 1: endpoint label, 2: content type
+#: includes/snapshots/class-restore-health-verifier.php:261
+#, php-format
+msgid "%1$s returned content type %2$s."
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:267
+#, php-format
+msgid "%s did not return a content type header."
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:277
+#, php-format
+msgid "%s authenticated access"
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:284
+#, php-format
+msgid "%s redirected to login or returned a login form instead of authenticated admin content."
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:289
+#, php-format
+msgid "%s returned authenticated admin content."
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:300
+#, php-format
+msgid "%s content markers"
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:307
+#, php-format
+msgid "%s returned expected page markers."
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:312
+#, php-format
+msgid "%s did not include the expected page markers."
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:322
+#: includes/snapshots/class-restore-health-verifier.php:336
+#, php-format
+msgid "%s fatal signature scan"
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:328
+#, php-format
+msgid "%s appears to contain a fatal error signature."
+msgstr ""
+
+#. translators: %s = endpoint label
+#: includes/snapshots/class-restore-health-verifier.php:342
+#, php-format
+msgid "No obvious fatal error signature was found in the %s response."
+msgstr ""
+
+#: includes/snapshots/class-restore-health-verifier.php:395
+msgid "The site did not pass basic post-restore health verification."
+msgstr ""
+
+#: includes/snapshots/class-restore-health-verifier.php:399
+msgid "The site responded after restore execution, but the health verification detected warnings."
+msgstr ""
+
+#: includes/snapshots/class-restore-health-verifier.php:402
+msgid "The site passed the basic post-restore health verification checks."
+msgstr ""
+
+#: includes/snapshots/class-restore-health-verifier.php:440
+#: includes/snapshots/class-restore-health-verifier.php:465
+msgid "Admin authentication context"
+msgstr ""
+
+#: includes/snapshots/class-restore-health-verifier.php:442
+msgid "No logged-in admin session is available for the authenticated admin health check."
+msgstr ""
+
+#: includes/snapshots/class-restore-health-verifier.php:468
+msgid "Authenticated cookies are available for the admin health check."
+msgstr ""
+
+#: includes/snapshots/class-restore-health-verifier.php:469
+msgid "Authenticated cookies were not available for the admin health check."
+msgstr ""
+
+#: includes/snapshots/class-restore-journal-recorder.php:85
+msgid "Restore journal entry recorded."
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:96
+#: includes/snapshots/class-restore-readiness-checker.php:104
+msgid "Snapshot completeness"
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:98
+msgid "The snapshot does not contain enough metadata for meaningful restore-readiness analysis."
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:106
+msgid "Snapshot metadata is complete enough for advisory comparison."
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:119
+#: includes/snapshots/class-restore-readiness-checker.php:127
+msgid "Filesystem readiness"
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:121
+msgid "The WordPress content directories are not writable enough for controlled file operations."
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:129
+msgid "Content directories appear writable for future controlled file operations."
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:143
+#: includes/snapshots/class-restore-readiness-checker.php:151
+msgid "Theme alignment"
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:145
+msgid "The active theme differs from the snapshot theme. Restoring site state later may require theme review."
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:153
+msgid "The current active theme matches the snapshot theme."
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:171
+#: includes/snapshots/class-restore-readiness-checker.php:180
+#: includes/snapshots/class-restore-readiness-checker.php:188
+msgid "Plugin drift"
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:173
+msgid "Some plugins present in the snapshot are no longer active now. Any future restore workflow would need manual validation."
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:182
+msgid "Plugin versions or active plugin sets have changed since the snapshot."
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:190
+msgid "The current active plugin set matches the snapshot closely."
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:207
+#: includes/snapshots/class-restore-readiness-checker.php:215
+msgid "Runtime drift"
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:209
+msgid "WordPress core or PHP version differs from the snapshot baseline."
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:217
+msgid "WordPress core and PHP versions match the snapshot baseline."
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:239
+msgid "Snapshot source availability"
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:241
+msgid "Snapshot component source availability could not be determined."
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:272
+msgid "Blocking conditions were found. A future restore workflow would require manual intervention and validation."
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:276
+msgid "The snapshot is usable for review, but environment drift means any future restore workflow should be treated carefully."
+msgstr ""
+
+#: includes/snapshots/class-restore-readiness-checker.php:279
+msgid "No major restore-readiness issues were detected in this advisory assessment."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:113
+msgid "Rollback confirmation has not been evaluated yet."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:146
+msgid "Rollback disk capacity"
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:198
+#: includes/snapshots/class-restore-rollback-manager.php:205
+msgid "Rollback confirmation"
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:200
+msgid "The required rollback confirmation phrase did not match."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:207
+msgid "The required rollback confirmation phrase was provided."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:228
+#: includes/snapshots/class-restore-rollback-manager.php:235
+msgid "Rollback source context"
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:230
+msgid "No usable restore execution backup context is available for rollback."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:237
+msgid "Restore execution backup context is available for rollback."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:301
+#: includes/snapshots/class-restore-rollback-manager.php:304
+msgid "This rollback item was already completed in the persisted rollback journal."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:321
+#: includes/snapshots/class-restore-rollback-manager.php:323
+msgid "No rollback was needed because no live payload was changed."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:341
+#: includes/snapshots/class-restore-rollback-manager.php:343
+msgid "The created live payload is already absent."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:361
+#: includes/snapshots/class-restore-rollback-manager.php:364
+msgid "The created live payload was removed during rollback."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:362
+#: includes/snapshots/class-restore-rollback-manager.php:364
+msgid "The created live payload could not be removed during rollback."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:381
+#: includes/snapshots/class-restore-rollback-manager.php:383
+msgid "The backup payload required for rollback is missing."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:403
+#: includes/snapshots/class-restore-rollback-manager.php:405
+msgid "The live payload could not be removed before rollback."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:410
+msgid "The live payload was removed before rollback restore."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:433
+#: includes/snapshots/class-restore-rollback-manager.php:437
+msgid "The rollback target directory could not be prepared."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:463
+#: includes/snapshots/class-restore-rollback-manager.php:468
+msgid "The backup payload was restored to the live path."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:464
+#: includes/snapshots/class-restore-rollback-manager.php:468
+msgid "The backup payload could not be restored to the live path."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:741
+msgid "Restore rollback finished."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:872
+msgid "The rollback target is outside the active plugin or theme directories."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:876
+msgid "The rollback backup path is outside Sentinel storage and cannot be used."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:980
+msgid "Rollback was blocked by missing confirmation or backup context."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:984
+msgid "Rollback ran with failures. Review the execution and rollback logs immediately."
+msgstr ""
+
+#: includes/snapshots/class-restore-rollback-manager.php:987
+msgid "Rollback completed from the stored live-restore backup payloads."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:76
+msgid "Package integrity inspection"
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:78
+msgid "Package inspection failed."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:87
+msgid "Zip extraction support"
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:89
+msgid "The ZipArchive extension is unavailable, so staged restore validation cannot run."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:113
+msgid "Staged snapshot manifest"
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:114
+msgid "Staged artifact manifest"
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:115
+msgid "Staged checksum manifest"
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:123
+msgid "Staged theme payload"
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:175
+msgid "No snapshot ZIP package is available for staged extraction."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:193
+msgid "The snapshot package could not be prepared for staged extraction."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:199
+msgid "Stage disk capacity"
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:211
+msgid "A temporary stage directory was not created because disk capacity is below the safe threshold."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:227
+msgid "A temporary stage directory could not be created."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:244
+#: includes/snapshots/class-restore-staging-manager.php:267
+#: includes/snapshots/class-restore-staging-manager.php:286
+msgid "A temporary stage directory was created."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:249
+msgid "The snapshot package could not be opened for staged extraction."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:292
+msgid "The snapshot package was extracted into the temporary stage."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:293
+msgid "The snapshot package could not be extracted into the temporary stage."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:413
+#: includes/snapshots/class-restore-staging-manager.php:420
+msgid "Restore stage baseline"
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:415
+msgid "The snapshot is missing fields required for staged restore validation."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:422
+msgid "The snapshot contains the fields required for staged restore validation."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:435
+#: includes/snapshots/class-restore-staging-manager.php:442
+msgid "Staged snapshot package"
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:437
+msgid "No snapshot ZIP package is available for staged validation."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:444
+msgid "A snapshot ZIP package is available for staged validation."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:463
+msgid "The staged file path is invalid."
+msgstr ""
+
+#. translators: %s = file path
+#: includes/snapshots/class-restore-staging-manager.php:473
+#, php-format
+msgid "Missing extracted file: %s"
+msgstr ""
+
+#. translators: %s = file path
+#: includes/snapshots/class-restore-staging-manager.php:484
+#, php-format
+msgid "Found extracted file: %s"
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:505
+msgid "The staged directory path is invalid."
+msgstr ""
+
+#. translators: %s = directory path
+#: includes/snapshots/class-restore-staging-manager.php:515
+#, php-format
+msgid "Missing extracted directory: %s"
+msgstr ""
+
+#. translators: %s = directory path
+#: includes/snapshots/class-restore-staging-manager.php:526
+#, php-format
+msgid "Found extracted directory: %s"
+msgstr ""
+
+#. translators: %s = plugin name
+#: includes/snapshots/class-restore-staging-manager.php:544
+#, php-format
+msgid "Staged plugin payload: %s"
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:568
+#: includes/snapshots/class-restore-staging-manager.php:578
+#: includes/snapshots/class-restore-staging-manager.php:586
+#: includes/snapshots/class-restore-staging-manager.php:593
+msgid "Staged snapshot identity"
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:570
+msgid "The extracted snapshot manifest could not be read."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:580
+msgid "The extracted snapshot manifest is invalid."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:588
+msgid "The extracted snapshot manifest does not match the selected snapshot."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:595
+msgid "The extracted snapshot manifest matches the selected snapshot."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:609
+#: includes/snapshots/class-restore-staging-manager.php:620
+#: includes/snapshots/class-restore-staging-manager.php:632
+msgid "Staged checksum validation"
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:611
+msgid "The extracted checksum manifest is missing or invalid."
+msgstr ""
+
+#. translators: %s = file path
+#: includes/snapshots/class-restore-staging-manager.php:624
+#, php-format
+msgid "The extracted package entry failed checksum validation: %s"
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:634
+msgid "The extracted package entries match the stored checksum manifest."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:652
+msgid "Stage cleanup"
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:655
+msgid "The temporary stage directory was removed after validation."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:656
+msgid "The temporary stage directory could not be fully removed after validation."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:778
+msgid "The snapshot package includes an unsafe archive path and cannot be extracted."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:786
+msgid "The snapshot package archive paths passed extraction safety checks."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:866
+msgid "Staged restore validation found blocking issues in the extracted package."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:870
+msgid "Staged restore validation passed with warnings. Review the extracted package findings before any future live restore."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:874
+msgid "Staged restore validation passed, but the temporary stage directory could not be fully cleaned up."
+msgstr ""
+
+#: includes/snapshots/class-restore-staging-manager.php:877
+msgid "Staged restore validation extracted and verified the package without modifying the live site."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-artifact-inspector.php:110
+#: includes/updates/class-source-validator.php:369
+msgid "Unknown artifact type."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-artifact-inspector.php:145
+msgid "No package manager is available for package inspection."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-artifact-inspector.php:179
+msgid "The stored theme artifact is no longer available."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-artifact-inspector.php:190
+msgid "The stored theme artifact version differs from the current theme version."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-artifact-inspector.php:200
+msgid "The stored theme artifact matches the current installed theme."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-artifact-inspector.php:228
+msgid "The stored plugin artifact is no longer available."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-artifact-inspector.php:239
+msgid "The stored plugin artifact version differs from the current plugin version."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-artifact-inspector.php:249
+msgid "The stored plugin artifact matches the current installed plugin."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-artifact-inspector.php:261
+msgid "One or more rollback artifacts are missing or invalid."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-artifact-inspector.php:265
+msgid "Rollback artifacts are present, but some differ from the current site state."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-artifact-inspector.php:268
+msgid "Stored rollback artifacts align with the current site state."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-export-manager.php:95
+msgid "Snapshot export JSON"
+msgstr ""
+
+#: includes/snapshots/class-snapshot-export-manager.php:137
+msgid "The stored snapshot export file is missing."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-export-manager.php:147
+msgid "The stored snapshot export file is not readable."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-export-manager.php:160
+msgid "The stored snapshot export file hash no longer matches the recorded payload."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-export-manager.php:171
+msgid "The stored snapshot export file is present and readable."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-maintenance.php:129
+msgid "Snapshot cleanup was skipped because another Sentinel operation is active."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-maintenance.php:213
+msgid "Old Sentinel log entries were removed according to retention settings."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-maintenance.php:245
+msgid "Old snapshot ZIP packages were removed according to retention settings."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-maintenance.php:278
+msgid "Old restore backup directories were removed according to retention settings."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-maintenance.php:301
+msgid "Abandoned restore stage directories were removed according to retention settings."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-maintenance.php:482
+msgid "One or more retained filesystem directories could not be removed."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-manager.php:122
+msgid "Snapshot creation was blocked because another Sentinel operation is active."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-manager.php:156
+msgid "Snapshot creation was blocked because available disk space is below the safe threshold."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-manager.php:203
+msgid "Snapshot export payload created."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-manager.php:213
+msgid "Snapshot export payload could not be created."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-manager.php:243
+msgid "Snapshot ZIP package created."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-manager.php:253
+msgid "Snapshot ZIP package could not be created."
+msgstr ""
+
+#. translators: %s = date/time
+#: includes/snapshots/class-snapshot-manager.php:298
+#, php-format
+msgid "Manual snapshot %s"
+msgstr ""
+
+#: includes/snapshots/class-snapshot-manager.php:301
+msgid "Metadata snapshot captured before manual review or update activity."
+msgstr ""
+
+#. translators: 1: target label, 2: timestamp
+#: includes/snapshots/class-snapshot-manager.php:426
+#, php-format
+msgid "Pre-update checkpoint: %1$s %2$s"
+msgstr ""
+
+#. translators: %s: timestamp
+#: includes/snapshots/class-snapshot-manager.php:435
+#, php-format
+msgid "Pre-update plugins checkpoint %s"
+msgstr ""
+
+#. translators: %s: timestamp
+#: includes/snapshots/class-snapshot-manager.php:443
+#, php-format
+msgid "Pre-update themes checkpoint %s"
+msgstr ""
+
+#. translators: %s: timestamp
+#: includes/snapshots/class-snapshot-manager.php:450
+#, php-format
+msgid "Pre-update code checkpoint %s"
+msgstr ""
+
+#. translators: 1: source screen label, 2: target label
+#: includes/snapshots/class-snapshot-manager.php:469
+#, php-format
+msgid "Checkpoint captured from the %1$s before updating %2$s."
+msgstr ""
+
+#. translators: %s: source screen label
+#: includes/snapshots/class-snapshot-manager.php:478
+#, php-format
+msgid "Checkpoint captured from the %s before a plugin update window."
+msgstr ""
+
+#. translators: %s: source screen label
+#: includes/snapshots/class-snapshot-manager.php:486
+#, php-format
+msgid "Checkpoint captured from the %s before a theme update window."
+msgstr ""
+
+#. translators: %s: source screen label
+#: includes/snapshots/class-snapshot-manager.php:493
+#, php-format
+msgid "Checkpoint captured from the %s before a mixed plugin and theme update window."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-manager.php:522
+msgid "plugins update screen"
+msgstr ""
+
+#: includes/snapshots/class-snapshot-manager.php:526
+msgid "themes update screen"
+msgstr ""
+
+#: includes/snapshots/class-snapshot-manager.php:533
+msgid "update workflow"
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:139
+msgid "Snapshot rollback ZIP"
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:173
+msgid "The stored snapshot ZIP package is missing."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:183
+msgid "The ZipArchive extension is unavailable, so the snapshot ZIP package cannot be inspected."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:196
+msgid "The stored snapshot ZIP package hash no longer matches the recorded payload."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:211
+msgid "The stored snapshot ZIP package could not be opened."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:229
+msgid "The stored snapshot ZIP package is missing required manifest files."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:255
+msgid "The stored snapshot ZIP package is present, readable, and matches its checksum manifest."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:279
+msgid "The snapshot ZIP package could not be validated."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:291
+msgid "The snapshot ZIP package could not be opened for dry-run validation."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:297
+msgid "Snapshot manifest entry"
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:298
+msgid "Artifact manifest entry"
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:299
+msgid "Checksum manifest entry"
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:307
+msgid "Theme payload"
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:346
+msgid "The snapshot ZIP package failed restore dry-run validation."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:348
+msgid "The snapshot ZIP package passed basic dry-run checks with warnings."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:349
+msgid "The snapshot ZIP package passed restore dry-run validation."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:513
+#: includes/snapshots/class-snapshot-package-manager.php:532
+#: includes/snapshots/class-snapshot-package-manager.php:539
+msgid "Checksum manifest validation"
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:515
+msgid "The package checksum manifest is missing or invalid."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:534
+msgid "One or more package entries do not match the stored checksum manifest."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:541
+msgid "Package entries match the stored checksum manifest."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:558
+msgid "The stored snapshot ZIP package does not include a readable checksum manifest."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:569
+msgid "The stored checksum manifest no longer matches the recorded package metadata."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:582
+msgid "The stored checksum manifest is not valid JSON."
+msgstr ""
+
+#: includes/snapshots/class-snapshot-package-manager.php:589
+msgid "The stored checksum manifest is present and readable."
+msgstr ""
+
+#. translators: %s = archive path
+#: includes/snapshots/class-snapshot-package-manager.php:611
+#, php-format
+msgid "Missing required package entry: %s"
+msgstr ""
+
+#. translators: %s = archive path
+#: includes/snapshots/class-snapshot-package-manager.php:622
+#, php-format
+msgid "Found package entry: %s"
+msgstr ""
+
+#. translators: %s = archive directory
+#: includes/snapshots/class-snapshot-package-manager.php:646
+#, php-format
+msgid "Found package payload under %s"
+msgstr ""
+
+#. translators: %s = archive directory
+#: includes/snapshots/class-snapshot-package-manager.php:658
+#, php-format
+msgid "Missing package payload under %s"
+msgstr ""
+
+#. translators: %s = plugin name
+#: includes/snapshots/class-snapshot-package-manager.php:681
+#: includes/snapshots/class-snapshot-package-manager.php:692
+#, php-format
+msgid "Plugin payload: %s"
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:81
+#: includes/updates/class-preflight-checker.php:93
+msgid "Filesystem access"
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:83
+msgid "WordPress cannot reliably write to required directories for plugin updates."
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:95
+msgid "Required WordPress content directories appear writable."
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:109
+#: includes/updates/class-preflight-checker.php:118
+msgid "WP-Cron availability"
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:111
+msgid "WP-Cron is disabled. Scheduled diagnostics and staged background checks may not run automatically."
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:120
+msgid "WP-Cron is available for scheduled diagnostics."
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:147
+#: includes/updates/class-preflight-checker.php:160
+msgid "Pending updates"
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:149
+msgid "There are many pending updates. Consider staging changes in smaller batches."
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:162
+msgid "Pending update volume is within a manageable range."
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:183
+#: includes/updates/class-preflight-checker.php:195
+msgid "Active component load"
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:185
+msgid "The site has a high number of active plugins, which increases update and conflict risk."
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:197
+msgid "Active plugin count is within the current advisory threshold."
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:216
+#: includes/updates/class-preflight-checker.php:233
+msgid "Runtime versions"
+msgstr ""
+
+#. translators: %s = minimum PHP version
+#: includes/updates/class-preflight-checker.php:220
+#, php-format
+msgid "PHP is below Sentinel's required %s runtime baseline."
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:235
+msgid "WordPress and PHP versions meet the current advisory baseline for this plugin."
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:254
+msgid "Disk capacity"
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:277
+#: includes/updates/class-preflight-checker.php:289
+msgid "Maintenance state"
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:279
+msgid "The site appears to be in or near a maintenance/update lock state."
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:291
+msgid "No update lock or maintenance flag was detected."
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:322
+msgid "One or more blocking conditions were detected. Resolve them before attempting update workflows."
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:326
+msgid "The site is usable for manual review, but caution flags were found. Review the warnings before proceeding."
+msgstr ""
+
+#: includes/updates/class-preflight-checker.php:329
+msgid "No blocking conditions were found in this advisory preflight scan."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:80
+msgid "All snapshot component sources are still present on disk."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:81
+msgid "Some snapshot component sources require review before any future restore workflow."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:82
+msgid "One or more snapshot component sources are missing from disk."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:123
+msgid "Selected update targets have package metadata and local component sources available."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:124
+msgid "Selected update targets are usable for review, but source/package issues were detected."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:125
+msgid "One or more selected update targets are missing package metadata or local component sources."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:143
+#: includes/updates/class-source-validator.php:154
+msgid "Snapshot theme source"
+msgstr ""
+
+#: includes/updates/class-source-validator.php:145
+msgid "The theme recorded in the snapshot is not currently available on disk."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:156
+msgid "The snapshot theme is available on disk."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:173
+#: includes/updates/class-source-validator.php:182
+msgid "Snapshot component manifest"
+msgstr ""
+
+#: includes/updates/class-source-validator.php:175
+msgid "The snapshot does not include a stored component manifest for rollback artifact review."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:184
+msgid "The snapshot includes stored component manifest data."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:201
+#: includes/updates/class-source-validator.php:210
+msgid "Snapshot artifact records"
+msgstr ""
+
+#: includes/updates/class-source-validator.php:203
+msgid "No dedicated rollback artifact records were stored for this snapshot. Falling back to metadata checks."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:212
+msgid "Dedicated rollback artifact records are available for this snapshot."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:245
+#: includes/updates/class-source-validator.php:265
+msgid "Snapshot plugin sources"
+msgstr ""
+
+#. translators: %d = number of missing plugins
+#: includes/updates/class-source-validator.php:249
+#, php-format
+msgid "%d snapshot plugin source is missing from disk."
+msgid_plural "%d snapshot plugin sources are missing from disk."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/updates/class-source-validator.php:267
+msgid "All snapshot plugins are still available on disk."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:284
+#: includes/updates/class-source-validator.php:322
+#: includes/updates/class-source-validator.php:333
+msgid "Stored artifact manifest"
+msgstr ""
+
+#: includes/updates/class-source-validator.php:286
+msgid "No stored artifact manifest is available for deeper rollback validation."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:324
+msgid "Components recorded in the stored artifact manifest are no longer fully available."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:335
+msgid "Components recorded in the stored artifact manifest are still available."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:386
+#: includes/updates/class-source-validator.php:397
+msgid "Stored rollback artifacts"
+msgstr ""
+
+#: includes/updates/class-source-validator.php:388
+msgid "Some dedicated rollback artifact records point to components that are no longer available."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:399
+msgid "All dedicated rollback artifact records still resolve to available components."
+msgstr ""
+
+#. translators: %s = plugin name
+#: includes/updates/class-source-validator.php:428
+#: includes/updates/class-source-validator.php:446
+#, php-format
+msgid "Plugin source: %s"
+msgstr ""
+
+#: includes/updates/class-source-validator.php:432
+msgid "The selected plugin is missing local files or update package metadata."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:450
+msgid "Local plugin files and update package metadata are available."
+msgstr ""
+
+#. translators: %s = theme name
+#: includes/updates/class-source-validator.php:480
+#: includes/updates/class-source-validator.php:498
+#, php-format
+msgid "Theme source: %s"
+msgstr ""
+
+#: includes/updates/class-source-validator.php:484
+msgid "The selected theme is missing local files or update package metadata."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:502
+msgid "Local theme files and update package metadata are available."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:518
+#: includes/updates/class-update-planner.php:198
+msgid "WordPress Core"
+msgstr ""
+
+#. translators: %s = component label
+#: includes/updates/class-source-validator.php:538
+#: includes/updates/class-source-validator.php:553
+#, php-format
+msgid "Core source: %s"
+msgstr ""
+
+#: includes/updates/class-source-validator.php:542
+msgid "WordPress core update package metadata is not available."
+msgstr ""
+
+#: includes/updates/class-source-validator.php:557
+msgid "WordPress core package metadata is available."
+msgstr ""
+
+#: includes/updates/class-update-planner.php:83
+msgid "Manual update review plan was empty."
+msgstr ""
+
+#: includes/updates/class-update-planner.php:250
+msgid "Manual review plan created, but one or more selected targets are missing source or package readiness."
+msgstr ""
+
+#: includes/updates/class-update-planner.php:254
+msgid "Manual review plan created with cautionary source/package signals."
+msgstr ""
+
+#: includes/updates/class-update-planner.php:257
+msgid "Manual review plan created. This does not execute updates."
+msgstr ""

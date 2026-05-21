@@ -1,153 +1,103 @@
-=== Zignites Sentinel ===
+=== Zignites Sentinel - Safe Update Checkpoints & Rollback ===
 Contributors: zignites
 Tags: rollback, restore, checkpoint, plugins, theme
 Requires at least: 6.5
-Tested up to: 6.8
+Tested up to: 7.0
 Requires PHP: 8.0
 Stable tag: 1.33.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Safe Update Checkpoints and Rollback for WordPress plugin/theme code changes.
+Safe-update checkpoints and validated code rollback for WordPress plugin and theme updates. Built for developers and agencies.
 
 == Description ==
 
-Zignites Sentinel provides Safe Update Checkpoints and Rollback for WordPress.
+**Stop fearing the Update button.**
 
-It is built for agencies, freelancers, and production site maintainers who need a safer plugin/theme update workflow.
+A plugin or theme update can break a live site in seconds. Zignites Sentinel gives you a fast, surgical way to undo it - without restoring an entire full-site backup.
 
-Use it to:
+Before you update, Sentinel captures a **checkpoint** of your active plugins and active theme. If the update breaks the code layer, you restore that checkpoint and your site is back. If the restore itself goes wrong, you roll it back.
 
-* create a checkpoint of the active theme and active plugins before updates
-* validate that checkpoint before you rely on it
-* restore that checkpoint if an update breaks the code layer
-* roll back the last restore if needed
+Sentinel is not another full-backup plugin. It is a focused **update-safety workflow**: checkpoint the code, *prove the checkpoint actually works* before you trust it, then restore in minutes if you need to - with a full audit trail you can hand to a client.
 
-= Why Use Sentinel =
+= The 3-step workflow =
 
-* It is built for plugin and theme update operations, not full-site disaster recovery
-* It gives technical WordPress teams a focused safe-update checkpoint workflow alongside full-site backup tools
-* It emphasizes validation before restore, not just checkpoint creation
-* It keeps the operator focused on the next safe step
+1. **Checkpoint** - Capture the active theme and active plugins right before an update window.
+2. **Validate** - Run the built-in dry-run and staged validation so you *know* the checkpoint is restorable. Most tools skip this step. Sentinel makes it the point.
+3. **Restore** - If the update breaks the site, restore the checkpoint. Restore is operator-driven and gated by current validation evidence plus an explicit confirmation phrase.
 
-= What Sentinel Restores =
+= Why developers and agencies use Sentinel =
+
+* **Validation before restore.** A checkpoint you cannot verify is not a safety net. Sentinel keeps validation in front of every restore.
+* **Code-layer focus.** It restores exactly what plugin and theme updates change - nothing more - so recovery is fast and predictable.
+* **An audit trail for client work.** Every checkpoint, restore, and rollback is logged. Review it in History or export it as CSV for client handoff.
+* **Reliability controls built in.** A shared operation lock prevents overlapping heavy operations. Disk-space preflight blocks unsafe runs before they start. Retention cleanup keeps stored artifacts under control.
+* **Resumable restores.** Live restore and rollback are journaled per item, so an interrupted operation can be safely resumed instead of restarted.
+
+= What Sentinel restores =
 
 * Active plugins
 * Active theme
 
-= What Sentinel Does Not Restore =
+= What Sentinel does NOT do =
 
-* Database
+Sentinel is deliberately narrow. It is **not** a replacement for a full backup solution. It does not restore:
+
+* The database
 * Uploads or media
 * WordPress core
-* WooCommerce order/payment state
-* Malware detection or cleanup
+* WooCommerce order, payment, cart, or session state
 
-Use a full backup solution for full-site recovery and a dedicated security cleanup tool for infected sites.
+It is also not a malware scanner, firewall, or cleanup tool. Use a full backup solution for complete site recovery, and a dedicated security tool for infected sites.
 
-= Who It Is For =
+= Who it is for =
 
-* Developers
-* Technical site maintainers
-* Agencies managing risky plugin and theme updates
+* WordPress developers
+* Agencies maintaining client sites
+* Technical site maintainers who run deliberate, batched plugin and theme updates
 
-= Best Fit Use Cases =
+= WooCommerce guardrails =
 
-* Preparing for risky plugin or theme updates on client sites
-* Keeping a code-layer rollback path before maintenance windows
-* Giving technical operators a narrower safe-update workflow than a full backup suite
+When WooCommerce is active, Sentinel surfaces stronger update-window warnings, because store updates can change orders, payments, carts, sessions, scheduled actions, and database schema that live *outside* code-layer rollback coverage.
 
-= What Sentinel Is Not =
+WooCommerce Safe Update Mode encourages a low-traffic maintenance window, active cart/order review where detectable, and external database backup confirmation before WooCommerce or extension updates. These guardrails reduce false confidence - they do not turn Sentinel into a WooCommerce database or order/payment rollback system.
 
-* Not a full backup plugin
-* Not a disaster recovery system
-* Not an off-site backup service
-* Not an atomic restore engine
-* Not a malware scanner, firewall, or cleanup tool
-* Not a WooCommerce order/payment rollback system
+= Team alerts =
 
-= Typical Workflow =
+Sentinel can notify your team when key events happen (checkpoint created, restore started, restore failed, rollback completed, health check failed) through generic webhooks, Slack, Microsoft Teams, Discord, or Telegram.
 
-1. Open **Sentinel > Before Update**.
-2. Create a checkpoint before plugin or theme updates.
-3. Run the validation steps before trusting that checkpoint.
-4. Restore it only if the update breaks the active code layer.
-5. Review **Sentinel > History** to confirm what happened.
+= Artifact storage and protection =
 
-= Restore Workflow Safeguards =
+Sentinel stores checkpoint packages, exports, temporary stage files, and restore backups under a protected `wp-content/uploads/zignites-sentinel/` directory. It adds `index.php`, `.htaccess`, and `web.config` guard files to reduce direct web access on common Apache and IIS setups.
 
-* Restore is meant to be operator-driven, not fire-and-forget
-* Sentinel keeps validation steps in front of the restore action so teams can check readiness before touching live code
-* Live restore is gated by current validation evidence and an explicit confirmation phrase
-* Rollback is available for the last restore when the related backup context still exists
+This is not a perfect guarantee on every stack. If your host serves uploads directly without honoring `.htaccess` or `web.config` (some Nginx, CDN, or object-storage setups), apply server-level deny rules as well. The Dashboard runs an artifact exposure probe and reports whether the artifact path appears blocked, publicly readable, or inconclusive.
 
-= WooCommerce Guardrails =
-
-When WooCommerce is active, Sentinel surfaces stronger update-window warnings because store updates can change orders, payments, carts, sessions, scheduled actions, database migrations, and schema outside code-layer rollback coverage.
-
-WooCommerce Safe Update Mode encourages a low-traffic maintenance window, active cart/order review where detectable, and external database backup confirmation before WooCommerce or extension updates. These guardrails reduce false confidence, but they do not make Sentinel a WooCommerce database or order/payment rollback system.
-
-= Artifact and Backup Handling =
-
-* Checkpoint exports, rollback packages, staged validation files, and restore backups are stored under `uploads/zignites-sentinel/`
-* Sentinel writes guard files for common Apache and IIS setups to reduce direct web access to those artifacts
-* During restore, Sentinel backs up the existing plugin and theme payloads it is about to replace
-* Those backups are part of the narrow restore workflow, not a substitute for a full off-site backup strategy
-
-= Artifact Storage Protection =
-
-Sentinel stores checkpoint packages, exports, temporary stage files, and restore backups under a protected `uploads/zignites-sentinel/` directory.
-
-It adds:
-
-* `index.php` guards
-* `.htaccess` deny rules for Apache hosts
-* `web.config` deny rules for IIS hosts
-
-This reduces direct web access and directory listing on common hosting setups, but it is not a perfect guarantee on every stack.
-
-If your host serves uploads directly without honoring `.htaccess` or `web.config`, sensitive artifact files may still be reachable by URL. For stronger protection, use server-level deny rules or a hosting setup that does not expose these uploads paths publicly.
-
-The Dashboard also runs an artifact exposure probe against a temporary token file and reports whether the uploads-backed artifact path appears blocked, publicly readable, or inconclusive. Inconclusive results should be reviewed at the host, Nginx, CDN, or object-storage layer.
-
-Checkpoint packages and exports can contain plugin/theme source code, configuration files, license keys, API tokens, or other secrets stored inside the active code layer. Treat generated artifacts and exported logs as sensitive operational data.
-
-= Reliability Controls =
-
-Sentinel uses a shared operation lock for checkpoint, package, staging, restore, rollback, and cleanup workflows so overlapping heavy operations are blocked safely.
-
-Before checkpoint and restore work starts, Sentinel estimates required disk space for packages, staging, live backups, and rollback payloads. Operations are blocked when available space is below the safe threshold.
-
-Retention settings cover event logs, snapshot records, package ZIPs, restore backups, and abandoned stage directories. Cleanup runs through scheduled maintenance while preserving active resume checkpoints.
+Checkpoint packages and exports can contain plugin/theme source code, configuration files, license keys, or API tokens stored inside the active code layer. Treat generated artifacts and exported logs as sensitive operational data.
 
 == Installation ==
 
-1. Upload the plugin to `/wp-content/plugins/` or install it through the WordPress admin.
+1. Upload the plugin to `/wp-content/plugins/`, or install it through the WordPress admin.
 2. Activate **Zignites Sentinel**.
 3. Open **Sentinel > Before Update**.
-4. Create a checkpoint before plugin or theme updates.
+4. Create a checkpoint before your next plugin or theme update.
 
 == Frequently Asked Questions ==
 
 = What should I do first? =
 
-Create a checkpoint before risky plugin or theme updates. Then run the built-in validation steps so you know whether that checkpoint is usable for restore.
+Open **Sentinel > Before Update** and create a checkpoint immediately before a risky plugin or theme update. Then run the built-in validation steps so you know the checkpoint is usable for restore.
 
 = When should I create a checkpoint? =
 
-Create it immediately before the plugin or theme update window you want covered. A checkpoint created much earlier may no longer represent the live code state you are about to change.
+Right before the update window you want covered. A checkpoint created much earlier may no longer represent the live code you are about to change.
 
-= Do I need to run validation before restore? =
+= Do I need to validate before restoring? =
 
-Yes. Sentinel is designed around validation before restore so you can confirm the checkpoint package, staging flow, and restore plan are still current before writing back to live plugin or theme paths.
+Yes - that is the core idea. Sentinel keeps a dry-run and staged validation in front of restore so you can confirm the checkpoint package and restore plan are still current before writing back to live plugin or theme paths.
 
 = Is Sentinel a replacement for my backup plugin? =
 
-No. Sentinel is a narrow safe-update checkpoint and rollback tool for active plugins and the active theme. Use a full backup solution for database, media, WooCommerce order/payment state, and full-site recovery.
-
-= What does Sentinel restore? =
-
-Sentinel restores the active theme and active plugins captured in a checkpoint.
+No. Sentinel is a narrow safe-update checkpoint and rollback tool for active plugins and the active theme. Use a full backup solution for the database, media, WooCommerce order/payment state, and full-site recovery.
 
 = Does Sentinel restore the database, media library, or WooCommerce orders? =
 
@@ -157,21 +107,21 @@ No. Sentinel does not restore the database, uploads/media, WordPress core, or Wo
 
 No. Sentinel is not a malware scanner, firewall, or cleanup tool.
 
-= Is Sentinel a full backup plugin? =
+= What happens if a restore is interrupted? =
 
-No. Use a full backup solution for complete site recovery.
+Live restore and rollback are journaled per item. An interrupted operation can be resumed from where it stopped instead of restarted, and Sentinel backs up the existing payload before replacing it.
 
 = Where does Sentinel store checkpoint packages and restore backups? =
 
-Sentinel stores them under `wp-content/uploads/zignites-sentinel/`. It also adds common guard files such as `index.php`, `.htaccess`, and `web.config` where relevant, but you should still treat those artifacts as sensitive operational files.
+Under `wp-content/uploads/zignites-sentinel/`. Sentinel adds `index.php`, `.htaccess`, and `web.config` guard files where relevant, but you should still treat those artifacts as sensitive operational files.
 
 = What should I review after a restore or rollback? =
 
-Open **Sentinel > History** to review the recorded events, then confirm the site behaves as expected. Sentinel helps with the code-layer rollback workflow, but it does not replace normal post-change verification.
+Open **Sentinel > History** to review the recorded events, then confirm the site behaves as expected. Sentinel covers the code-layer rollback workflow; it does not replace normal post-change verification.
 
 == Screenshots ==
 
-1. Dashboard showing the latest checkpoint, next step, restore boundary guidance, and WooCommerce guardrails when relevant.
+1. Dashboard showing the latest checkpoint, next safe step, restore boundary guidance, and WooCommerce guardrails when relevant.
 2. Before Update showing first-run checkpoint guidance and checkpoint creation.
 3. Before Update showing validation, WooCommerce Safe Update Mode, restore, and rollback actions for a selected checkpoint.
 4. History showing filtered activity review and CSV export for the current view.
@@ -184,6 +134,8 @@ Open **Sentinel > History** to review the recorded events, then confirm the site
 * Added WooCommerce Safe Update Mode acknowledgements for maintenance windows, active cart/order review, and external database backup confirmation.
 * Added WooCommerce-specific report lines so client handoff notes state the order/payment/database rollback boundary clearly.
 * Extended update-screen notices, Dashboard guidance, and Before Update guidance to avoid false confidence on WooCommerce stores.
+* Hardened CSV log exports against spreadsheet formula injection.
+* Added private/reserved network address validation for outbound alert webhooks.
 
 = 1.32.0 =
 
@@ -197,7 +149,7 @@ Open **Sentinel > History** to review the recorded events, then confirm the site
 
 = 1.33.0 =
 
-Sentinel now adds WooCommerce-specific guardrails for store update windows while keeping the same narrow plugin/theme code rollback boundary.
+Adds WooCommerce-specific update-window guardrails and hardens CSV exports and outbound webhooks, while keeping the same narrow plugin/theme code rollback boundary.
 
 = 1.32.0 =
 

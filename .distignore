@@ -2,6 +2,7 @@
 .gitignore
 .distignore
 build/
+includes/platform/
 README.md
 implementation-plan.md
 manual-smoke-checklist.md

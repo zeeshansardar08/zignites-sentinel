@@ -2020,7 +2020,7 @@ class UpdateReadinessStateBuilder {
 			$args['snapshot_id'] = (int) $snapshot_detail['id'];
 		}
 
-		return add_query_arg( $args, admin_url( 'admin.php' ) );
+		return add_query_arg( $args, znts_admin_url( 'admin.php' ) );
 	}
 
 	/**
@@ -2056,7 +2056,7 @@ class UpdateReadinessStateBuilder {
 		}
 
 		return array(
-			'base'      => add_query_arg( $base_args + array( 'snapshot_paged' => '%#%' ), admin_url( 'admin.php' ) ),
+			'base'      => add_query_arg( $base_args + array( 'snapshot_paged' => '%#%' ), znts_admin_url( 'admin.php' ) ),
 			'format'    => '',
 			'current'   => isset( $snapshot_pagination['current_page'] ) ? max( 1, (int) $snapshot_pagination['current_page'] ) : 1,
 			'total'     => $total_pages,
@@ -2078,7 +2078,7 @@ class UpdateReadinessStateBuilder {
 				'page'        => 'zignites-sentinel-update-readiness',
 				'snapshot_id' => (int) $snapshot_id,
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 	}
 
@@ -2404,7 +2404,7 @@ class UpdateReadinessStateBuilder {
 				'source' => (string) $source,
 				'run_id' => (string) $run_id,
 			),
-			admin_url( 'admin.php' )
+			znts_admin_url( 'admin.php' )
 		);
 	}
 
