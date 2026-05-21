@@ -68,7 +68,7 @@ class SnapshotPackageManager {
 			return null;
 		}
 
-		$relative_path = trailingslashit( self::PACKAGE_DIRECTORY ) . 'snapshot-' . $snapshot_id . '.zip';
+		$relative_path = trailingslashit( self::PACKAGE_DIRECTORY ) . 'snapshot-' . $snapshot_id . '-' . wp_generate_password( 20, false, false ) . '.zip';
 		$absolute_path = $this->resolve_package_path( $relative_path );
 
 		if ( empty( $absolute_path ) ) {

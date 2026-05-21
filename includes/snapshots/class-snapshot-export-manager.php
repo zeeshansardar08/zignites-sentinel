@@ -64,7 +64,7 @@ class SnapshotExportManager {
 			return null;
 		}
 
-		$relative_path = trailingslashit( self::EXPORT_DIRECTORY ) . 'snapshot-' . $snapshot_id . '.json';
+		$relative_path = trailingslashit( self::EXPORT_DIRECTORY ) . 'snapshot-' . $snapshot_id . '-' . wp_generate_password( 20, false, false ) . '.json';
 		$absolute_path = $this->resolve_export_path( $relative_path );
 
 		if ( empty( $absolute_path ) ) {

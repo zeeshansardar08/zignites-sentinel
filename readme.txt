@@ -136,6 +136,7 @@ Open **Sentinel > History** to review the recorded events, then confirm the site
 * Extended update-screen notices, Dashboard guidance, and Before Update guidance to avoid false confidence on WooCommerce stores.
 * Hardened CSV log exports against spreadsheet formula injection.
 * Added private/reserved network address validation for outbound alert webhooks.
+* Randomized stored package, export, staging, and restore-backup paths so artifacts cannot be guessed or enumerated by URL.
 
 = 1.32.0 =
 
