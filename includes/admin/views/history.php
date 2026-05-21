@@ -113,9 +113,10 @@ $admin_page_url     = \Zignites\Sentinel\Admin\znts_admin_url( 'admin.php' );
 					</thead>
 					<tbody>
 						<?php foreach ( $recent_logs as $log ) : ?>
-							<tr>
+							<?php $severity_pill = isset( $log['severity_pill'] ) && '' !== $log['severity_pill'] ? sanitize_html_class( (string) $log['severity_pill'] ) : 'info'; ?>
+							<tr class="znts-log-row-<?php echo esc_attr( $severity_pill ); ?>">
 								<td><a href="<?php echo esc_url( add_query_arg( array_merge( $base_args, array( 'paged' => $current_page, 'log_id' => (int) $log['id'] ) ), $admin_page_url ) ); ?>"><?php echo esc_html( isset( $log['created_at'] ) ? $log['created_at'] : '' ); ?></a></td>
-								<td><span class="znts-pill znts-pill-<?php echo esc_attr( isset( $log['severity_pill'] ) ? $log['severity_pill'] : 'info' ); ?>"><?php echo esc_html( isset( $log['severity_label'] ) ? $log['severity_label'] : '' ); ?></span></td>
+								<td><span class="znts-pill znts-pill-dot znts-pill-<?php echo esc_attr( $severity_pill ); ?>"><?php echo esc_html( isset( $log['severity_label'] ) ? $log['severity_label'] : '' ); ?></span></td>
 								<td><?php echo esc_html( isset( $log['event_type'] ) ? $log['event_type'] : '' ); ?></td>
 								<td><?php echo esc_html( isset( $log['source'] ) ? $log['source'] : '' ); ?></td>
 								<td><?php echo esc_html( isset( $log['message'] ) ? $log['message'] : '' ); ?></td>

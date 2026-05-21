@@ -116,24 +116,28 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 		<?php endif; ?>
 
 		<?php if ( ! empty( $workspace_help_panels ) ) : ?>
-			<section class="znts-card znts-card-full znts-card-flat">
-				<h2><?php echo esc_html__( 'How Sentinel Works', 'zignites-sentinel' ); ?></h2>
-				<div class="znts-summary-strip">
-					<?php foreach ( $workspace_help_panels as $panel ) : ?>
-						<div class="znts-summary-item">
-							<span><?php echo esc_html( isset( $panel['title'] ) ? $panel['title'] : '' ); ?></span>
-							<p><?php echo esc_html( isset( $panel['body'] ) ? $panel['body'] : '' ); ?></p>
-						</div>
-					<?php endforeach; ?>
+			<details class="znts-disclosure">
+				<summary><?php echo esc_html__( 'How Sentinel Works', 'zignites-sentinel' ); ?></summary>
+				<div class="znts-disclosure-body">
+					<div class="znts-summary-strip">
+						<?php foreach ( $workspace_help_panels as $panel ) : ?>
+							<div class="znts-summary-item">
+								<span><?php echo esc_html( isset( $panel['title'] ) ? $panel['title'] : '' ); ?></span>
+								<p><?php echo esc_html( isset( $panel['body'] ) ? $panel['body'] : '' ); ?></p>
+							</div>
+						<?php endforeach; ?>
+					</div>
 				</div>
-			</section>
+			</details>
 		<?php endif; ?>
 
 		<?php if ( ! empty( $workspace_positioning_note ) ) : ?>
-			<section class="znts-card znts-card-full znts-card-flat">
-				<h2><?php echo esc_html( isset( $workspace_positioning_note['title'] ) ? $workspace_positioning_note['title'] : __( 'What Sentinel is designed to do', 'zignites-sentinel' ) ); ?></h2>
-				<p><?php echo esc_html( isset( $workspace_positioning_note['body'] ) ? $workspace_positioning_note['body'] : '' ); ?></p>
-			</section>
+			<details class="znts-disclosure">
+				<summary><?php echo esc_html( isset( $workspace_positioning_note['title'] ) ? $workspace_positioning_note['title'] : __( 'What Sentinel is designed to do', 'zignites-sentinel' ) ); ?></summary>
+				<div class="znts-disclosure-body">
+					<p><?php echo esc_html( isset( $workspace_positioning_note['body'] ) ? $workspace_positioning_note['body'] : '' ); ?></p>
+				</div>
+			</details>
 		<?php endif; ?>
 
 		<?php if ( ! empty( $woocommerce_guardrails['active'] ) ) : ?>
@@ -179,25 +183,27 @@ $can_resume_rollback    = ! empty( $restore_form_state['can_resume_rollback'] );
 		<?php endif; ?>
 
 		<?php if ( ! empty( $readiness_history_empty_state ) || ! empty( $restore_history_empty_state ) ) : ?>
-			<section class="znts-card znts-card-full znts-card-flat">
-				<h2><?php echo esc_html__( 'Adoption Guide', 'zignites-sentinel' ); ?></h2>
-				<div class="znts-summary-strip">
-					<?php if ( ! empty( $readiness_history_empty_state ) ) : ?>
-						<div class="znts-summary-item">
-							<span><?php echo esc_html( isset( $readiness_history_empty_state['title'] ) ? $readiness_history_empty_state['title'] : '' ); ?></span>
-							<p><?php echo esc_html( isset( $readiness_history_empty_state['description'] ) ? $readiness_history_empty_state['description'] : '' ); ?></p>
-							<p><?php echo esc_html( isset( $readiness_history_empty_state['next_step'] ) ? $readiness_history_empty_state['next_step'] : '' ); ?></p>
-						</div>
-					<?php endif; ?>
-					<?php if ( ! empty( $restore_history_empty_state ) ) : ?>
-						<div class="znts-summary-item">
-							<span><?php echo esc_html( isset( $restore_history_empty_state['title'] ) ? $restore_history_empty_state['title'] : '' ); ?></span>
-							<p><?php echo esc_html( isset( $restore_history_empty_state['description'] ) ? $restore_history_empty_state['description'] : '' ); ?></p>
-							<p><?php echo esc_html( isset( $restore_history_empty_state['next_step'] ) ? $restore_history_empty_state['next_step'] : '' ); ?></p>
-						</div>
-					<?php endif; ?>
+			<details class="znts-disclosure" open>
+				<summary><?php echo esc_html__( 'Adoption Guide', 'zignites-sentinel' ); ?></summary>
+				<div class="znts-disclosure-body">
+					<div class="znts-summary-strip">
+						<?php if ( ! empty( $readiness_history_empty_state ) ) : ?>
+							<div class="znts-summary-item">
+								<span><?php echo esc_html( isset( $readiness_history_empty_state['title'] ) ? $readiness_history_empty_state['title'] : '' ); ?></span>
+								<p><?php echo esc_html( isset( $readiness_history_empty_state['description'] ) ? $readiness_history_empty_state['description'] : '' ); ?></p>
+								<p><?php echo esc_html( isset( $readiness_history_empty_state['next_step'] ) ? $readiness_history_empty_state['next_step'] : '' ); ?></p>
+							</div>
+						<?php endif; ?>
+						<?php if ( ! empty( $restore_history_empty_state ) ) : ?>
+							<div class="znts-summary-item">
+								<span><?php echo esc_html( isset( $restore_history_empty_state['title'] ) ? $restore_history_empty_state['title'] : '' ); ?></span>
+								<p><?php echo esc_html( isset( $restore_history_empty_state['description'] ) ? $restore_history_empty_state['description'] : '' ); ?></p>
+								<p><?php echo esc_html( isset( $restore_history_empty_state['next_step'] ) ? $restore_history_empty_state['next_step'] : '' ); ?></p>
+							</div>
+						<?php endif; ?>
+					</div>
 				</div>
-			</section>
+			</details>
 		<?php endif; ?>
 
 		<section id="znts-safe-update-window" class="znts-card znts-card-full znts-card-primary">
